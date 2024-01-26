@@ -1,4 +1,16 @@
+using FluentValidation.AspNetCore;
+using synthesis.api.Exceptions;
+
 var builder = WebApplication.CreateBuilder(args);
+
+
+builder.Services.ConfigureCors();
+builder.Services.ConfigurePostgresContext(builder.Configuration);
+
+builder.Services.AddAutoMapper(typeof(Program));
+builder.Services.AddFluentValidationAutoValidation(opt => { });
+
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -17,5 +29,7 @@ app.UseHttpsRedirection();
 app.UseAuthorization();
 
 app.MapControllers();
+
+app.UseExceptionHandler(opt => { });
 
 app.Run();
