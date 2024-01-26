@@ -30,8 +30,18 @@ public class UsersController : ControllerBase
     {
         var response = await _service.UpdateUser(id, userUpdate);
         if (!response.IsSuccess) return BadRequest(response);
-        
-        return Ok(response);
+
+        return NoContent();
+    }
+
+    [HttpDelete("{id:guid}")]
+    public async Task<IActionResult> DeleteUser(Guid id)
+    {
+        var response = await _service.DeleteUser(id);
+        if (!response.IsSuccess) return BadRequest(response);
+
+        return NoContent();
+
     }
 
 

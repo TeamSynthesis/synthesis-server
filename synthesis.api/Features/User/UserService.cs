@@ -12,6 +12,8 @@ public interface IUserService
 
     Task<Response<UserDto>> UpdateUser(Guid id, [FromBody] UpdateUserDto updateRequest);
 
+    Task<Response<UserDto>> DeleteUser(Guid id);
+
 }
 
 public class UserService : IUserService
@@ -48,6 +50,17 @@ public class UserService : IUserService
         return new Response<UserDto>(true, "user update success");
 
 
+    }
+
+    public async Task<Response<UserDto>> DeleteUser(Guid id)
+    {
+        var user = await _repository.Users.FindAsync(id);
+        if (user == null) return new Response<UserDto>(false, "delete user failed", errors: [$"user with id{id} not found"]);
+
+        _repository.Users.Remove(user);
+        _repository.SaveChanges();
+
+        return new Response<UserDto>(true, "delete user success");
     }
 }
 //ae8bf7fb-7295-4169-bf3a-6f2324c3655c

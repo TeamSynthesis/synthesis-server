@@ -19,6 +19,6 @@ public class AuthController : ControllerBase
 
         if (!response.IsSuccess) return BadRequest(response);
 
-        return Ok(response);
+        return Created("",value:response);
     }
 }
