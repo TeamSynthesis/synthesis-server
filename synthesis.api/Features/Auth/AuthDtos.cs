@@ -1,12 +1,2 @@
 namespace synthesis.api.Features.Auth;
-public record RegisterUserDto
-{
-
-    public string? FirstName { get; set; }
-    public string? LastName { get; set; }
-    public string? UserName { get; set; }
-    public string? AvatarUrl { get; set; }
-    public string? Email { get; set; }
-    public string? Password { get; set; }
-
-}
+public record RegisterUserDto(string FirstName, string LastName, string Username, string AvatarUrl, string Email);

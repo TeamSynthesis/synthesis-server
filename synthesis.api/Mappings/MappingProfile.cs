@@ -7,12 +7,16 @@ namespace synthesis.api.Mappings;
 
 public class MappingProfile : Profile
 {
-    //user
     public MappingProfile()
     {
+        //user
         CreateMap<UserDto, UserModel>().ReverseMap();
         CreateMap<RegisterUserDto, UserModel>();
         CreateMap<UpdateUserDto, UserModel>().ReverseMap();
+
+        //organisation
+        CreateMap<OrganisationDto, OrganisationModel>().ReverseMap();
+        CreateMap<CreateOrganisationDto, OrganisationModel>();
     }
 
 }

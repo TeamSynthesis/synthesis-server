@@ -27,7 +27,9 @@ public class UserValidator : AbstractValidator<UserModel>
         .Matches(pattern).WithMessage("Username must start and end with alphanumeric characters, with optional special characters ( _.- )");
 
         RuleFor(u => u.AvatarUrl)
-        .Matches("[www].[A-Za-z].[com]");
+        .Matches("[A-Za-z]")
+        .When(u => !string.IsNullOrEmpty(u.AvatarUrl));
+
 
         RuleFor(u => u.Email)
         .NotNull().WithMessage("Email must not be empty")
