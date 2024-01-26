@@ -1,11 +1,13 @@
 using FluentValidation.AspNetCore;
 using synthesis.api.Exceptions;
+using synthesis.api.Features.Auth;
 
 var builder = WebApplication.CreateBuilder(args);
 
 
 builder.Services.ConfigureCors();
 builder.Services.ConfigurePostgresContext(builder.Configuration);
+builder.Services.AddScoped<IAuthService, AuthService>();
 
 builder.Services.AddAutoMapper(typeof(Program));
 builder.Services.AddFluentValidationAutoValidation(opt => { });
