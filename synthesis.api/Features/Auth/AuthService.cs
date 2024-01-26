@@ -1,6 +1,7 @@
 
 namespace synthesis.api.Features.Auth;
 
+using System.Text.Json.Serialization;
 using AutoMapper;
 using Microsoft.AspNetCore.Razor.TagHelpers;
 using synthesis.api.Data.Models;
@@ -25,20 +26,22 @@ public class AuthService : IAuthService
 
     public async Task<Response<UserDto>> RegisterUser(RegisterUserDto registerRequest)
     {
-        var validationResult = new RegisterUserDtoValidator().Validate(registerRequest);
 
+        var user = _mapper.Map<UserModel>(registerRequest);
+
+        var validationResult = new UserValidator().Validate(user);
 
         if (!validationResult.IsValid)
         {
             return new Response<UserDto>(false, "failed to register user", errors: validationResult.Errors.Select(e => e.ErrorMessage).ToList());
         }
 
-        var user = _mapper.Map<UserModel>(registerRequest);
-
         await _repository.Users.AddAsync(user);
         await _repository.SaveChangesAsync();
 
-        return new Response<UserDto>(true, "user registered successfully");
+        var userToReturn = _mapper.Map<UserDto>(user);
+
+        return new Response<UserDto>(true, "user registered successfully", value: userToReturn);
 
     }
 }

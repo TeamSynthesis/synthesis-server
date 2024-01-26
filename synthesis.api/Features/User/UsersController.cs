@@ -1,0 +1,39 @@
+using System.Reflection.Metadata.Ecma335;
+using Microsoft.AspNetCore.Mvc;
+using Npgsql.Internal;
+
+namespace synthesis.api.Features.User;
+
+[ApiController]
+[Route("api/[controller]")]
+public class UsersController : ControllerBase
+{
+    private readonly IUserService _service;
+
+    public UsersController(IUserService service)
+    {
+        _service = service;
+    }
+
+    [HttpGet("{id:guid}")]
+    public async Task<IActionResult> GetUserById(Guid id)
+    {
+        var response = await _service.GetUserById(id);
+
+        if (!response.IsSuccess) return BadRequest(response);
+
+        return Ok(response);
+    }
+
+    [HttpPut("{id:guid}")]
+    public async Task<IActionResult> UpdateUser(Guid id, [FromBody] UpdateUserDto userUpdate)
+    {
+        var response = await _service.UpdateUser(id, userUpdate);
+        if (!response.IsSuccess) return BadRequest(response);
+        
+        return Ok(response);
+    }
+
+
+
+}

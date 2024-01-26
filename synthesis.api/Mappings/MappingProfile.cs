@@ -12,6 +12,7 @@ public class MappingProfile : Profile
     {
         CreateMap<UserDto, UserModel>().ReverseMap();
         CreateMap<RegisterUserDto, UserModel>();
+        CreateMap<UpdateUserDto, UserModel>().ReverseMap();
     }
 
 }
