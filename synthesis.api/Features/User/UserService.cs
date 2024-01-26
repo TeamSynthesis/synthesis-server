@@ -1,5 +1,6 @@
 
 using AutoMapper;
+using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using synthesis.api.Data.Models;
@@ -17,8 +18,7 @@ public interface IUserService
 
     Task<Response<UserDto>> DeleteUser(Guid id);
 
-    Task<bool> IsUserNameUnique(string username);
-    Task<bool> IsEmailUnique(string email);
+
 
 }
 
@@ -26,10 +26,12 @@ public class UserService : IUserService
 {
     private readonly RepositoryContext _repository;
     private readonly IMapper _mapper;
-    public UserService(RepositoryContext repository, IMapper mapper)
+    private readonly IValidator<UserModel> _validator;
+    public UserService(RepositoryContext repository, IMapper mapper, IValidator<UserModel> validator)
     {
         _repository = repository;
         _mapper = mapper;
+        _validator = validator;
     }
 
     public async Task<Response<UserDto>> RegisterUser(RegisterUserDto registerRequest)
@@ -37,7 +39,7 @@ public class UserService : IUserService
 
         var user = _mapper.Map<UserModel>(registerRequest);
 
-        var validationResult = new UserValidator().Validate(user);
+        var validationResult = await _validator.ValidateAsync(user);
 
         if (!validationResult.IsValid)
         {
@@ -71,7 +73,7 @@ public class UserService : IUserService
 
         var updatedUser = _mapper.Map(updateRequest, user);
 
-        var validationResult = new UserValidator().Validate(updatedUser);
+        var validationResult = await _validator.ValidateAsync(updatedUser);
         if (!validationResult.IsValid)
         {
             return new Response<UserDto>(false, "update user failed", errors: validationResult.Errors.Select(e => e.ErrorMessage).ToList());
@@ -95,13 +97,5 @@ public class UserService : IUserService
         return new Response<UserDto>(true, "delete user success");
     }
 
-    public async Task<bool> IsUserNameUnique(string username)
-    {
-        return await _repository.Users.AnyAsync(u => u.UserName == username);
-    }
 
-    public async Task<bool> IsEmailUnique(string email)
-    {
-        return await _repository.Users.AnyAsync(u => u.Email == email);
-    }
 }

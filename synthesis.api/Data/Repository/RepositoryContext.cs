@@ -14,6 +14,9 @@ public class RepositoryContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+
+        modelBuilder.Entity<UserModel>().HasIndex(u => u.UserName);
+        modelBuilder.Entity<UserModel>().HasIndex(u => u.Email);
     }
 
     public DbSet<UserModel> Users { get; set; }

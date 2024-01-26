@@ -1,5 +1,7 @@
 using FluentValidation;
+using Microsoft.EntityFrameworkCore;
 using synthesis.api.Data.Models;
+using synthesis.api.Data.Repository;
 
 namespace synthesis.api.Features.User;
 
@@ -8,7 +10,7 @@ public class UserValidator : AbstractValidator<UserModel>
     private readonly string pattern
     = @"^[a-zA-Z0-9][a-zA-Z0-9_.-]*[a-zA-Z0-9]$";
 
-    public UserValidator()
+    public UserValidator(RepositoryContext _repository)
     {
 
         RuleFor(u => u.FirstName)
@@ -24,7 +26,12 @@ public class UserValidator : AbstractValidator<UserModel>
         RuleFor(u => u.UserName)
         .NotNull().WithMessage("Username must not be empty")
         .Length(2, 20).WithMessage("Username must be between 2 - 20 characters")
-        .Matches(pattern).WithMessage("Username must start and end with alphanumeric characters, with optional special characters ( _.- )");
+        .Matches(pattern).WithMessage("Username must start and end with alphanumeric characters, with optional special characters ( _.- )")
+        .MustAsync(async (username, _) =>
+            {
+                return !await _repository.Users.AnyAsync(u => u.UserName == username);
+            }
+        ).WithMessage("Username must be unique"); ;
 
         RuleFor(u => u.AvatarUrl)
         .Matches("[A-Za-z]")
@@ -33,7 +40,12 @@ public class UserValidator : AbstractValidator<UserModel>
 
         RuleFor(u => u.Email)
         .NotNull().WithMessage("Email must not be empty")
-        .EmailAddress().WithMessage("Email must be a valid email addresss");
+        .EmailAddress().WithMessage("Email must be a valid email addresss")
+        .MustAsync(async (email, _) =>
+            {
+                return !await _repository.Users.AnyAsync(u => u.Email == email);
+            }
+        ).WithMessage("email must be unique");
 
         RuleFor(u => u.Password)
         .NotNull().WithMessage("Password must not be empty")
