@@ -15,6 +15,17 @@ public class UsersController : ControllerBase
         _service = service;
     }
 
+    [HttpPost]
+    [Route("auth/register")]
+    public async Task<IActionResult> RegisterUser(RegisterUserDto user)
+    {
+        var response = await _service.RegisterUser(user);
+        if (!response.IsSuccess) return BadRequest(response);
+
+        return Created("", value: response);
+    }
+
+
     [HttpGet("{id:guid}")]
     public async Task<IActionResult> GetUserById(Guid id)
     {
@@ -26,9 +37,9 @@ public class UsersController : ControllerBase
     }
 
     [HttpPut("{id:guid}")]
-    public async Task<IActionResult> UpdateUser(Guid id, [FromBody] UpdateUserDto userUpdate)
+    public async Task<IActionResult> UpdateUser(Guid id, [FromBody] UpdateUserDto user)
     {
-        var response = await _service.UpdateUser(id, userUpdate);
+        var response = await _service.UpdateUser(id, user);
         if (!response.IsSuccess) return BadRequest(response);
 
         return NoContent();

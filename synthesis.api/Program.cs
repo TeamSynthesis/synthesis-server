@@ -9,7 +9,7 @@ builder.Services.ConfigureCors();
 builder.Services.ConfigurePostgresContext(builder.Configuration);
 
 builder.Services.AddAutoMapper(typeof(Program));
-builder.Services.AddFluentValidationAutoValidation(opt => { });
+builder.Services.AddFluentValidationAutoValidation(opt => { opt.DisableDataAnnotationsValidation = true; });
 
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 
