@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using synthesis.api.Mappings;
 
 namespace synthesis.api.Features.Member;
 
@@ -21,6 +22,16 @@ public class MembersController : ControllerBase
 
         if (!response.IsSuccess) return BadRequest(response);
 
-        return Created("", value: response);
+        return CreatedAtRoute("MemberProfileById", new { id = response.Value.Id }, response.Value);
+    }
+
+    [HttpGet("{id:guid}", Name = "MemberProfileById")]
+    public async Task<IActionResult> GetMemberProfileById(Guid id)
+    {
+        var response = await _service.GetMemberProfileById(id);
+        if (!response.IsSuccess) return BadRequest(response);
+
+        return Ok(response);
+
     }
 }

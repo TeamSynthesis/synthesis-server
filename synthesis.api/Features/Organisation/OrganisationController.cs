@@ -6,11 +6,11 @@ namespace synthesis.api.Features.Organisation;
 
 [ApiController]
 [Route("api/[controller]")]
-public class OrganisationController : ControllerBase
+public class OrganisationsController : ControllerBase
 {
     private readonly IOrganisationService _service;
 
-    public OrganisationController(IOrganisationService service)
+    public OrganisationsController(IOrganisationService service)
     {
         _service = service;
     }
@@ -22,6 +22,27 @@ public class OrganisationController : ControllerBase
 
         if (!response.IsSuccess) return BadRequest(response);
 
-        return Created("", value: response);
+        return CreatedAtAction("OrganisationById", new { id = response.Value.Id }, response.Value);
     }
+
+    [HttpGet("{id:guid}", Name = "OrganisationById")]
+    public async Task<IActionResult> GetOrganisationById(Guid id)
+    {
+        var response = await _service.GetOrganisationById(id);
+
+        if (!response.IsSuccess) return BadRequest(response);
+
+        return Ok(response);
+    }
+
+    [HttpGet("{id:guid}/members")]
+    public async Task<IActionResult> GetOrganisationMembers(Guid id)
+    {
+        var response = await _service.GetOrganisationMembers(id);
+
+        if (!response.IsSuccess) return BadRequest(response);
+
+        return Ok(response);
+    }
+
 }

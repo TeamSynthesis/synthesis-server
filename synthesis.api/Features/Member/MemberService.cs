@@ -7,13 +7,14 @@ using synthesis.api.Mappings;
 public interface IMemberService
 {
     Task<Response<MemberDto>> CreateMemberProfile(Guid organisationId, Guid userId);
+    Task<Response<MemberDto>> GetMemberProfileById(Guid id);
 }
 
 public class MemberService : IMemberService
 {
     private readonly RepositoryContext _repository;
     private readonly IMapper _mapper;
-
+    
     public MemberService(RepositoryContext repository, IMapper mapper)
     {
         _repository = repository;
@@ -51,4 +52,16 @@ public class MemberService : IMemberService
         return new Response<MemberDto>(true, "create member profile success", value: memberToReturn);
 
     }
+
+    public async Task<Response<MemberDto>> GetMemberProfileById(Guid id)
+    {
+        var member = await _repository.Members.Where(m => m.Id == id).Include(m => m.User).SingleOrDefaultAsync();
+
+        if (member == null) return new Response<MemberDto>(false, "get member profile failed", errors: [$"member with id: {id} not found"]);
+
+        var memberToReturn = _mapper.Map<MemberDto>(member);
+
+        return new Response<MemberDto>(true, "get member profile success", value: memberToReturn);
+    }
+
 }

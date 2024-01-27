@@ -1,6 +1,7 @@
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using Microsoft.VisualBasic;
 using synthesis.api.Data.Models;
 using synthesis.api.Data.Repository;
 using synthesis.api.Features.User;
@@ -11,6 +12,8 @@ namespace synthesis.api.Features.Organisation;
 public interface IOrganisationService
 {
     Task<Response<OrganisationDto>> CreateOrganisation(Guid userId, CreateOrganisationDto organisationRequest);
+    Task<Response<OrganisationDto>> GetOrganisationById(Guid id);
+    Task<Response<List<MemberDto>>> GetOrganisationMembers(Guid id);
 }
 
 public class OrganisationService : IOrganisationService
@@ -26,9 +29,9 @@ public class OrganisationService : IOrganisationService
 
     public async Task<Response<OrganisationDto>> CreateOrganisation(Guid userId, CreateOrganisationDto organisationRequest)
     {
-        var user = await _repository.Users.FindAsync(userId);
+        var userExists = await _repository.Users.AnyAsync(u => u.Id == userId);
 
-        if (user == null)
+        if (!userExists)
         {
             return new Response<OrganisationDto>(false, "create organisation failed", errors: [$"user with id: {userId} not found"]);
         }
@@ -44,7 +47,7 @@ public class OrganisationService : IOrganisationService
 
         var member = new MemberModel()
         {
-            User = user,
+            UserId = userId,
             Roles = [UserRoles.Owner]
         };
 
@@ -57,6 +60,37 @@ public class OrganisationService : IOrganisationService
         var organisationToReturn = _mapper.Map<OrganisationDto>(organisation);
 
         return new Response<OrganisationDto>(true, "organisation created", value: organisationToReturn);
+
+    }
+
+    public async Task<Response<OrganisationDto>> GetOrganisationById(Guid id)
+    {
+        var organisation = await _repository.Organisations.FindAsync(id);
+
+        if (organisation == null)
+        {
+            return new Response<OrganisationDto>(true, "get organisation failed", errors: [$"organisation with id: {id} not found"]);
+        }
+
+        var organisationToReturn = _mapper.Map<OrganisationDto>(organisation);
+
+        return new Response<OrganisationDto>(true, "get organisation success", value: organisationToReturn);
+    }
+
+    public async Task<Response<List<MemberDto>>> GetOrganisationMembers(Guid id)
+    {
+        var organisation = await _repository.Organisations.AnyAsync(org => org.Id == id);
+
+        if (!organisation)
+        {
+            return new Response<List<MemberDto>>(false, "get members failed", errors: [$"organisation with id: {id} not found"]);
+        }
+
+        var members = _repository.Members.Where(m => m.OrganisationId == id).Include(m => m.User);
+
+        var membersToReturn = _mapper.Map<List<MemberDto>>(members);
+
+        return new Response<List<MemberDto>>(true, "get members success", value: membersToReturn);
 
     }
 }

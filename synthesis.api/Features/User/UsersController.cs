@@ -15,18 +15,17 @@ public class UsersController : ControllerBase
         _service = service;
     }
 
-    [HttpPost]
-    [Route("auth/register")]
+    [HttpPost("register")]
     public async Task<IActionResult> RegisterUser(RegisterUserDto user)
     {
         var response = await _service.RegisterUser(user);
         if (!response.IsSuccess) return BadRequest(response);
 
-        return Created("", value: response);
+        return CreatedAtRoute("UserById", new { id = response.Value.Id }, response.Value);
     }
 
 
-    [HttpGet("{id:guid}")]
+    [HttpGet("{id:guid}", Name = "UserById")]
     public async Task<IActionResult> GetUserById(Guid id)
     {
         var response = await _service.GetUserById(id);
