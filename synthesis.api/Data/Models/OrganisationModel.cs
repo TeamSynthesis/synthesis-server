@@ -9,5 +9,6 @@ public class OrganisationModel
     public string? Name { get; set; }
     public string? LogoUrl { get; set; }
     public List<MemberModel>? Members { get; set; }
+    public List<ProjectModel>? Projects { get; set; }
 
 }

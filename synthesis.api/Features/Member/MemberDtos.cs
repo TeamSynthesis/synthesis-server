@@ -1,5 +1,5 @@
 
 using synthesis.api.Features.User;
 
-public record MemberDto(Guid Id, UserDto User);
+public record MemberDto(Guid Id, UserDto User, List<string> Roles);
 

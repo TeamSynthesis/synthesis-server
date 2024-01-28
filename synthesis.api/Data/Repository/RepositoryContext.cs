@@ -22,6 +22,7 @@ public class RepositoryContext : DbContext
     public DbSet<UserModel> Users { get; set; }
     public DbSet<OrganisationModel> Organisations { get; set; }
     public DbSet<MemberModel> Members { get; set; }
+    public DbSet<ProjectModel> Projects { get; set; }
 
 
 }
