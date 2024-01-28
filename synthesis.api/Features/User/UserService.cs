@@ -2,7 +2,6 @@
 using AutoMapper;
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using synthesis.api.Data.Models;
 using synthesis.api.Data.Repository;
 using synthesis.api.Features.User;
@@ -15,6 +14,10 @@ public interface IUserService
     Task<Response<UserDto>> GetUserById(Guid id);
 
     Task<Response<UserDto>> UpdateUser(Guid id, [FromBody] UpdateUserDto updateRequest);
+
+    Task<Response<(UpdateUserDto userToPatch, UserModel user)>> GetUserToPatch(Guid id);
+
+    Task SaveChangesForPatch(UpdateUserDto userToPatch, UserModel user);
 
     Task<Response<UserDto>> DeleteUser(Guid id);
 
@@ -86,6 +89,18 @@ public class UserService : IUserService
 
     }
 
+    public async Task<Response<(UpdateUserDto userToPatch, UserModel user)>> GetUserToPatch(Guid id)
+    {
+        var user = await _repository.Users.FindAsync(id);
+
+        if (user == null) return new Response<(UpdateUserDto userToPatch, UserModel user)>(false, "update user failed", errors: [$"user with id{id} not found"]);
+
+        var userToPatch = _mapper.Map<UpdateUserDto>(user);
+
+        return new
+        Response<(UpdateUserDto userToPatch, UserModel user)>(true, "update user success", value: (userToPatch, user));
+    }
+
     public async Task<Response<UserDto>> DeleteUser(Guid id)
     {
         var user = await _repository.Users.FindAsync(id);
@@ -97,5 +112,9 @@ public class UserService : IUserService
         return new Response<UserDto>(true, "delete user success");
     }
 
-
+    public async Task SaveChangesForPatch(UpdateUserDto userToPatch, UserModel user)
+    {
+        _mapper.Map(userToPatch, user);
+        await _repository.SaveChangesAsync();
+    }
 }

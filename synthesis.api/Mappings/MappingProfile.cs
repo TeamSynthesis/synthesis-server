@@ -16,11 +16,13 @@ public class MappingProfile : Profile
         //organisation
         CreateMap<OrganisationDto, OrganisationModel>().ReverseMap();
         CreateMap<CreateOrganisationDto, OrganisationModel>();
+        CreateMap<UpdateOrganisationDto, OrganisationModel>().ReverseMap();
 
         //Member
         CreateMap<MemberModel, MemberDto>()
           .ForMember(dto => dto.User,
           opt => opt.MapFrom(m => m.User));
+
     }
 
 }

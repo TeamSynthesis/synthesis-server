@@ -1,4 +1,5 @@
 using System.Reflection.Metadata.Ecma335;
+using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Npgsql.Internal;
 
@@ -44,6 +45,20 @@ public class UsersController : ControllerBase
         return NoContent();
     }
 
+    [HttpPatch("{id:guid}")]
+    public async Task<IActionResult> PartialUserUpdate(Guid id, [FromBody] JsonPatchDocument<UpdateUserDto> patchDoc)
+    {
+        if (patchDoc is null) return BadRequest("patchDoc object from the client is null");
+
+        var response = await _service.GetUserToPatch(id);
+
+        patchDoc.ApplyTo(response.Value.userToPatch);
+
+        await _service.SaveChangesForPatch(response.Value.userToPatch, response.Value.user);
+
+        return NoContent();
+    }
+
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> DeleteUser(Guid id)
     {
@@ -53,7 +68,6 @@ public class UsersController : ControllerBase
         return NoContent();
 
     }
-
 
 
 }

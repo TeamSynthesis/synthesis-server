@@ -45,4 +45,14 @@ public class OrganisationsController : ControllerBase
         return Ok(response);
     }
 
+    [HttpPut("{id:guid}")]
+    public async Task<IActionResult> UpdateOrganisation(Guid id, [FromBody] UpdateOrganisationDto organisation)
+    {
+        var response = await _service.UpdateOrganisation(id, organisation);
+        if (!response.IsSuccess) return BadRequest(response);
+
+        return NoContent();
+    }
+
+
 }
