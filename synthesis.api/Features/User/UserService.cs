@@ -1,7 +1,4 @@
-
 using AutoMapper;
-using FluentValidation;
-using Microsoft.AspNetCore.Mvc;
 using synthesis.api.Data.Models;
 using synthesis.api.Data.Repository;
 using synthesis.api.Features.User;
@@ -13,15 +10,11 @@ public interface IUserService
 
     Task<Response<UserDto>> GetUserById(Guid id);
 
-    Task<Response<UserDto>> UpdateUser(Guid id, [FromBody] UpdateUserDto updateRequest);
+    Task<Response<UserDto>> UpdateUser(Guid id, UpdateUserDto updateRequest);
 
-    Task<Response<(UpdateUserDto userToPatch, UserModel user)>> GetUserToPatch(Guid id);
-
-    Task SaveChangesForPatch(UpdateUserDto userToPatch, UserModel user);
+    Task<Response<UserDto>> PatchUser(Guid id, UpdateUserDto patchDtos);
 
     Task<Response<UserDto>> DeleteUser(Guid id);
-
-
 
 }
 
@@ -29,12 +22,12 @@ public class UserService : IUserService
 {
     private readonly RepositoryContext _repository;
     private readonly IMapper _mapper;
-    private readonly IValidator<UserModel> _validator;
-    public UserService(RepositoryContext repository, IMapper mapper, IValidator<UserModel> validator)
+
+    public UserService(RepositoryContext repository, IMapper mapper)
     {
         _repository = repository;
         _mapper = mapper;
-        _validator = validator;
+
     }
 
     public async Task<Response<UserDto>> RegisterUser(RegisterUserDto registerRequest)
@@ -42,7 +35,7 @@ public class UserService : IUserService
 
         var user = _mapper.Map<UserModel>(registerRequest);
 
-        var validationResult = await _validator.ValidateAsync(user);
+        var validationResult = await new UserValidator(_repository).ValidateAsync(user);
 
         if (!validationResult.IsValid)
         {
@@ -76,7 +69,7 @@ public class UserService : IUserService
 
         var updatedUser = _mapper.Map(updateRequest, user);
 
-        var validationResult = await _validator.ValidateAsync(updatedUser);
+        var validationResult = await new UserValidator(_repository, user).ValidateAsync(updatedUser);
         if (!validationResult.IsValid)
         {
             return new Response<UserDto>(false, "update user failed", errors: validationResult.Errors.Select(e => e.ErrorMessage).ToList());
@@ -89,16 +82,38 @@ public class UserService : IUserService
 
     }
 
-    public async Task<Response<(UpdateUserDto userToPatch, UserModel user)>> GetUserToPatch(Guid id)
+    public async Task<Response<UserDto>> PatchUser(Guid id, UpdateUserDto patchRequest)
     {
         var user = await _repository.Users.FindAsync(id);
+        if (user == null) return new Response<UserDto>(false, "delete user failed", errors: [$"user with id{id} not found"]);
 
-        if (user == null) return new Response<(UpdateUserDto userToPatch, UserModel user)>(false, "update user failed", errors: [$"user with id{id} not found"]);
+        var existingUser = new UserModel() { UserName = user.UserName, Email = user.Email };
 
-        var userToPatch = _mapper.Map<UpdateUserDto>(user);
+        var userToBePatched = _mapper.Map<UpdateUserDto>(user);
 
-        return new
-        Response<(UpdateUserDto userToPatch, UserModel user)>(true, "update user success", value: (userToPatch, user));
+        foreach (var prop in patchRequest.GetType().GetProperties())
+        {
+            var value = prop.GetValue(patchRequest);
+
+            if (value != null)
+            {
+                prop.SetValue(userToBePatched, value);
+            }
+        }
+
+        var patchedUser = _mapper.Map(userToBePatched, user);
+
+        var validationResult = await new UserValidator(_repository, existingUser).ValidateAsync(patchedUser);
+        if (!validationResult.IsValid)
+        {
+            return new Response<UserDto>(false, "update user failed", errors: validationResult.Errors.Select(e => e.ErrorMessage).ToList());
+        }
+
+
+        await _repository.SaveChangesAsync();
+
+        return new Response<UserDto>(true, "patch user success");
+
     }
 
     public async Task<Response<UserDto>> DeleteUser(Guid id)
@@ -112,9 +127,5 @@ public class UserService : IUserService
         return new Response<UserDto>(true, "delete user success");
     }
 
-    public async Task SaveChangesForPatch(UpdateUserDto userToPatch, UserModel user)
-    {
-        _mapper.Map(userToPatch, user);
-        await _repository.SaveChangesAsync();
-    }
+
 }

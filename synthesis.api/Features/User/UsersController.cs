@@ -46,15 +46,10 @@ public class UsersController : ControllerBase
     }
 
     [HttpPatch("{id:guid}")]
-    public async Task<IActionResult> PartialUserUpdate(Guid id, [FromBody] JsonPatchDocument<UpdateUserDto> patchDoc)
+    public async Task<IActionResult> PatchUser(Guid id, [FromBody] UpdateUserDto user)
     {
-        if (patchDoc is null) return BadRequest("patchDoc object from the client is null");
-
-        var response = await _service.GetUserToPatch(id);
-
-        patchDoc.ApplyTo(response.Value.userToPatch);
-
-        await _service.SaveChangesForPatch(response.Value.userToPatch, response.Value.user);
+        var response = await _service.PatchUser(id, user);
+        if (!response.IsSuccess) return BadRequest(response);
 
         return NoContent();
     }

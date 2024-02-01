@@ -10,7 +10,7 @@ public class UserValidator : AbstractValidator<UserModel>
     private readonly string pattern
     = @"^[a-zA-Z0-9][a-zA-Z0-9_.-]*[a-zA-Z0-9]$";
 
-    public UserValidator(RepositoryContext _repository)
+    public UserValidator(RepositoryContext _repository, UserModel? userToBeUpdated = null)
     {
 
         RuleFor(u => u.FirstName)
@@ -29,9 +29,16 @@ public class UserValidator : AbstractValidator<UserModel>
         .Matches(pattern).WithMessage("Username must start and end with alphanumeric characters, with optional special characters ( _.- )")
         .MustAsync(async (username, _) =>
             {
+                if (userToBeUpdated != null)
+                {
+                    if (userToBeUpdated.UserName.ToLower() == username.ToLower()) return true;
+
+                    return !await _repository.Users.AnyAsync(u => u.UserName == username);
+                }
+
                 return !await _repository.Users.AnyAsync(u => u.UserName == username);
             }
-        ).WithMessage("Username must be unique"); ;
+        ).WithMessage("Username must be unique");
 
         RuleFor(u => u.AvatarUrl)
         .Matches("[A-Za-z]")
@@ -43,9 +50,16 @@ public class UserValidator : AbstractValidator<UserModel>
         .EmailAddress().WithMessage("Email must be a valid email addresss")
         .MustAsync(async (email, _) =>
             {
+                if (userToBeUpdated != null)
+                {
+                    if (userToBeUpdated.Email.ToLower() == email.ToLower()) return true;
+                    return !await _repository.Users.AnyAsync(u => u.Email == email);
+                }
+
                 return !await _repository.Users.AnyAsync(u => u.Email == email);
             }
-        ).WithMessage("email must be unique");
+        ).WithMessage("Username must be unique");
+
 
         RuleFor(u => u.Password)
         .NotNull().WithMessage("Password must not be empty")
@@ -53,4 +67,5 @@ public class UserValidator : AbstractValidator<UserModel>
         .Matches("(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}")
         .WithMessage("Password must contain at least one lowercase letter, one uppercase letter, one digit, and one special character");
     }
+
 }
