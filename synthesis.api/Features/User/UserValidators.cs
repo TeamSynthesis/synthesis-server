@@ -22,7 +22,7 @@ public class UserValidator : AbstractValidator<UserModel>
         .MaximumLength(50).WithMessage("Last name cannot exceed 50 characters")
         .Matches("[a-zA-Z]+").WithMessage("LastName may contain letter only")
         .When(u => !string.IsNullOrEmpty(u.LastName));
-
+        
         RuleFor(u => u.UserName)
         .NotNull().WithMessage("Username must not be empty")
         .Length(2, 20).WithMessage("Username must be between 2 - 20 characters")
@@ -31,6 +31,7 @@ public class UserValidator : AbstractValidator<UserModel>
             {
                 if (userToBeUpdated != null)
                 {
+                    
                     if (userToBeUpdated.UserName.ToLower() == username.ToLower()) return true;
 
                     return !await _repository.Users.AnyAsync(u => u.UserName == username);

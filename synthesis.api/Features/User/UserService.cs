@@ -1,4 +1,5 @@
 using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using synthesis.api.Data.Models;
 using synthesis.api.Data.Repository;
 using synthesis.api.Features.User;
@@ -41,7 +42,6 @@ public class UserService : IUserService
         {
             return new Response<UserDto>(false, "failed to register user", errors: validationResult.Errors.Select(e => e.ErrorMessage).ToList());
         }
-
         await _repository.Users.AddAsync(user);
         await _repository.SaveChangesAsync();
 
@@ -79,7 +79,6 @@ public class UserService : IUserService
 
         return new Response<UserDto>(true, "user update success");
 
-
     }
 
     public async Task<Response<UserDto>> PatchUser(Guid id, UpdateUserDto patchRequest)
@@ -109,11 +108,9 @@ public class UserService : IUserService
             return new Response<UserDto>(false, "update user failed", errors: validationResult.Errors.Select(e => e.ErrorMessage).ToList());
         }
 
-
         await _repository.SaveChangesAsync();
 
         return new Response<UserDto>(true, "patch user success");
-
     }
 
     public async Task<Response<UserDto>> DeleteUser(Guid id)

@@ -15,21 +15,19 @@ public interface IOrganisationService
     Task<Response<OrganisationDto>> CreateOrganisation(Guid userId, CreateOrganisationDto organisationRequest);
     Task<Response<OrganisationDto>> GetOrganisationById(Guid id);
     Task<Response<List<MemberDto>>> GetOrganisationMembers(Guid id);
-
     Task<Response<OrganisationDto>> UpdateOrganisation(Guid id, UpdateOrganisationDto updateRequest);
+    Task<Response<OrganisationDto>> PatchOrganisation(Guid id, UpdateOrganisationDto patchRequest);
 }
 
 public class OrganisationService : IOrganisationService
 {
     private readonly RepositoryContext _repository;
     private readonly IMapper _mapper;
-    private readonly IValidator<OrganisationModel> _validator;
 
-    public OrganisationService(RepositoryContext repository, IMapper mapper, IValidator<OrganisationModel> validator)
+    public OrganisationService(RepositoryContext repository, IMapper mapper)
     {
         _repository = repository;
         _mapper = mapper;
-        _validator = validator;
     }
 
     public async Task<Response<OrganisationDto>> CreateOrganisation(Guid userId, CreateOrganisationDto organisationRequest)
@@ -43,7 +41,7 @@ public class OrganisationService : IOrganisationService
 
         var organisation = _mapper.Map<OrganisationModel>(organisationRequest);
 
-        var validationResult = _validator.Validate(organisation);
+        var validationResult = new OrganisationValidator().Validate(organisation);
 
         if (!validationResult.IsValid)
         {
@@ -110,7 +108,7 @@ public class OrganisationService : IOrganisationService
 
         var updatedOrganisation = _mapper.Map(updateRequest, organisation);
 
-        var validationResult = _validator.Validate(updatedOrganisation);
+        var validationResult = new OrganisationValidator().Validate(updatedOrganisation);
 
         if (!validationResult.IsValid)
         {
@@ -122,4 +120,35 @@ public class OrganisationService : IOrganisationService
         return new Response<OrganisationDto>(true, "update organisation success");
 
     }
+
+    public async Task<Response<OrganisationDto>> PatchOrganisation(Guid id, UpdateOrganisationDto patchRequest)
+    {
+        var organisation = await _repository.Organisations.FindAsync(id);
+        if (organisation == null) return new Response<OrganisationDto>(false, "delete organisation failed", errors: [$"organisation with id{id} not found"]);
+
+        var organisationToBePatched = _mapper.Map<UpdateOrganisationDto>(organisation);
+
+        foreach (var prop in patchRequest.GetType().GetProperties())
+        {
+            var value = prop.GetValue(patchRequest);
+
+            if (value != null)
+            {
+                prop.SetValue(organisationToBePatched, value);
+            }
+        }
+
+        var patchedOrganisation = _mapper.Map(organisationToBePatched, organisation);
+
+        var validationResult = await new OrganisationValidator().ValidateAsync(patchedOrganisation);
+        if (!validationResult.IsValid)
+        {
+            return new Response<OrganisationDto>(false, "update organisation failed", errors: validationResult.Errors.Select(e => e.ErrorMessage).ToList());
+        }
+
+        await _repository.SaveChangesAsync();
+
+        return new Response<OrganisationDto>(true, "patch organisation success");
+    }
+
 }

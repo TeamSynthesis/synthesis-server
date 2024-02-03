@@ -54,5 +54,14 @@ public class OrganisationsController : ControllerBase
         return NoContent();
     }
 
-
+    [HttpPatch("{id:guid}")]
+    public async Task<IActionResult> PatchOrganisation(Guid id, [FromBody] UpdateOrganisationDto organisation)
+    {
+        var response = await _service.PatchOrganisation(id, organisation);
+        if (!response.IsSuccess)
+        {
+            return BadRequest(response);
+        }
+        return NoContent();
+    }
 }

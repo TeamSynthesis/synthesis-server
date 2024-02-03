@@ -34,4 +34,17 @@ public class MembersController : ControllerBase
         return Ok(response);
 
     }
+
+    [HttpPost("{id:guid}/assign-role")]
+    public async Task<IActionResult> AssignMemberRole(Guid id, [FromBody] string role)
+    {
+        var response = await _service.AssignMemberRole(id, role);
+
+        if (!response.IsSuccess)
+        {
+            return BadRequest(response);
+        }
+
+        return NoContent();
+    }
 }
