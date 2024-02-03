@@ -1,3 +1,4 @@
+using System.Security.Cryptography.X509Certificates;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using synthesis.api.Data.Models;
@@ -10,6 +11,7 @@ public interface IMemberService
     Task<Response<MemberDto>> CreateMemberProfile(Guid organisationId, Guid userId);
     Task<Response<MemberDto>> GetMemberProfileById(Guid id);
     Task<Response<MemberDto>> AssignMemberRole(Guid id, string role);
+    Task<Response<MemberDto>> ResignMemberRole(Guid id, string role);
 }
 
 public class MemberService : IMemberService
@@ -57,7 +59,7 @@ public class MemberService : IMemberService
 
     public async Task<Response<MemberDto>> GetMemberProfileById(Guid id)
     {
-        var member = await _repository.Members.Where(m => m.Id == id).Include(m => m.User).Include(m => m.Roles).SingleOrDefaultAsync();
+        var member = await _repository.Members.Where(m => m.Id == id).Include(m => m.User).SingleOrDefaultAsync();
 
         if (member == null) return new Response<MemberDto>(false, "get member profile failed", errors: [$"member with id: {id} not found"]);
 
@@ -72,7 +74,7 @@ public class MemberService : IMemberService
 
         if (member == null) return new Response<MemberDto>(false, "get member profile failed", errors: [$"member with id: {id} not found"]);
 
-        switch (role.ToLower())
+        switch (role)
         {
             case "manager":
                 if (member.Roles == null)
@@ -97,7 +99,7 @@ public class MemberService : IMemberService
                 }
                 break;
             default:
-                return new Response<MemberDto>(false, "assign role failed", errors: ["member role not valid [Roles : manager || owner]"]);
+                return new Response<MemberDto>(false, "assign role failed", errors: ["member role invalid [Roles : manager || owner]"]);
         }
 
         await _repository.SaveChangesAsync();
@@ -106,4 +108,24 @@ public class MemberService : IMemberService
 
     }
 
+    public async Task<Response<MemberDto>> ResignMemberRole(Guid id, string role)
+    {
+        var member = await _repository.Members.Where(m => m.Id == id).Include(m => m.User).SingleOrDefaultAsync();
+
+        if (member == null) return new Response<MemberDto>(false, "get member profile failed", errors: [$"member with id: {id} not found"]);
+
+        if (member.Roles == null || !member.Roles.Contains(role))
+        {
+            return new Response<MemberDto>(false, "resign member role failed", errors: [$"member does not possess the role: {role}"]);
+        }
+        else
+        {
+            member.Roles.Remove(role);
+        }
+
+        await _repository.SaveChangesAsync();
+
+        return new Response<MemberDto>(true, "resign member role success");
+
+    }
 }

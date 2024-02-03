@@ -38,7 +38,20 @@ public class MembersController : ControllerBase
     [HttpPost("{id:guid}/assign-role")]
     public async Task<IActionResult> AssignMemberRole(Guid id, [FromBody] string role)
     {
-        var response = await _service.AssignMemberRole(id, role);
+        var response = await _service.AssignMemberRole(id, role.ToLower());
+
+        if (!response.IsSuccess)
+        {
+            return BadRequest(response);
+        }
+
+        return NoContent();
+    }
+
+    [HttpPost("{id:guid}/resign-role")]
+    public async Task<IActionResult> ResignMemberRole(Guid id, [FromBody] string role)
+    {
+        var response = await _service.ResignMemberRole(id, role.ToLower());
 
         if (!response.IsSuccess)
         {
