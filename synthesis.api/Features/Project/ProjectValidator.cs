@@ -11,11 +11,9 @@ public class ProjectValidator : AbstractValidator<ProjectModel>
     {
         RuleFor(p => p.Name)
         .NotNull().WithMessage("name cannot be null")
-        .MaximumLength(50).WithMessage("name cannot exceed 50 characters")
         .Matches(pattern).WithMessage("name must start and end with letters, with optional special characters ( _.- ) inbetween");
 
         RuleFor(p => p.Description)
-        .NotNull().WithMessage("name cannot be null")
-        .MaximumLength(500).WithMessage("name cannot exceed 500 characters");
+        .NotNull().NotEmpty().WithMessage("name cannot be null");
     }
 }

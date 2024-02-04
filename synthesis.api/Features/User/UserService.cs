@@ -13,7 +13,7 @@ public interface IUserService
 
     Task<Response<UserDto>> UpdateUser(Guid id, UpdateUserDto updateRequest);
 
-    Task<Response<UserDto>> PatchUser(Guid id, UpdateUserDto patchDtos);
+    Task<Response<UserDto>> PatchUser(Guid id, UpdateUserDto patchRequest);
 
     Task<Response<UserDto>> DeleteUser(Guid id);
 

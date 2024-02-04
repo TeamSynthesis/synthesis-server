@@ -1,5 +1,6 @@
 using AutoMapper;
 using synthesis.api.Data.Models;
+using synthesis.api.Features.Project;
 using synthesis.api.Features.User;
 
 namespace synthesis.api.Mappings;
@@ -17,6 +18,11 @@ public class MappingProfile : Profile
         CreateMap<OrganisationDto, OrganisationModel>().ReverseMap();
         CreateMap<CreateOrganisationDto, OrganisationModel>();
         CreateMap<UpdateOrganisationDto, OrganisationModel>().ReverseMap();
+
+        //project
+        CreateMap<ProjectDto, ProjectModel>().ReverseMap();
+        CreateMap<CreateProjectDto, ProjectModel>();
+        // CreateMap<UpdateProjectDto, ProjectModel>().ReverseMap();
 
         //Member
         CreateMap<MemberModel, MemberDto>()
