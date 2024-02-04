@@ -10,7 +10,7 @@ public class MappingProfile : Profile
     public MappingProfile()
     {
         //user
-        CreateMap<UserDto, UserModel>().ReverseMap();
+        CreateMap<UserDto, UserModel>().ReverseMap(); ;
         CreateMap<RegisterUserDto, UserModel>();
         CreateMap<UpdateUserDto, UserModel>().ReverseMap();
 
@@ -22,12 +22,13 @@ public class MappingProfile : Profile
         //project
         CreateMap<ProjectDto, ProjectModel>().ReverseMap();
         CreateMap<CreateProjectDto, ProjectModel>();
-        // CreateMap<UpdateProjectDto, ProjectModel>().ReverseMap();
+        CreateMap<UpdateProjectDto, ProjectModel>().ReverseMap();
 
         //Member
         CreateMap<MemberModel, MemberDto>()
           .ForMember(dto => dto.User,
           opt => opt.MapFrom(m => m.User));
+
 
     }
 

@@ -13,17 +13,6 @@ public class ProjectsController : ControllerBase
         _service = service;
     }
 
-
-    [HttpGet("{id:guid}", Name = "ProjectById")]
-    public async Task<IActionResult> GetProjectById(Guid id)
-    {
-        var response = await _service.GetProjectById(id);
-        if (!response.IsSuccess) return BadRequest(response);
-
-        return Ok(response);
-    }
-
-
     [HttpPost]
     public async Task<IActionResult> CreateProject(Guid organisationId, Guid memberId, [FromBody] CreateProjectDto project)
     {
@@ -36,4 +25,42 @@ public class ProjectsController : ControllerBase
 
         return CreatedAtRoute("ProjectById", new { id = response.Value.Id }, response.Value);
     }
+
+    [HttpGet("{id:guid}", Name = "ProjectById")]
+    public async Task<IActionResult> GetProjectById(Guid id)
+    {
+        var response = await _service.GetProjectById(id);
+        if (!response.IsSuccess) return BadRequest(response);
+
+        return Ok(response);
+    }
+
+    [HttpPut("{id:guid}")]
+    public async Task<IActionResult> UpdateProject(Guid id, [FromBody] UpdateProjectDto project)
+    {
+        var response = await _service.UpdateProject(id, project);
+        if (!response.IsSuccess) return BadRequest(response);
+
+        return NoContent();
+    }
+
+    [HttpPatch("{id:guid}")]
+    public async Task<IActionResult> PatchProject(Guid id, [FromBody] UpdateProjectDto project)
+    {
+        var response = await _service.PatchProject(id, project);
+        if (!response.IsSuccess) return BadRequest(response);
+
+        return NoContent();
+    }
+
+    [HttpDelete("{id:guid}")]
+    public async Task<IActionResult> DeleteProject(Guid id)
+    {
+        var response = await _service.DeleteProject(id);
+
+        if (!response.IsSuccess) return BadRequest(response);
+
+        return NoContent();
+    }
+
 }

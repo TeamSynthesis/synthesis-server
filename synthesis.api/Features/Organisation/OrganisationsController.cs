@@ -34,6 +34,16 @@ public class OrganisationsController : ControllerBase
 
         return Ok(response);
     }
+    [HttpGet("{id:guid}/all", Name = "OrganisationWithResourcesById")]
+    public async Task<IActionResult> GetOrganisationWithResourcesById(Guid id)
+    {
+        var response = await _service.GetOrganisationWithResourcesById(id);
+
+        if (!response.IsSuccess) return BadRequest(response);
+
+        return Ok(response);
+    }
+
 
     [HttpGet("{id:guid}/members")]
     public async Task<IActionResult> GetOrganisationMembers(Guid id)
@@ -62,6 +72,19 @@ public class OrganisationsController : ControllerBase
         {
             return BadRequest(response);
         }
+        return NoContent();
+    }
+
+
+    [HttpDelete("{id:guid}")]
+    public async Task<IActionResult> DeleteOrganisation(Guid id)
+    {
+        var response = await _service.DeleteOrganisation(id);
+        if (!response.IsSuccess)
+        {
+            return BadRequest(response);
+        }
+
         return NoContent();
     }
 }

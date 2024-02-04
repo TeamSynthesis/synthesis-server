@@ -12,6 +12,7 @@ public interface IMemberService
     Task<Response<MemberDto>> GetMemberProfileById(Guid id);
     Task<Response<MemberDto>> AssignMemberRole(Guid id, string role);
     Task<Response<MemberDto>> ResignMemberRole(Guid id, string role);
+    Task<Response<MemberDto>> DeleteMemberProfile(Guid id);
 }
 
 public class MemberService : IMemberService
@@ -127,5 +128,18 @@ public class MemberService : IMemberService
 
         return new Response<MemberDto>(true, "resign member role success");
 
+    }
+
+    public async Task<Response<MemberDto>> DeleteMemberProfile(Guid id)
+    {
+        var member = await _repository.Members.FindAsync(id);
+
+        if (member == null) return new Response<MemberDto>(false, "delete member profile failed", errors: [$"member with id: {id} not found"]);
+
+        _repository.Members.Remove(member);
+
+        await _repository.SaveChangesAsync();
+
+        return new Response<MemberDto>(true, "delete member profile success");
     }
 }

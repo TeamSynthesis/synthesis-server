@@ -60,4 +60,14 @@ public class MembersController : ControllerBase
 
         return NoContent();
     }
+
+    [HttpDelete("{id:guid}")]
+    public async Task<IActionResult> DeleteMemberProfile(Guid id)
+    {
+        var response = await _service.DeleteMemberProfile(id);
+
+        if (!response.IsSuccess) return BadRequest(response);
+
+        return NoContent();
+    }
 }
