@@ -90,17 +90,9 @@ public class UserService : IUserService
 
         var userToBePatched = _mapper.Map<UpdateUserDto>(user);
 
-        foreach (var prop in patchRequest.GetType().GetProperties())
-        {
-            var value = prop.GetValue(patchRequest);
+        var patchedUserDto = Patcher<UpdateUserDto>.Patch(patchRequest, userToBePatched);
 
-            if (value != null)
-            {
-                prop.SetValue(userToBePatched, value);
-            }
-        }
-
-        var patchedUser = _mapper.Map(userToBePatched, user);
+        var patchedUser = _mapper.Map(patchedUserDto, user);
 
         var validationResult = await new UserValidator(_repository, existingUser).ValidateAsync(patchedUser);
         if (!validationResult.IsValid)

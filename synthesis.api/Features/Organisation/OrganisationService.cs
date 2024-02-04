@@ -17,6 +17,7 @@ public interface IOrganisationService
     Task<Response<OrganisationDto>> GetOrganisationById(Guid id);
     Task<Response<OrganisationDto>> GetOrganisationWithResourcesById(Guid id);
     Task<Response<List<MemberDto>>> GetOrganisationMembers(Guid id);
+    Task<Response<List<ProjectDto>>> GetOrganisationProjects(Guid id);
     Task<Response<OrganisationDto>> UpdateOrganisation(Guid id, UpdateOrganisationDto updateRequest);
     Task<Response<OrganisationDto>> PatchOrganisation(Guid id, UpdateOrganisationDto patchRequest);
     Task<Response<OrganisationDto>> DeleteOrganisation(Guid id);
@@ -163,17 +164,9 @@ public class OrganisationService : IOrganisationService
 
         var organisationToBePatched = _mapper.Map<UpdateOrganisationDto>(organisation);
 
-        foreach (var prop in patchRequest.GetType().GetProperties())
-        {
-            var value = prop.GetValue(patchRequest);
+        var patchedOrganisationDto = Patcher<UpdateOrganisationDto>.Patch(patchRequest, organisationToBePatched);
 
-            if (value != null)
-            {
-                prop.SetValue(organisationToBePatched, value);
-            }
-        }
-
-        var patchedOrganisation = _mapper.Map(organisationToBePatched, organisation);
+        var patchedOrganisation = _mapper.Map(patchedOrganisationDto, organisation);
 
         var validationResult = await new OrganisationValidator().ValidateAsync(patchedOrganisation);
         if (!validationResult.IsValid)

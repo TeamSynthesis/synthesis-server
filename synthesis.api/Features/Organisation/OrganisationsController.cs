@@ -34,6 +34,7 @@ public class OrganisationsController : ControllerBase
 
         return Ok(response);
     }
+
     [HttpGet("{id:guid}/all", Name = "OrganisationWithResourcesById")]
     public async Task<IActionResult> GetOrganisationWithResourcesById(Guid id)
     {
@@ -44,11 +45,20 @@ public class OrganisationsController : ControllerBase
         return Ok(response);
     }
 
-
     [HttpGet("{id:guid}/members")]
     public async Task<IActionResult> GetOrganisationMembers(Guid id)
     {
         var response = await _service.GetOrganisationMembers(id);
+
+        if (!response.IsSuccess) return BadRequest(response);
+
+        return Ok(response);
+    }
+
+    [HttpGet("{id:guid}/projects")]
+    public async Task<IActionResult> GetOrganisationProjects(Guid id)
+    {
+        var response = await _service.GetOrganisationProjects(id);
 
         if (!response.IsSuccess) return BadRequest(response);
 
