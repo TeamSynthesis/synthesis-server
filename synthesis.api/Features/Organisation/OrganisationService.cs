@@ -13,14 +13,14 @@ namespace synthesis.api.Features.Organisation;
 
 public interface IOrganisationService
 {
-    Task<Response<OrganisationDto>> CreateOrganisation(Guid userId, CreateOrganisationDto organisationRequest);
-    Task<Response<OrganisationDto>> GetOrganisationById(Guid id);
-    Task<Response<OrganisationDto>> GetOrganisationWithResourcesById(Guid id);
-    Task<Response<List<MemberDto>>> GetOrganisationMembers(Guid id);
-    Task<Response<List<ProjectDto>>> GetOrganisationProjects(Guid id);
-    Task<Response<OrganisationDto>> UpdateOrganisation(Guid id, UpdateOrganisationDto updateRequest);
-    Task<Response<OrganisationDto>> PatchOrganisation(Guid id, UpdateOrganisationDto patchRequest);
-    Task<Response<OrganisationDto>> DeleteOrganisation(Guid id);
+    Task<GlobalResponse<OrganisationDto>> CreateOrganisation(Guid userId, CreateOrganisationDto organisationRequest);
+    Task<GlobalResponse<OrganisationDto>> GetOrganisationById(Guid id);
+    Task<GlobalResponse<OrganisationDto>> GetOrganisationWithResourcesById(Guid id);
+    Task<GlobalResponse<List<MemberDto>>> GetOrganisationMembers(Guid id);
+    Task<GlobalResponse<List<ProjectDto>>> GetOrganisationProjects(Guid id);
+    Task<GlobalResponse<OrganisationDto>> UpdateOrganisation(Guid id, UpdateOrganisationDto updateRequest);
+    Task<GlobalResponse<OrganisationDto>> PatchOrganisation(Guid id, UpdateOrganisationDto patchRequest);
+    Task<GlobalResponse<OrganisationDto>> DeleteOrganisation(Guid id);
 }
 
 public class OrganisationService : IOrganisationService
@@ -34,13 +34,13 @@ public class OrganisationService : IOrganisationService
         _mapper = mapper;
     }
 
-    public async Task<Response<OrganisationDto>> CreateOrganisation(Guid userId, CreateOrganisationDto organisationRequest)
+    public async Task<GlobalResponse<OrganisationDto>> CreateOrganisation(Guid userId, CreateOrganisationDto organisationRequest)
     {
         var userExists = await _repository.Users.AnyAsync(u => u.Id == userId);
 
         if (!userExists)
         {
-            return new Response<OrganisationDto>(false, "create organisation failed", errors: [$"user with id: {userId} not found"]);
+            return new GlobalResponse<OrganisationDto>(false, "create organisation failed", errors: [$"user with id: {userId} not found"]);
         }
 
         var organisation = _mapper.Map<OrganisationModel>(organisationRequest);
@@ -49,7 +49,7 @@ public class OrganisationService : IOrganisationService
 
         if (!validationResult.IsValid)
         {
-            return new Response<OrganisationDto>(false, "create organisation failed", errors: validationResult.Errors.Select(e => e.ErrorMessage).ToList());
+            return new GlobalResponse<OrganisationDto>(false, "create organisation failed", errors: validationResult.Errors.Select(e => e.ErrorMessage).ToList());
         }
 
         var member = new MemberModel()
@@ -66,80 +66,80 @@ public class OrganisationService : IOrganisationService
 
         var organisationToReturn = _mapper.Map<OrganisationDto>(organisation);
 
-        return new Response<OrganisationDto>(true, "organisation created", value: organisationToReturn);
+        return new GlobalResponse<OrganisationDto>(true, "organisation created", value: organisationToReturn);
 
     }
 
-    public async Task<Response<OrganisationDto>> GetOrganisationById(Guid id)
+    public async Task<GlobalResponse<OrganisationDto>> GetOrganisationById(Guid id)
     {
         var organisation = await _repository.Organisations.FindAsync(id);
 
         if (organisation == null)
         {
-            return new Response<OrganisationDto>(true, "get organisation failed", errors: [$"organisation with id: {id} not found"]);
+            return new GlobalResponse<OrganisationDto>(true, "get organisation failed", errors: [$"organisation with id: {id} not found"]);
         }
 
         var organisationToReturn = _mapper.Map<OrganisationDto>(organisation);
 
-        return new Response<OrganisationDto>(true, "get organisation success", value: organisationToReturn);
+        return new GlobalResponse<OrganisationDto>(true, "get organisation success", value: organisationToReturn);
     }
 
-    public async Task<Response<OrganisationDto>> GetOrganisationWithResourcesById(Guid id)
+    public async Task<GlobalResponse<OrganisationDto>> GetOrganisationWithResourcesById(Guid id)
     {
         var organisation = await _repository.Organisations.Where(org => org.Id == id).Include(org => org.Members).ThenInclude(m => m.User).Include(org => org.Projects).SingleOrDefaultAsync();
 
         if (organisation == null)
         {
-            return new Response<OrganisationDto>(true, "get organisation failed", errors: [$"organisation with id: {id} not found"]);
+            return new GlobalResponse<OrganisationDto>(true, "get organisation failed", errors: [$"organisation with id: {id} not found"]);
         }
 
         var organisationToReturn = _mapper.Map<OrganisationDto>(organisation);
 
-        return new Response<OrganisationDto>(true, "get organisation success", value: organisationToReturn);
+        return new GlobalResponse<OrganisationDto>(true, "get organisation success", value: organisationToReturn);
 
     }
 
-    public async Task<Response<List<MemberDto>>> GetOrganisationMembers(Guid id)
+    public async Task<GlobalResponse<List<MemberDto>>> GetOrganisationMembers(Guid id)
     {
         var organisation = await _repository.Organisations.AnyAsync(org => org.Id == id);
 
         if (!organisation)
         {
-            return new Response<List<MemberDto>>(false, "get members failed", errors: [$"organisation with id: {id} not found"]);
+            return new GlobalResponse<List<MemberDto>>(false, "get members failed", errors: [$"organisation with id: {id} not found"]);
         }
 
         var members = _repository.Members.Where(m => m.OrganisationId == id).Include(m => m.User);
 
         var membersToReturn = _mapper.Map<List<MemberDto>>(members);
 
-        return new Response<List<MemberDto>>(true, "get members success", value: membersToReturn);
+        return new GlobalResponse<List<MemberDto>>(true, "get members success", value: membersToReturn);
 
     }
 
-    public async Task<Response<List<ProjectDto>>> GetOrganisationProjects(Guid id)
+    public async Task<GlobalResponse<List<ProjectDto>>> GetOrganisationProjects(Guid id)
     {
         var organisation = await _repository.Organisations.AnyAsync(org => org.Id == id);
 
         if (!organisation)
         {
-            return new Response<List<ProjectDto>>(false, "get projects failed", errors: [$"organisation with id: {id} not found"]);
+            return new GlobalResponse<List<ProjectDto>>(false, "get projects failed", errors: [$"organisation with id: {id} not found"]);
         }
 
         var projects = _repository.Projects.Where(p => p.OrganisationId == id);
 
         var projectsToReturn = _mapper.Map<List<ProjectDto>>(projects);
 
-        return new Response<List<ProjectDto>>(true, "get projects success", value: projectsToReturn);
+        return new GlobalResponse<List<ProjectDto>>(true, "get projects success", value: projectsToReturn);
 
     }
 
-    public async Task<Response<OrganisationDto>> UpdateOrganisation(Guid id, UpdateOrganisationDto updateRequest)
+    public async Task<GlobalResponse<OrganisationDto>> UpdateOrganisation(Guid id, UpdateOrganisationDto updateRequest)
     {
         var organisation = await _repository.Organisations.FindAsync(id);
 
         if (organisation == null)
         {
-            return new Response<OrganisationDto>(false, "update organisation failed", errors: [$"organisation with id: {id} not found"]);
+            return new GlobalResponse<OrganisationDto>(false, "update organisation failed", errors: [$"organisation with id: {id} not found"]);
         }
 
         var updatedOrganisation = _mapper.Map(updateRequest, organisation);
@@ -148,19 +148,19 @@ public class OrganisationService : IOrganisationService
 
         if (!validationResult.IsValid)
         {
-            return new Response<OrganisationDto>(false, "create organisation failed", errors: validationResult.Errors.Select(e => e.ErrorMessage).ToList());
+            return new GlobalResponse<OrganisationDto>(false, "create organisation failed", errors: validationResult.Errors.Select(e => e.ErrorMessage).ToList());
         }
 
         await _repository.SaveChangesAsync();
 
-        return new Response<OrganisationDto>(true, "update organisation success");
+        return new GlobalResponse<OrganisationDto>(true, "update organisation success");
 
     }
 
-    public async Task<Response<OrganisationDto>> PatchOrganisation(Guid id, UpdateOrganisationDto patchRequest)
+    public async Task<GlobalResponse<OrganisationDto>> PatchOrganisation(Guid id, UpdateOrganisationDto patchRequest)
     {
         var organisation = await _repository.Organisations.FindAsync(id);
-        if (organisation == null) return new Response<OrganisationDto>(false, "delete organisation failed", errors: [$"organisation with id{id} not found"]);
+        if (organisation == null) return new GlobalResponse<OrganisationDto>(false, "delete organisation failed", errors: [$"organisation with id{id} not found"]);
 
         var organisationToBePatched = _mapper.Map<UpdateOrganisationDto>(organisation);
 
@@ -171,27 +171,27 @@ public class OrganisationService : IOrganisationService
         var validationResult = await new OrganisationValidator().ValidateAsync(patchedOrganisation);
         if (!validationResult.IsValid)
         {
-            return new Response<OrganisationDto>(false, "update organisation failed", errors: validationResult.Errors.Select(e => e.ErrorMessage).ToList());
+            return new GlobalResponse<OrganisationDto>(false, "update organisation failed", errors: validationResult.Errors.Select(e => e.ErrorMessage).ToList());
         }
 
         await _repository.SaveChangesAsync();
 
-        return new Response<OrganisationDto>(true, "patch organisation success");
+        return new GlobalResponse<OrganisationDto>(true, "patch organisation success");
     }
 
-    public async Task<Response<OrganisationDto>> DeleteOrganisation(Guid id)
+    public async Task<GlobalResponse<OrganisationDto>> DeleteOrganisation(Guid id)
     {
         var organisation = await _repository.Organisations.FindAsync(id);
 
         if (organisation == null)
         {
-            return new Response<OrganisationDto>(false, "update organisation failed", errors: [$"organisation with id: {id} not found"]);
+            return new GlobalResponse<OrganisationDto>(false, "update organisation failed", errors: [$"organisation with id: {id} not found"]);
         }
 
         _repository.Organisations.Remove(organisation);
 
         await _repository.SaveChangesAsync();
 
-        return new Response<OrganisationDto>(true, "delete organisation success");
+        return new GlobalResponse<OrganisationDto>(true, "delete organisation success");
     }
 }

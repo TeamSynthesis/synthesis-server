@@ -8,11 +8,11 @@ using synthesis.api.Mappings;
 
 public interface IMemberService
 {
-    Task<Response<MemberDto>> CreateMemberProfile(Guid organisationId, Guid userId);
-    Task<Response<MemberDto>> GetMemberProfileById(Guid id);
-    Task<Response<MemberDto>> AssignMemberRole(Guid id, string role);
-    Task<Response<MemberDto>> ResignMemberRole(Guid id, string role);
-    Task<Response<MemberDto>> DeleteMemberProfile(Guid id);
+    Task<GlobalResponse<MemberDto>> CreateMemberProfile(Guid organisationId, Guid userId);
+    Task<GlobalResponse<MemberDto>> GetMemberProfileById(Guid id);
+    Task<GlobalResponse<MemberDto>> AssignMemberRole(Guid id, string role);
+    Task<GlobalResponse<MemberDto>> ResignMemberRole(Guid id, string role);
+    Task<GlobalResponse<MemberDto>> DeleteMemberProfile(Guid id);
 }
 
 public class MemberService : IMemberService
@@ -26,20 +26,20 @@ public class MemberService : IMemberService
         _mapper = mapper;
     }
 
-    public async Task<Response<MemberDto>> CreateMemberProfile(Guid organisationId, Guid userId)
+    public async Task<GlobalResponse<MemberDto>> CreateMemberProfile(Guid organisationId, Guid userId)
     {
         var organisationExists = await _repository.Organisations.AnyAsync(org => org.Id == organisationId);
 
         if (!organisationExists)
         {
-            return new Response<MemberDto>(false, "create member profile failed", errors: [$"organisation with id {organisationId} not found"]);
+            return new GlobalResponse<MemberDto>(false, "create member profile failed", errors: [$"organisation with id {organisationId} not found"]);
         }
 
         var userExists = await _repository.Users.AnyAsync(u => u.Id == userId);
 
         if (!userExists)
         {
-            return new Response<MemberDto>(false, "create member profile failed", errors: [$"user with id {userId} not found"]);
+            return new GlobalResponse<MemberDto>(false, "create member profile failed", errors: [$"user with id {userId} not found"]);
         }
 
         var member = new MemberModel()
@@ -54,26 +54,26 @@ public class MemberService : IMemberService
 
         var memberToReturn = _mapper.Map<MemberDto>(member);
 
-        return new Response<MemberDto>(true, "create member profile success", value: memberToReturn);
+        return new GlobalResponse<MemberDto>(true, "create member profile success", value: memberToReturn);
 
     }
 
-    public async Task<Response<MemberDto>> GetMemberProfileById(Guid id)
+    public async Task<GlobalResponse<MemberDto>> GetMemberProfileById(Guid id)
     {
         var member = await _repository.Members.Where(m => m.Id == id).Include(m => m.User).SingleOrDefaultAsync();
 
-        if (member == null) return new Response<MemberDto>(false, "get member profile failed", errors: [$"member with id: {id} not found"]);
+        if (member == null) return new GlobalResponse<MemberDto>(false, "get member profile failed", errors: [$"member with id: {id} not found"]);
 
         var memberToReturn = _mapper.Map<MemberDto>(member);
 
-        return new Response<MemberDto>(true, "get member profile success", value: memberToReturn);
+        return new GlobalResponse<MemberDto>(true, "get member profile success", value: memberToReturn);
     }
 
-    public async Task<Response<MemberDto>> AssignMemberRole(Guid id, string role)
+    public async Task<GlobalResponse<MemberDto>> AssignMemberRole(Guid id, string role)
     {
         var member = await _repository.Members.Where(m => m.Id == id).Include(m => m.User).SingleOrDefaultAsync();
 
-        if (member == null) return new Response<MemberDto>(false, "get member profile failed", errors: [$"member with id: {id} not found"]);
+        if (member == null) return new GlobalResponse<MemberDto>(false, "get member profile failed", errors: [$"member with id: {id} not found"]);
 
         switch (role)
         {
@@ -84,7 +84,7 @@ public class MemberService : IMemberService
                 }
                 else
                 {
-                    if (member.Roles.Contains(role)) return new Response<MemberDto>(false, "assign member role failed", errors: ["duplicate role assignment"]);
+                    if (member.Roles.Contains(role)) return new GlobalResponse<MemberDto>(false, "assign member role failed", errors: ["duplicate role assignment"]);
                     member.Roles.Add(role);
                 }
                 break;
@@ -95,29 +95,29 @@ public class MemberService : IMemberService
                 }
                 else
                 {
-                    if (member.Roles.Contains(role)) return new Response<MemberDto>(false, "assign member role failed", errors: ["duplicate role assignment"]);
+                    if (member.Roles.Contains(role)) return new GlobalResponse<MemberDto>(false, "assign member role failed", errors: ["duplicate role assignment"]);
                     member.Roles.Add(role);
                 }
                 break;
             default:
-                return new Response<MemberDto>(false, "assign role failed", errors: ["member role invalid [Roles : manager || owner]"]);
+                return new GlobalResponse<MemberDto>(false, "assign role failed", errors: ["member role invalid [Roles : manager || owner]"]);
         }
 
         await _repository.SaveChangesAsync();
 
-        return new Response<MemberDto>(true, "assign role success");
+        return new GlobalResponse<MemberDto>(true, "assign role success");
 
     }
 
-    public async Task<Response<MemberDto>> ResignMemberRole(Guid id, string role)
+    public async Task<GlobalResponse<MemberDto>> ResignMemberRole(Guid id, string role)
     {
         var member = await _repository.Members.Where(m => m.Id == id).Include(m => m.User).SingleOrDefaultAsync();
 
-        if (member == null) return new Response<MemberDto>(false, "get member profile failed", errors: [$"member with id: {id} not found"]);
+        if (member == null) return new GlobalResponse<MemberDto>(false, "get member profile failed", errors: [$"member with id: {id} not found"]);
 
         if (member.Roles == null || !member.Roles.Contains(role))
         {
-            return new Response<MemberDto>(false, "resign member role failed", errors: [$"member does not possess the role: {role}"]);
+            return new GlobalResponse<MemberDto>(false, "resign member role failed", errors: [$"member does not possess the role: {role}"]);
         }
         else
         {
@@ -126,20 +126,20 @@ public class MemberService : IMemberService
 
         await _repository.SaveChangesAsync();
 
-        return new Response<MemberDto>(true, "resign member role success");
+        return new GlobalResponse<MemberDto>(true, "resign member role success");
 
     }
 
-    public async Task<Response<MemberDto>> DeleteMemberProfile(Guid id)
+    public async Task<GlobalResponse<MemberDto>> DeleteMemberProfile(Guid id)
     {
         var member = await _repository.Members.FindAsync(id);
 
-        if (member == null) return new Response<MemberDto>(false, "delete member profile failed", errors: [$"member with id: {id} not found"]);
+        if (member == null) return new GlobalResponse<MemberDto>(false, "delete member profile failed", errors: [$"member with id: {id} not found"]);
 
         _repository.Members.Remove(member);
 
         await _repository.SaveChangesAsync();
 
-        return new Response<MemberDto>(true, "delete member profile success");
+        return new GlobalResponse<MemberDto>(true, "delete member profile success");
     }
 }

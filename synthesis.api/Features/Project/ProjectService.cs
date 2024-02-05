@@ -12,15 +12,15 @@ namespace synthesis.api.Features.Project;
 
 public interface IProjectService
 {
-    Task<Response<ProjectDto>> CreateProject(Guid organisationId, Guid memberId, CreateProjectDto createRequest);
+    Task<GlobalResponse<ProjectDto>> CreateProject(Guid organisationId, Guid memberId, CreateProjectDto createRequest);
 
-    Task<Response<ProjectDto>> GetProjectById(Guid id);
+    Task<GlobalResponse<ProjectDto>> GetProjectById(Guid id);
 
-    Task<Response<ProjectDto>> UpdateProject(Guid id, UpdateProjectDto updateRequest);
+    Task<GlobalResponse<ProjectDto>> UpdateProject(Guid id, UpdateProjectDto updateRequest);
 
-    Task<Response<ProjectDto>> PatchProject(Guid id, UpdateProjectDto patchRequest);
+    Task<GlobalResponse<ProjectDto>> PatchProject(Guid id, UpdateProjectDto patchRequest);
 
-    Task<Response<ProjectDto>> DeleteProject(Guid id);
+    Task<GlobalResponse<ProjectDto>> DeleteProject(Guid id);
 }
 
 public class ProjectService : IProjectService
@@ -34,13 +34,13 @@ public class ProjectService : IProjectService
         _mapper = mapper;
     }
 
-    public async Task<Response<ProjectDto>> CreateProject(Guid organisationId, Guid memberId, CreateProjectDto createRequest)
+    public async Task<GlobalResponse<ProjectDto>> CreateProject(Guid organisationId, Guid memberId, CreateProjectDto createRequest)
     {
         var organisationExists = await _repository.Organisations.AnyAsync(org => org.Id == organisationId);
-        if (!organisationExists) return new Response<ProjectDto>(false, "create project failed", errors: [$"organisation with id: {organisationId} not found"]);
+        if (!organisationExists) return new GlobalResponse<ProjectDto>(false, "create project failed", errors: [$"organisation with id: {organisationId} not found"]);
 
         var member = await _repository.Members.FindAsync(memberId);
-        if (member == null) return new Response<ProjectDto>(false, "create project failed", errors: [$"member with id: {memberId} not found"]);
+        if (member == null) return new GlobalResponse<ProjectDto>(false, "create project failed", errors: [$"member with id: {memberId} not found"]);
 
         if (member.Roles != null && member.Roles.Contains(UserRoles.Owner))
         {
@@ -52,7 +52,7 @@ public class ProjectService : IProjectService
         project.OrganisationId = organisationId;
 
         var validationResult = new ProjectValidator().Validate(project);
-        if (!validationResult.IsValid) return new Response<ProjectDto>(false, "create project failed", errors: validationResult.Errors.Select(e => e.ErrorMessage).ToList());
+        if (!validationResult.IsValid) return new GlobalResponse<ProjectDto>(false, "create project failed", errors: validationResult.Errors.Select(e => e.ErrorMessage).ToList());
 
         await _repository.Projects.AddAsync(project);
 
@@ -60,24 +60,24 @@ public class ProjectService : IProjectService
 
         var projectToReturn = _mapper.Map<ProjectDto>(project);
 
-        return new Response<ProjectDto>(true, "create project success", value: projectToReturn);
+        return new GlobalResponse<ProjectDto>(true, "create project success", value: projectToReturn);
     }
 
-    public async Task<Response<ProjectDto>> GetProjectById(Guid id)
+    public async Task<GlobalResponse<ProjectDto>> GetProjectById(Guid id)
     {
         var project = await _repository.Projects.FindAsync(id);
-        if (project == null) return new Response<ProjectDto>(false, "get project failed", errors: [$"project with id: {id} not found"]);
+        if (project == null) return new GlobalResponse<ProjectDto>(false, "get project failed", errors: [$"project with id: {id} not found"]);
 
         var projectToReturn = _mapper.Map<ProjectDto>(project);
 
-        return new Response<ProjectDto>(true, "get project success", value: projectToReturn);
+        return new GlobalResponse<ProjectDto>(true, "get project success", value: projectToReturn);
     }
 
-    public async Task<Response<ProjectDto>> UpdateProject(Guid id, UpdateProjectDto updateRequest)
+    public async Task<GlobalResponse<ProjectDto>> UpdateProject(Guid id, UpdateProjectDto updateRequest)
     {
         var project = await _repository.Projects.FindAsync(id);
 
-        if (project == null) return new Response<ProjectDto>(false, "update project failed", errors: [$"project with id: {id} not found"]);
+        if (project == null) return new GlobalResponse<ProjectDto>(false, "update project failed", errors: [$"project with id: {id} not found"]);
 
         var updatedProject = _mapper.Map(updateRequest, project);
 
@@ -85,19 +85,19 @@ public class ProjectService : IProjectService
 
         if (!validationResult.IsValid)
         {
-            return new Response<ProjectDto>(false, "update project failed", errors: validationResult.Errors.Select(e => e.ErrorMessage).ToList());
+            return new GlobalResponse<ProjectDto>(false, "update project failed", errors: validationResult.Errors.Select(e => e.ErrorMessage).ToList());
         }
 
         await _repository.SaveChangesAsync();
 
-        return new Response<ProjectDto>(true, "update project success");
+        return new GlobalResponse<ProjectDto>(true, "update project success");
 
     }
 
-    public async Task<Response<ProjectDto>> PatchProject(Guid id, UpdateProjectDto patchRequest)
+    public async Task<GlobalResponse<ProjectDto>> PatchProject(Guid id, UpdateProjectDto patchRequest)
     {
         var project = await _repository.Projects.FindAsync(id);
-        if (project == null) return new Response<ProjectDto>(false, "patch project failed", errors: [$"project with id: {id} not found"]);
+        if (project == null) return new GlobalResponse<ProjectDto>(false, "patch project failed", errors: [$"project with id: {id} not found"]);
 
         var projectToBePatched = _mapper.Map<UpdateProjectDto>(project);
 
@@ -109,25 +109,26 @@ public class ProjectService : IProjectService
 
         if (!validationResult.IsValid)
         {
-            return new Response<ProjectDto>(false, "update project failed", errors: validationResult.Errors.Select(e => e.ErrorMessage).ToList());
+            return new GlobalResponse<ProjectDto>(false, "update project failed", errors: validationResult.Errors.Select(e => e.ErrorMessage).ToList());
         }
 
         await _repository.SaveChangesAsync();
 
-        return new Response<ProjectDto>(true, "patch project success");
+        return new GlobalResponse<ProjectDto>(true, "patch project success");
+
 
 
     }
-    public async Task<Response<ProjectDto>> DeleteProject(Guid id)
+    public async Task<GlobalResponse<ProjectDto>> DeleteProject(Guid id)
     {
         var project = await _repository.Projects.FindAsync(id);
 
-        if (project == null) return new Response<ProjectDto>(false, "delete project failed", errors: [$"project with id: {id} not found"]);
+        if (project == null) return new GlobalResponse<ProjectDto>(false, "delete project failed", errors: [$"project with id: {id} not found"]);
 
         _repository.Projects.Remove(project);
 
         await _repository.SaveChangesAsync();
 
-        return new Response<ProjectDto>(true, "delete project success");
+        return new GlobalResponse<ProjectDto>(true, "delete project success");
     }
 }

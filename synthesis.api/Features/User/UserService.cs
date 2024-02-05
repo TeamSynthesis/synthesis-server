@@ -7,15 +7,15 @@ using synthesis.api.Mappings;
 
 public interface IUserService
 {
-    Task<Response<UserDto>> RegisterUser(RegisterUserDto registerRequest);
+    Task<GlobalResponse<UserDto>> RegisterUser(RegisterUserDto registerRequest);
 
-    Task<Response<UserDto>> GetUserById(Guid id);
+    Task<GlobalResponse<UserDto>> GetUserById(Guid id);
 
-    Task<Response<UserDto>> UpdateUser(Guid id, UpdateUserDto updateRequest);
+    Task<GlobalResponse<UserDto>> UpdateUser(Guid id, UpdateUserDto updateRequest);
 
-    Task<Response<UserDto>> PatchUser(Guid id, UpdateUserDto patchRequest);
+    Task<GlobalResponse<UserDto>> PatchUser(Guid id, UpdateUserDto patchRequest);
 
-    Task<Response<UserDto>> DeleteUser(Guid id);
+    Task<GlobalResponse<UserDto>> DeleteUser(Guid id);
 
 }
 
@@ -31,7 +31,7 @@ public class UserService : IUserService
 
     }
 
-    public async Task<Response<UserDto>> RegisterUser(RegisterUserDto registerRequest)
+    public async Task<GlobalResponse<UserDto>> RegisterUser(RegisterUserDto registerRequest)
     {
 
         var user = _mapper.Map<UserModel>(registerRequest);
@@ -40,51 +40,51 @@ public class UserService : IUserService
 
         if (!validationResult.IsValid)
         {
-            return new Response<UserDto>(false, "failed to register user", errors: validationResult.Errors.Select(e => e.ErrorMessage).ToList());
+            return new GlobalResponse<UserDto>(false, "failed to register user", errors: validationResult.Errors.Select(e => e.ErrorMessage).ToList());
         }
         await _repository.Users.AddAsync(user);
         await _repository.SaveChangesAsync();
 
         var userToReturn = _mapper.Map<UserDto>(user);
 
-        return new Response<UserDto>(true, "user registered successfully", value: userToReturn);
+        return new GlobalResponse<UserDto>(true, "user registered successfully", value: userToReturn);
 
     }
 
-    public async Task<Response<UserDto>> GetUserById(Guid id)
+    public async Task<GlobalResponse<UserDto>> GetUserById(Guid id)
     {
         var user = await _repository.Users.FindAsync(id);
 
-        if (user == null) return new Response<UserDto>(false, "get user failed", errors: [$"user with id:{id} not found"]);
+        if (user == null) return new GlobalResponse<UserDto>(false, "get user failed", errors: [$"user with id:{id} not found"]);
 
         var userToReturn = _mapper.Map<UserDto>(user);
 
-        return new Response<UserDto>(true, "get user success", value: userToReturn);
+        return new GlobalResponse<UserDto>(true, "get user success", value: userToReturn);
     }
 
-    public async Task<Response<UserDto>> UpdateUser(Guid id, UpdateUserDto updateRequest)
+    public async Task<GlobalResponse<UserDto>> UpdateUser(Guid id, UpdateUserDto updateRequest)
     {
         var user = await _repository.Users.FindAsync(id);
-        if (user == null) return new Response<UserDto>(false, "update user failed", errors: [$"user with id{id} not found"]);
+        if (user == null) return new GlobalResponse<UserDto>(false, "update user failed", errors: [$"user with id{id} not found"]);
 
         var updatedUser = _mapper.Map(updateRequest, user);
 
         var validationResult = await new UserValidator(_repository, user).ValidateAsync(updatedUser);
         if (!validationResult.IsValid)
         {
-            return new Response<UserDto>(false, "update user failed", errors: validationResult.Errors.Select(e => e.ErrorMessage).ToList());
+            return new GlobalResponse<UserDto>(false, "update user failed", errors: validationResult.Errors.Select(e => e.ErrorMessage).ToList());
         }
 
         await _repository.SaveChangesAsync();
 
-        return new Response<UserDto>(true, "user update success");
+        return new GlobalResponse<UserDto>(true, "user update success");
 
     }
 
-    public async Task<Response<UserDto>> PatchUser(Guid id, UpdateUserDto patchRequest)
+    public async Task<GlobalResponse<UserDto>> PatchUser(Guid id, UpdateUserDto patchRequest)
     {
         var user = await _repository.Users.FindAsync(id);
-        if (user == null) return new Response<UserDto>(false, "delete user failed", errors: [$"user with id{id} not found"]);
+        if (user == null) return new GlobalResponse<UserDto>(false, "delete user failed", errors: [$"user with id{id} not found"]);
 
         var existingUser = new UserModel() { UserName = user.UserName, Email = user.Email };
 
@@ -97,23 +97,23 @@ public class UserService : IUserService
         var validationResult = await new UserValidator(_repository, existingUser).ValidateAsync(patchedUser);
         if (!validationResult.IsValid)
         {
-            return new Response<UserDto>(false, "update user failed", errors: validationResult.Errors.Select(e => e.ErrorMessage).ToList());
+            return new GlobalResponse<UserDto>(false, "update user failed", errors: validationResult.Errors.Select(e => e.ErrorMessage).ToList());
         }
 
         await _repository.SaveChangesAsync();
 
-        return new Response<UserDto>(true, "patch user success");
+        return new GlobalResponse<UserDto>(true, "patch user success");
     }
 
-    public async Task<Response<UserDto>> DeleteUser(Guid id)
+    public async Task<GlobalResponse<UserDto>> DeleteUser(Guid id)
     {
         var user = await _repository.Users.FindAsync(id);
-        if (user == null) return new Response<UserDto>(false, "delete user failed", errors: [$"user with id{id} not found"]);
+        if (user == null) return new GlobalResponse<UserDto>(false, "delete user failed", errors: [$"user with id{id} not found"]);
 
         _repository.Users.Remove(user);
         _repository.SaveChanges();
 
-        return new Response<UserDto>(true, "delete user success");
+        return new GlobalResponse<UserDto>(true, "delete user success");
     }
 
 

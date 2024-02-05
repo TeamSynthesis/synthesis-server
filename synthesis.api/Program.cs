@@ -2,6 +2,7 @@ using FluentValidation;
 using FluentValidation.AspNetCore;
 using Scrutor;
 using synthesis.api.Exceptions;
+using synthesis.api.Services.BlobStorageService;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,6 +13,8 @@ builder.Services.ConfigurePostgresContext(builder.Configuration);
 builder.Services.AddAutoMapper(typeof(Program));
 builder.Services.AddFluentValidationAutoValidation(opt => { opt.DisableDataAnnotationsValidation = true; });
 builder.Services.AddValidatorsFromAssembly(typeof(Program).Assembly);
+
+builder.Services.AddSingleton<AzureBlobService>();
 
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 
