@@ -13,7 +13,6 @@ public class MemberModel
 
     public List<string>? Roles { get; set; }
 
-
     [ForeignKey(nameof(OrganisationModel))]
     public Guid OrganisationId { get; set; }
     public OrganisationModel? Organisation { get; set; }
