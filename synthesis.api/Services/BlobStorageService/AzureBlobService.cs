@@ -10,6 +10,7 @@ public class AzureBlobService
 {
     private readonly BlobContainerClient _blobContainerClient;
     private readonly IConfiguration _configuration;
+    private readonly string SasKey;
 
     private string Uri;
     public AzureBlobService(IConfiguration configuration)
@@ -19,6 +20,8 @@ public class AzureBlobService
         var cnnString = _configuration.GetSection("AzureBlobStorage")["ConnectionString"];
         var container = _configuration.GetSection("AzureBlobStorage")["Container"];
         var storageAccount = _configuration.GetSection("AzureBlobStorage")["StorageAccount"];
+        SasKey = _configuration.GetSection("AzureBlobStorage")["SasKey"];
+
 
         Uri = $"https://{storageAccount}.blob.core.windows.net";
 
@@ -35,9 +38,9 @@ public class AzureBlobService
         {
             var uri = _blobContainerClient.Uri.ToString();
             var name = blob.Name;
-            var fullUri = $"{Uri}/{name}";
+            var fullUri = $"{Uri}/{name}?{SasKey}";
 
-            blobs.Add(new BlobDto { Uri = fullUri, Name = name, ContentType = blob.Properties.ContentType });
+            blobs.Add(new BlobDto { Uri = fullUri, Name = name });
         }
 
         return blobs;
@@ -55,7 +58,7 @@ public class AzureBlobService
             await client.UploadAsync(data);
         }
 
-        var blobToReturn = new BlobDto() { Uri = client.Uri.AbsoluteUri, Name = client.Name };
+        var blobToReturn = new BlobDto() { Uri = client.Uri.AbsoluteUri + "?" + SasKey, Name = client.Name };
 
         return new GlobalResponse<BlobDto>(true, "upload success", value: blobToReturn);
 
