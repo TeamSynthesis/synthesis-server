@@ -164,7 +164,7 @@ public class OrganisationService : IOrganisationService
 
         var organisationToBePatched = _mapper.Map<UpdateOrganisationDto>(organisation);
 
-        var patchedOrganisationDto = Patcher<UpdateOrganisationDto>.Patch(patchRequest, organisationToBePatched);
+        var patchedOrganisationDto = Patcher.Patch(patchRequest, organisationToBePatched);
 
         var patchedOrganisation = _mapper.Map(patchedOrganisationDto, organisation);
 

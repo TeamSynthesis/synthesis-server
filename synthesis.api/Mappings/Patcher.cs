@@ -1,8 +1,8 @@
 using synthesis.api.Features.Project;
 
-public static class Patcher<T>
+public static class Patcher
 {
-    public static T Patch(T source, T destination)
+    public static T Patch<T>(T source, T destination)
     {
         if (source == null || destination == null)
         {

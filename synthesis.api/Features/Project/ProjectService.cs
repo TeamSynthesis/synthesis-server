@@ -101,7 +101,7 @@ public class ProjectService : IProjectService
 
         var projectToBePatched = _mapper.Map<UpdateProjectDto>(project);
 
-        var patchedProjectDto = Patcher<UpdateProjectDto>.Patch(patchRequest, projectToBePatched);
+        var patchedProjectDto = Patcher.Patch(patchRequest, projectToBePatched);
 
         var patchedProject = _mapper.Map(patchedProjectDto, project);
 

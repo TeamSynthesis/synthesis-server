@@ -90,7 +90,7 @@ public class UserService : IUserService
 
         var userToBePatched = _mapper.Map<UpdateUserDto>(user);
 
-        var patchedUserDto = Patcher<UpdateUserDto>.Patch(patchRequest, userToBePatched);
+        var patchedUserDto = Patcher.Patch(patchRequest, userToBePatched);
 
         var patchedUser = _mapper.Map(patchedUserDto, user);
 
