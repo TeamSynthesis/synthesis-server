@@ -42,7 +42,7 @@ public class UsersController : ControllerBase
         var response = await _service.UpdateUser(id, user);
         if (!response.IsSuccess) return BadRequest(response);
 
-        return NoContent();
+        return Ok(response);
     }
 
     [HttpPatch("{id:guid}")]
@@ -51,7 +51,7 @@ public class UsersController : ControllerBase
         var response = await _service.PatchUser(id, user);
         if (!response.IsSuccess) return BadRequest(response);
 
-        return NoContent();
+        return Ok(response);
     }
 
     [HttpDelete("{id:guid}")]
@@ -60,7 +60,7 @@ public class UsersController : ControllerBase
         var response = await _service.DeleteUser(id);
         if (!response.IsSuccess) return BadRequest(response);
 
-        return NoContent();
+        return Ok(response);
 
     }
 

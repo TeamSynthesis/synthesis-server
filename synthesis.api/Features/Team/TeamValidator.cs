@@ -15,11 +15,6 @@ public class TeamValidator : AbstractValidator<TeamModel>
         .Matches(pattern).WithMessage("name must start and end with letters, with optional special characters ( _.- ) inbetween");
 
 
-        RuleFor(t => t.Description)
-        .MaximumLength(50).WithMessage("name cannot exceed 50 characters")
-        .Matches(pattern).WithMessage("name must start and end with letters, with optional special characters ( _.- ) inbetween")
-        .When(t => !string.IsNullOrEmpty(t.Description));
-
     }
 
 }

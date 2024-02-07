@@ -15,12 +15,12 @@ public interface ITeamService
     Task<GlobalResponse<TeamDto>> DeleteTeam(Guid id);
 
 }
-public class TeamsService : ITeamService
+public class TeamService : ITeamService
 {
     private readonly RepositoryContext _repository;
     private readonly IMapper _mapper;
 
-    public TeamsService(RepositoryContext repository, IMapper mapper)
+    public TeamService(RepositoryContext repository, IMapper mapper)
     {
         _repository = repository;
         _mapper = mapper;

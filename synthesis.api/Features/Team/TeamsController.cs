@@ -2,6 +2,8 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace synthesis.api.Features.Team;
 
+[ApiController]
+[Route("api/[controller]")]
 public class TeamsController : ControllerBase
 {
     private readonly ITeamService _service;
@@ -14,7 +16,7 @@ public class TeamsController : ControllerBase
     public async Task<IActionResult> CreateTeam(Guid projectId, [FromBody] CreateTeamDto team)
     {
         var response = await _service.CreateTeam(projectId, team);
-        if (!response.IsSuccess) return BadRequest(team);
+        if (!response.IsSuccess) return BadRequest(response);
 
         return CreatedAtRoute("TeamById", new { response.Value.id }, response.Value);
     }
@@ -34,7 +36,7 @@ public class TeamsController : ControllerBase
         var response = await _service.UpdateTeam(id, team);
         if (!response.IsSuccess) return BadRequest(response);
 
-        return NoContent();
+        return Ok(response);
     }
 
     [HttpPatch("{id:guid}")]
@@ -43,7 +45,7 @@ public class TeamsController : ControllerBase
         var response = await _service.PatchTeam(id, team);
         if (!response.IsSuccess) return BadRequest(response);
 
-        return NoContent();
+        return Ok(response);
     }
 
     [HttpDelete("{id:guid}")]
@@ -52,7 +54,7 @@ public class TeamsController : ControllerBase
         var response = await _service.DeleteTeam(id);
         if (!response.IsSuccess) return BadRequest(response);
 
-        return NoContent();
+        return Ok(response);
     }
 
 }

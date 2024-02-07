@@ -41,7 +41,7 @@ public class ProjectsController : ControllerBase
         var response = await _service.UpdateProject(id, project);
         if (!response.IsSuccess) return BadRequest(response);
 
-        return NoContent();
+        return Ok(response);
     }
 
     [HttpPatch("{id:guid}")]
@@ -50,7 +50,7 @@ public class ProjectsController : ControllerBase
         var response = await _service.PatchProject(id, project);
         if (!response.IsSuccess) return BadRequest(response);
 
-        return NoContent();
+        return Ok(response);
     }
 
     [HttpDelete("{id:guid}")]
@@ -60,7 +60,7 @@ public class ProjectsController : ControllerBase
 
         if (!response.IsSuccess) return BadRequest(response);
 
-        return NoContent();
+        return Ok(response);
     }
 
 }

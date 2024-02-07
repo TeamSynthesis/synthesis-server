@@ -71,7 +71,7 @@ public class OrganisationsController : ControllerBase
         var response = await _service.UpdateOrganisation(id, organisation);
         if (!response.IsSuccess) return BadRequest(response);
 
-        return NoContent();
+        return Ok(response);
     }
 
     [HttpPatch("{id:guid}")]
@@ -82,7 +82,7 @@ public class OrganisationsController : ControllerBase
         {
             return BadRequest(response);
         }
-        return NoContent();
+        return Ok(response);
     }
 
 
@@ -95,6 +95,6 @@ public class OrganisationsController : ControllerBase
             return BadRequest(response);
         }
 
-        return NoContent();
+        return Ok(response);
     }
 }

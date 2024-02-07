@@ -45,7 +45,7 @@ public class MembersController : ControllerBase
             return BadRequest(response);
         }
 
-        return NoContent();
+        return Ok(response);
     }
 
     [HttpPost("{id:guid}/resign-role")]
@@ -58,7 +58,7 @@ public class MembersController : ControllerBase
             return BadRequest(response);
         }
 
-        return NoContent();
+        return Ok(response);
     }
 
     [HttpDelete("{id:guid}")]
@@ -68,6 +68,6 @@ public class MembersController : ControllerBase
 
         if (!response.IsSuccess) return BadRequest(response);
 
-        return NoContent();
+        return Ok(response);
     }
 }
