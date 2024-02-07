@@ -39,11 +39,6 @@ public class UserValidator : AbstractValidator<UserModel>
             }
         ).WithMessage("username must be unique");
 
-        RuleFor(u => u.AvatarUrl)
-        .Matches("[A-Za-z]")
-        .When(u => !string.IsNullOrEmpty(u.AvatarUrl));
-
-
         RuleFor(u => u.Email)
         .NotNull().NotEmpty().WithMessage("Email must not be empty")
         .EmailAddress().WithMessage("Email must be a valid email addresss")

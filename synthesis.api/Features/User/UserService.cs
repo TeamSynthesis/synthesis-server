@@ -4,6 +4,7 @@ using synthesis.api.Data.Models;
 using synthesis.api.Data.Repository;
 using synthesis.api.Features.User;
 using synthesis.api.Mappings;
+using synthesis.api.Services.BlobStorageService;
 
 public interface IUserService
 {
@@ -22,12 +23,15 @@ public interface IUserService
 public class UserService : IUserService
 {
     private readonly RepositoryContext _repository;
+    private readonly AzureBlobService _blobService;
     private readonly IMapper _mapper;
 
-    public UserService(RepositoryContext repository, IMapper mapper)
+    public UserService(RepositoryContext repository, IMapper mapper, AzureBlobService blobService)
     {
         _repository = repository;
         _mapper = mapper;
+
+        _blobService = blobService;
 
     }
 
@@ -42,6 +46,28 @@ public class UserService : IUserService
         {
             return new GlobalResponse<UserDto>(false, "failed to register user", errors: validationResult.Errors.Select(e => e.ErrorMessage).ToList());
         }
+
+        if (registerRequest.Avatar == null)
+        {
+            user.AvatarUrl = $"https://eu.ui-avatars.com/api/?name={user.UserName}&size=250";
+        }
+        else
+        {
+            var avatarBlob = await _blobService.Upload(registerRequest.Avatar);
+
+            if (avatarBlob?.Data == null)
+            {
+                user.AvatarUrl = $"https://eu.ui-avatars.com/api/?name={user.UserName}&size=250";
+            }
+            else
+            {
+                user.AvatarUrl = avatarBlob.Data.Uri;
+            }
+
+        }
+
+
+
         await _repository.Users.AddAsync(user);
         await _repository.SaveChangesAsync();
 
