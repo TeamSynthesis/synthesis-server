@@ -22,7 +22,7 @@ public class UsersController : ControllerBase
         var response = await _service.RegisterUser(user);
         if (!response.IsSuccess) return BadRequest(response);
 
-        return CreatedAtRoute("UserById", new { id = response.Value.Id }, response.Value);
+        return CreatedAtRoute("UserById", new { id = response.Data.Id }, response.Data);
     }
 
 

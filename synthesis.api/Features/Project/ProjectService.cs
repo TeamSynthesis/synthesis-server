@@ -60,7 +60,7 @@ public class ProjectService : IProjectService
 
         var projectToReturn = _mapper.Map<ProjectDto>(project);
 
-        return new GlobalResponse<ProjectDto>(true, "create project success", value: projectToReturn);
+        return new GlobalResponse<ProjectDto>(true, "create project success", data: projectToReturn);
     }
 
     public async Task<GlobalResponse<ProjectDto>> GetProjectById(Guid id)
@@ -70,7 +70,7 @@ public class ProjectService : IProjectService
 
         var projectToReturn = _mapper.Map<ProjectDto>(project);
 
-        return new GlobalResponse<ProjectDto>(true, "get project success", value: projectToReturn);
+        return new GlobalResponse<ProjectDto>(true, "get project success", data: projectToReturn);
     }
 
     public async Task<GlobalResponse<ProjectDto>> UpdateProject(Guid id, UpdateProjectDto updateRequest)

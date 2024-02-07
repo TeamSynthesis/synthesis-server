@@ -14,7 +14,7 @@ public class UserValidator : AbstractValidator<UserModel>
     {
 
         RuleFor(u => u.FirstName)
-        .Matches("[a-zA-Z]+").WithMessage("First name can only contain letters")
+        .Matches("[a-zA-Z]+").WithMessage("FirstName can only contain letters")
         .When(u => !string.IsNullOrEmpty(u.FirstName));
 
         RuleFor(u => u.LastName)
@@ -37,7 +37,7 @@ public class UserValidator : AbstractValidator<UserModel>
 
                 return !await _repository.Users.AnyAsync(u => u.UserName == username);
             }
-        ).WithMessage("Username must be unique");
+        ).WithMessage("username must be unique");
 
         RuleFor(u => u.AvatarUrl)
         .Matches("[A-Za-z]")
@@ -57,7 +57,7 @@ public class UserValidator : AbstractValidator<UserModel>
 
                 return !await _repository.Users.AnyAsync(u => u.Email == email);
             }
-        ).WithMessage("Username must be unique");
+        ).WithMessage("email must be unique");
 
 
         RuleFor(u => u.Password)

@@ -15,15 +15,6 @@ public class MembersController : ControllerBase
         _service = service;
     }
 
-    [HttpPost]
-    public async Task<IActionResult> CreateMemberProfile(Guid organisationId, Guid userId)
-    {
-        var response = await _service.CreateMemberProfile(organisationId, userId);
-
-        if (!response.IsSuccess) return BadRequest(response);
-
-        return CreatedAtRoute("MemberProfileById", new { id = response.Value.Id }, response.Value);
-    }
 
     [HttpGet("{id:guid}", Name = "MemberProfileById")]
     public async Task<IActionResult> GetMemberProfileById(Guid id)

@@ -18,7 +18,7 @@ public class TeamsController : ControllerBase
         var response = await _service.CreateTeam(projectId, team);
         if (!response.IsSuccess) return BadRequest(response);
 
-        return CreatedAtRoute("TeamById", new { response.Value.id }, response.Value);
+        return CreatedAtRoute("TeamById", new { response.Data.id }, response.Data);
     }
 
     [HttpGet("{id:guid}", Name = "TeamById")]
@@ -52,6 +52,15 @@ public class TeamsController : ControllerBase
     public async Task<IActionResult> DeleteTeam(Guid id)
     {
         var response = await _service.DeleteTeam(id);
+        if (!response.IsSuccess) return BadRequest(response);
+
+        return Ok(response);
+    }
+
+    [HttpPost("{id:guid}/developers/add")]
+    public async Task<IActionResult> AddDeveloper(Guid id, Guid memberId)
+    {
+        var response = await _service.AddDeveloper(id, memberId);
         if (!response.IsSuccess) return BadRequest(response);
 
         return Ok(response);

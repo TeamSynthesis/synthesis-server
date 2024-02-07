@@ -14,6 +14,9 @@ public interface ITeamService
     Task<GlobalResponse<TeamDto>> PatchTeam(Guid id, UpdateTeamDto updateRequest);
     Task<GlobalResponse<TeamDto>> DeleteTeam(Guid id);
 
+    Task<GlobalResponse<TeamDto>> AddDeveloper(Guid id, Guid memberId);
+
+
 }
 public class TeamService : ITeamService
 {
@@ -45,7 +48,7 @@ public class TeamService : ITeamService
 
         var teamToReturn = _mapper.Map<TeamDto>(team);
 
-        return new GlobalResponse<TeamDto>(true, "created team successfully", value: teamToReturn);
+        return new GlobalResponse<TeamDto>(true, "created team successfully", data: teamToReturn);
     }
 
     public async Task<GlobalResponse<TeamDto>> GetTeamById(Guid id)
@@ -56,7 +59,7 @@ public class TeamService : ITeamService
 
         var teamToReturn = _mapper.Map<TeamDto>(team);
 
-        return new GlobalResponse<TeamDto>(true, "get team success", value: teamToReturn);
+        return new GlobalResponse<TeamDto>(true, "get team success", data: teamToReturn);
     }
 
     public async Task<GlobalResponse<TeamDto>> UpdateTeam(Guid id, UpdateTeamDto updateRequest)
@@ -107,6 +110,21 @@ public class TeamService : ITeamService
         await _repository.SaveChangesAsync();
 
         return new GlobalResponse<TeamDto>(true, "delete team success");
+    }
+
+    public async Task<GlobalResponse<TeamDto>> AddDeveloper(Guid id, Guid memberId)
+    {
+        var team = await _repository.Teams.FindAsync(id);
+        if (team == null) return new GlobalResponse<TeamDto>(false, "add developer to team failed", errors: [$"team with id:{id} not found"]);
+
+        var member = await _repository.Members.FindAsync(memberId);
+        if (member == null) return new GlobalResponse<TeamDto>(false, "add developer to team failed", errors: [$"member with id: {id} not found"]);
+
+        member.Teams = [team];
+
+        await _repository.SaveChangesAsync();
+
+        return new GlobalResponse<TeamDto>(true, "add developer to team success");
     }
 
 

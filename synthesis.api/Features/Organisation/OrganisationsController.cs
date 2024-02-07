@@ -1,5 +1,6 @@
 using System.ComponentModel.Design.Serialization;
 using Microsoft.AspNetCore.Mvc;
+using Scrutor;
 
 namespace synthesis.api.Features.Organisation;
 
@@ -22,7 +23,17 @@ public class OrganisationsController : ControllerBase
 
         if (!response.IsSuccess) return BadRequest(response);
 
-        return CreatedAtAction("OrganisationById", new { id = response.Value.Id }, response.Value);
+        return CreatedAtAction("OrganisationById", new { id = response.Data.Id }, response.Data);
+    }
+
+    [HttpPost("{id:guid}/members/add")]
+    public async Task<IActionResult> AddMember(Guid id, Guid userId)
+    {
+        var response = await _service.AddMember(id, userId);
+
+        if (!response.IsSuccess) return BadRequest(response);
+
+        return Ok(response);
     }
 
     [HttpGet("{id:guid}", Name = "OrganisationById")]

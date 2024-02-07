@@ -11,7 +11,9 @@ public class MappingProfile : Profile
     public MappingProfile()
     {
         //user
-        CreateMap<UserDto, UserModel>().ReverseMap(); ;
+        CreateMap<UserDto, UserModel>().ReverseMap();
+        CreateMap<UserModel, UserProfileDto>()
+            .ForMember(dto => dto.MemberProfiles, opt => opt.MapFrom(u => u.MemberProfiles));
         CreateMap<RegisterUserDto, UserModel>();
         CreateMap<UpdateUserDto, UserModel>().ReverseMap();
 
@@ -35,6 +37,8 @@ public class MappingProfile : Profile
           .ForMember(dto => dto.User,
           opt => opt.MapFrom(m => m.User));
 
+        CreateMap<MemberModel, MemberProfileDto>()
+        ;
 
     }
 

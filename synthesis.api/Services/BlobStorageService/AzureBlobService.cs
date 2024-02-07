@@ -60,7 +60,7 @@ public class AzureBlobService
 
         var blobToReturn = new BlobDto() { Uri = client.Uri.AbsoluteUri + "?" + SasKey, Name = client.Name };
 
-        return new GlobalResponse<BlobDto>(true, "upload success", value: blobToReturn);
+        return new GlobalResponse<BlobDto>(true, "upload success", data: blobToReturn);
 
     }
 

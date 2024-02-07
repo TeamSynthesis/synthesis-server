@@ -14,6 +14,7 @@ namespace synthesis.api.Features.Organisation;
 public interface IOrganisationService
 {
     Task<GlobalResponse<OrganisationDto>> CreateOrganisation(Guid userId, CreateOrganisationDto organisationRequest);
+    Task<GlobalResponse<MemberDto>> AddMember(Guid id, Guid userId);
     Task<GlobalResponse<OrganisationDto>> GetOrganisationById(Guid id);
     Task<GlobalResponse<OrganisationDto>> GetOrganisationWithResourcesById(Guid id);
     Task<GlobalResponse<List<MemberDto>>> GetOrganisationMembers(Guid id);
@@ -21,6 +22,7 @@ public interface IOrganisationService
     Task<GlobalResponse<OrganisationDto>> UpdateOrganisation(Guid id, UpdateOrganisationDto updateRequest);
     Task<GlobalResponse<OrganisationDto>> PatchOrganisation(Guid id, UpdateOrganisationDto patchRequest);
     Task<GlobalResponse<OrganisationDto>> DeleteOrganisation(Guid id);
+
 }
 
 public class OrganisationService : IOrganisationService
@@ -66,8 +68,39 @@ public class OrganisationService : IOrganisationService
 
         var organisationToReturn = _mapper.Map<OrganisationDto>(organisation);
 
-        return new GlobalResponse<OrganisationDto>(true, "organisation created", value: organisationToReturn);
+        return new GlobalResponse<OrganisationDto>(true, "organisation created", data: organisationToReturn);
 
+    }
+
+    public async Task<GlobalResponse<MemberDto>> AddMember(Guid id, Guid userId)
+    {
+        var organisationExists = await _repository.Organisations.AnyAsync(org => org.Id == id);
+
+        if (!organisationExists)
+        {
+            return new GlobalResponse<MemberDto>(false, "create member profile failed", errors: [$"organisation with id {id} not found"]);
+        }
+
+        var user = await _repository.Users.FindAsync(userId);
+
+        if (user == null)
+        {
+            return new GlobalResponse<MemberDto>(false, "create member profile failed", errors: [$"user with id {userId} not found"]);
+        }
+
+        var member = new MemberModel()
+        {
+            User = user,
+            OrganisationId = id
+        };
+
+        await _repository.Members.AddAsync(member);
+        await _repository.SaveChangesAsync();
+
+
+        var memberToReturn = _mapper.Map<MemberDto>(member);
+
+        return new GlobalResponse<MemberDto>(true, "add member to organisation success", data: memberToReturn);
     }
 
     public async Task<GlobalResponse<OrganisationDto>> GetOrganisationById(Guid id)
@@ -81,7 +114,7 @@ public class OrganisationService : IOrganisationService
 
         var organisationToReturn = _mapper.Map<OrganisationDto>(organisation);
 
-        return new GlobalResponse<OrganisationDto>(true, "get organisation success", value: organisationToReturn);
+        return new GlobalResponse<OrganisationDto>(true, "get organisation success", data: organisationToReturn);
     }
 
     public async Task<GlobalResponse<OrganisationDto>> GetOrganisationWithResourcesById(Guid id)
@@ -95,7 +128,7 @@ public class OrganisationService : IOrganisationService
 
         var organisationToReturn = _mapper.Map<OrganisationDto>(organisation);
 
-        return new GlobalResponse<OrganisationDto>(true, "get organisation success", value: organisationToReturn);
+        return new GlobalResponse<OrganisationDto>(true, "get organisation success", data: organisationToReturn);
 
     }
 
@@ -112,7 +145,7 @@ public class OrganisationService : IOrganisationService
 
         var membersToReturn = _mapper.Map<List<MemberDto>>(members);
 
-        return new GlobalResponse<List<MemberDto>>(true, "get members success", value: membersToReturn);
+        return new GlobalResponse<List<MemberDto>>(true, "get members success", data: membersToReturn);
 
     }
 
@@ -129,7 +162,7 @@ public class OrganisationService : IOrganisationService
 
         var projectsToReturn = _mapper.Map<List<ProjectDto>>(projects);
 
-        return new GlobalResponse<List<ProjectDto>>(true, "get projects success", value: projectsToReturn);
+        return new GlobalResponse<List<ProjectDto>>(true, "get projects success", data: projectsToReturn);
 
     }
 
