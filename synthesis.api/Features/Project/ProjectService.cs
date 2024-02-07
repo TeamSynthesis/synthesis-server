@@ -119,6 +119,7 @@ public class ProjectService : IProjectService
 
 
     }
+
     public async Task<GlobalResponse<ProjectDto>> DeleteProject(Guid id)
     {
         var project = await _repository.Projects.FindAsync(id);

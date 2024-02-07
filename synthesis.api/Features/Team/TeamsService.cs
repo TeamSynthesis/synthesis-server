@@ -9,7 +9,7 @@ namespace synthesis.api.Features.Team;
 public interface ITeamService
 {
     Task<GlobalResponse<TeamDto>> CreateTeam(Guid projectId, CreateTeamDto createRequest);
-    Task<GlobalResponse<TeamDto>> GetTeam(Guid id);
+    Task<GlobalResponse<TeamDto>> GetTeamById(Guid id);
     Task<GlobalResponse<TeamDto>> UpdateTeam(Guid id, UpdateTeamDto updateRequest);
     Task<GlobalResponse<TeamDto>> PatchTeam(Guid id, UpdateTeamDto updateRequest);
     Task<GlobalResponse<TeamDto>> DeleteTeam(Guid id);
@@ -48,7 +48,7 @@ public class TeamsService : ITeamService
         return new GlobalResponse<TeamDto>(true, "created team successfully", value: teamToReturn);
     }
 
-    public async Task<GlobalResponse<TeamDto>> GetTeam(Guid id)
+    public async Task<GlobalResponse<TeamDto>> GetTeamById(Guid id)
     {
         var team = await _repository.Teams.FindAsync(id);
 
