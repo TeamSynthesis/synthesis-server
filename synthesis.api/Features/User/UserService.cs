@@ -73,7 +73,7 @@ public class UserService : IUserService
 
         var userToReturn = _mapper.Map<UserDto>(user);
 
-        return new GlobalResponse<UserDto>(true, "user registered successfully", data: userToReturn);
+        return new GlobalResponse<UserDto>(true, "user registered successfully", value: userToReturn);
 
     }
 
@@ -84,7 +84,7 @@ public class UserService : IUserService
 
         var userToReturn = _mapper.Map<UserProfileDto>(user);
 
-        return new GlobalResponse<UserProfileDto>(true, "get user success", data: userToReturn);
+        return new GlobalResponse<UserProfileDto>(true, "get user success", value: userToReturn);
     }
 
     public async Task<GlobalResponse<UserDto>> UpdateUser(Guid id, UpdateUserDto updateRequest)

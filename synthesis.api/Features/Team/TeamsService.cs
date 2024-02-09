@@ -48,7 +48,7 @@ public class TeamService : ITeamService
 
         var teamToReturn = _mapper.Map<TeamDto>(team);
 
-        return new GlobalResponse<TeamDto>(true, "created team successfully", data: teamToReturn);
+        return new GlobalResponse<TeamDto>(true, "created team successfully", value: teamToReturn);
     }
 
     public async Task<GlobalResponse<TeamDto>> GetTeamById(Guid id)
@@ -59,7 +59,7 @@ public class TeamService : ITeamService
 
         var teamToReturn = _mapper.Map<TeamDto>(team);
 
-        return new GlobalResponse<TeamDto>(true, "get team success", data: teamToReturn);
+        return new GlobalResponse<TeamDto>(true, "get team success", value: teamToReturn);
     }
 
     public async Task<GlobalResponse<TeamDto>> UpdateTeam(Guid id, UpdateTeamDto updateRequest)

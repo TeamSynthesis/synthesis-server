@@ -38,9 +38,9 @@ public class OrganisationService : IOrganisationService
 
     public async Task<GlobalResponse<OrganisationDto>> CreateOrganisation(Guid userId, CreateOrganisationDto organisationRequest)
     {
-        var userExists = await _repository.Users.AnyAsync(u => u.Id == userId);
+        var user = await _repository.Users.FindAsync(userId);
 
-        if (!userExists)
+        if (user == null)
         {
             return new GlobalResponse<OrganisationDto>(false, "create organisation failed", errors: [$"user with id: {userId} not found"]);
         }
@@ -56,7 +56,7 @@ public class OrganisationService : IOrganisationService
 
         var member = new MemberModel()
         {
-            UserId = userId,
+            User = user,
             Roles = [UserRoles.Owner]
         };
 
@@ -68,15 +68,15 @@ public class OrganisationService : IOrganisationService
 
         var organisationToReturn = _mapper.Map<OrganisationDto>(organisation);
 
-        return new GlobalResponse<OrganisationDto>(true, "organisation created", data: organisationToReturn);
+        return new GlobalResponse<OrganisationDto>(true, "organisation created", value: organisationToReturn);
 
     }
 
     public async Task<GlobalResponse<MemberDto>> AddMember(Guid id, Guid userId)
     {
-        var organisationExists = await _repository.Organisations.AnyAsync(org => org.Id == id);
+        var organisation = await _repository.Organisations.FindAsync(id);
 
-        if (!organisationExists)
+        if (organisation == null)
         {
             return new GlobalResponse<MemberDto>(false, "create member profile failed", errors: [$"organisation with id {id} not found"]);
         }
@@ -91,7 +91,7 @@ public class OrganisationService : IOrganisationService
         var member = new MemberModel()
         {
             User = user,
-            OrganisationId = id
+            Organisation = organisation
         };
 
         await _repository.Members.AddAsync(member);
@@ -100,7 +100,7 @@ public class OrganisationService : IOrganisationService
 
         var memberToReturn = _mapper.Map<MemberDto>(member);
 
-        return new GlobalResponse<MemberDto>(true, "add member to organisation success", data: memberToReturn);
+        return new GlobalResponse<MemberDto>(true, "add member to organisation success", value: memberToReturn);
     }
 
     public async Task<GlobalResponse<OrganisationDto>> GetOrganisationById(Guid id)
@@ -114,7 +114,7 @@ public class OrganisationService : IOrganisationService
 
         var organisationToReturn = _mapper.Map<OrganisationDto>(organisation);
 
-        return new GlobalResponse<OrganisationDto>(true, "get organisation success", data: organisationToReturn);
+        return new GlobalResponse<OrganisationDto>(true, "get organisation success", value: organisationToReturn);
     }
 
     public async Task<GlobalResponse<OrganisationDto>> GetOrganisationWithResourcesById(Guid id)
@@ -128,7 +128,7 @@ public class OrganisationService : IOrganisationService
 
         var organisationToReturn = _mapper.Map<OrganisationDto>(organisation);
 
-        return new GlobalResponse<OrganisationDto>(true, "get organisation success", data: organisationToReturn);
+        return new GlobalResponse<OrganisationDto>(true, "get organisation success", value: organisationToReturn);
 
     }
 
@@ -145,7 +145,7 @@ public class OrganisationService : IOrganisationService
 
         var membersToReturn = _mapper.Map<List<MemberDto>>(members);
 
-        return new GlobalResponse<List<MemberDto>>(true, "get members success", data: membersToReturn);
+        return new GlobalResponse<List<MemberDto>>(true, "get members success", value: membersToReturn);
 
     }
 
@@ -162,7 +162,7 @@ public class OrganisationService : IOrganisationService
 
         var projectsToReturn = _mapper.Map<List<ProjectDto>>(projects);
 
-        return new GlobalResponse<List<ProjectDto>>(true, "get projects success", data: projectsToReturn);
+        return new GlobalResponse<List<ProjectDto>>(true, "get projects success", value: projectsToReturn);
 
     }
 

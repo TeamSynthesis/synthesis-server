@@ -34,7 +34,7 @@ public class MemberService : IMemberService
 
         var memberToReturn = _mapper.Map<MemberDto>(member);
 
-        return new GlobalResponse<MemberDto>(true, "get member profile success", data: memberToReturn);
+        return new GlobalResponse<MemberDto>(true, "get member profile success", value: memberToReturn);
     }
 
     public async Task<GlobalResponse<MemberDto>> AssignMemberRole(Guid id, string role)

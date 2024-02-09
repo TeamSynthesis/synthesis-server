@@ -18,7 +18,7 @@ public class TeamsController : ControllerBase
         var response = await _service.CreateTeam(projectId, team);
         if (!response.IsSuccess) return BadRequest(response);
 
-        return CreatedAtRoute("TeamById", new { response.Data.id }, response.Data);
+        return Ok(response);
     }
 
     [HttpGet("{id:guid}", Name = "TeamById")]
