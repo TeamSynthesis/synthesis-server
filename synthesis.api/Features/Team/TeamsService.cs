@@ -10,12 +10,12 @@ public interface ITeamService
 {
     Task<GlobalResponse<TeamDto>> CreateTeam(Guid projectId, CreateTeamDto createRequest);
     Task<GlobalResponse<TeamDto>> GetTeamById(Guid id);
+    Task<GlobalResponse<List<MemberDto>>> GetTeamMembers(Guid id);
     Task<GlobalResponse<TeamDto>> UpdateTeam(Guid id, UpdateTeamDto updateRequest);
     Task<GlobalResponse<TeamDto>> PatchTeam(Guid id, UpdateTeamDto updateRequest);
     Task<GlobalResponse<TeamDto>> DeleteTeam(Guid id);
-
-    Task<GlobalResponse<TeamDto>> AddDeveloper(Guid id, Guid memberId);
-
+    Task<GlobalResponse<TeamDto>> AddTeamMember(Guid id, Guid memberId);
+    Task<GlobalResponse<TeamDto>> RemoveTeamMember(Guid id, Guid memberId);
 
 }
 public class TeamService : ITeamService
@@ -112,7 +112,24 @@ public class TeamService : ITeamService
         return new GlobalResponse<TeamDto>(true, "delete team success");
     }
 
-    public async Task<GlobalResponse<TeamDto>> AddDeveloper(Guid id, Guid memberId)
+    public async Task<GlobalResponse<List<MemberDto>>> GetTeamMembers(Guid id)
+    {
+        var teamExists = await _repository.Teams.AnyAsync(t => t.Id == id);
+
+        if (!teamExists)
+        {
+            return new GlobalResponse<List<MemberDto>>(false, "get team members failed", errors: [$"team with id: {id} not found"]);
+        }
+
+        var members = await _repository.Teams.Where(t => t.Id == id).Include(t => t.Developers).ThenInclude(d => d.User).Select(t => t.Developers).SingleOrDefaultAsync();
+
+        var membersToReturn = _mapper.Map<List<MemberDto>>(members);
+
+    
+        return new GlobalResponse<List<MemberDto>>(true, "get team members success", value: membersToReturn);
+    }
+
+    public async Task<GlobalResponse<TeamDto>> AddTeamMember(Guid id, Guid memberId)
     {
         var team = await _repository.Teams.FindAsync(id);
         if (team == null) return new GlobalResponse<TeamDto>(false, "add developer to team failed", errors: [$"team with id:{id} not found"]);
@@ -127,5 +144,19 @@ public class TeamService : ITeamService
         return new GlobalResponse<TeamDto>(true, "add developer to team success");
     }
 
+    public async Task<GlobalResponse<TeamDto>> RemoveTeamMember(Guid id, Guid memberId)
+    {
+        var team = await _repository.Teams.FindAsync(id);
+        if (team == null) return new GlobalResponse<TeamDto>(false, "remove developer from team failed", errors: [$"team with id:{id} not found"]);
+
+        var member = await _repository.Members.Where(m => m.Id == memberId).Include(m => m.Teams).SingleOrDefaultAsync();
+        if (member == null) return new GlobalResponse<TeamDto>(false, "remove developer from team failed", errors: [$"member with id: {id} not found"]);
+
+        if (member.Teams != null) member.Teams.Remove(team);
+
+        await _repository.SaveChangesAsync();
+
+        return new GlobalResponse<TeamDto>(true, "remove developer from team success");
+    }
 
 }

@@ -30,6 +30,15 @@ public class TeamsController : ControllerBase
         return Ok(response);
     }
 
+    [HttpGet("{id:guid}/team-members")]
+    public async Task<IActionResult> GetTeamMembers(Guid id)
+    {
+        var response = await _service.GetTeamMembers(id);
+        if (!response.IsSuccess) return BadRequest(response);
+
+        return Ok(response);
+    }
+
     [HttpPut("{id:guid}")]
     public async Task<IActionResult> UpdateTeam(Guid id, [FromBody] UpdateTeamDto team)
     {
@@ -60,7 +69,16 @@ public class TeamsController : ControllerBase
     [HttpPost("{id:guid}/developers/add")]
     public async Task<IActionResult> AddDeveloper(Guid id, Guid memberId)
     {
-        var response = await _service.AddDeveloper(id, memberId);
+        var response = await _service.AddTeamMember(id, memberId);
+        if (!response.IsSuccess) return BadRequest(response);
+
+        return Ok(response);
+    }
+
+    [HttpDelete("{id:guid}/developer/remove")]
+    public async Task<IActionResult> RemoveDeveloper(Guid id, Guid memeberId)
+    {
+        var response = await _service.RemoveTeamMember(id, memeberId);
         if (!response.IsSuccess) return BadRequest(response);
 
         return Ok(response);

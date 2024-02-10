@@ -78,14 +78,20 @@ public class OrganisationService : IOrganisationService
 
         if (organisation == null)
         {
-            return new GlobalResponse<MemberDto>(false, "create member profile failed", errors: [$"organisation with id {id} not found"]);
+            return new GlobalResponse<MemberDto>(false, "add member to organisation failed", errors: [$"organisation with id {id} not found"]);
         }
 
         var user = await _repository.Users.FindAsync(userId);
 
         if (user == null)
         {
-            return new GlobalResponse<MemberDto>(false, "create member profile failed", errors: [$"user with id {userId} not found"]);
+            return new GlobalResponse<MemberDto>(false, "add member to organisation failed", errors: [$"user with id {userId} not found"]);
+        }
+
+        var memberExists = await _repository.Members.AnyAsync(m => m.UserId == userId);
+        if (memberExists)
+        {
+            return new GlobalResponse<MemberDto>(false, "add member to organisation failed", errors: [$"member with id {userId} already exists"]);
         }
 
         var member = new MemberModel()
@@ -134,9 +140,9 @@ public class OrganisationService : IOrganisationService
 
     public async Task<GlobalResponse<List<MemberDto>>> GetOrganisationMembers(Guid id)
     {
-        var organisation = await _repository.Organisations.AnyAsync(org => org.Id == id);
+        var organisationExists = await _repository.Organisations.AnyAsync(org => org.Id == id);
 
-        if (!organisation)
+        if (!organisationExists)
         {
             return new GlobalResponse<List<MemberDto>>(false, "get members failed", errors: [$"organisation with id: {id} not found"]);
         }

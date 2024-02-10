@@ -28,7 +28,7 @@ public class MemberService : IMemberService
 
     public async Task<GlobalResponse<MemberDto>> GetMemberProfileById(Guid id)
     {
-        var member = await _repository.Members.Where(m => m.Id == id).Include(m => m.User).SingleOrDefaultAsync();
+        var member = await _repository.Members.Where(m => m.Id == id).Include(m => m.User).Include(m => m.Teams).SingleOrDefaultAsync();
 
         if (member == null) return new GlobalResponse<MemberDto>(false, "get member profile failed", errors: [$"member with id: {id} not found"]);
 
