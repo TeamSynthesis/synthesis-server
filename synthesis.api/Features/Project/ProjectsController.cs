@@ -23,7 +23,7 @@ public class ProjectsController : ControllerBase
             return BadRequest(response);
         }
 
-        return CreatedAtRoute("ProjectById", new { id = response.Data.Id }, response.Data);
+        return Ok(response);
     }
 
     [HttpGet("{id:guid}", Name = "ProjectById")]

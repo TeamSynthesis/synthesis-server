@@ -19,9 +19,9 @@ public class RepositoryContext : DbContext
         modelBuilder.Entity<UserModel>().HasIndex(u => u.Email);
 
         modelBuilder.Entity<TeamModel>()
-            .HasMany(t => t.Developers)
-            .WithMany(m => m.Teams)
-            .UsingEntity(j => j.ToTable("TeamMembers"));
+           .HasMany(t => t.Developers)
+           .WithMany(m => m.Teams)
+           .UsingEntity(j => j.ToTable("TeamMembers"));
 
 
     }

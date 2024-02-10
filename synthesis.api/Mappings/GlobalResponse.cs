@@ -3,7 +3,7 @@ namespace synthesis.api.Mappings;
 public class GlobalResponse<T>
 {
     public GlobalResponse
-      (bool isSuccess, string? message = null, T? data = default, List<string>? errors = null)
+      (bool isSuccess, string? message = null, T? value = default, List<string>? errors = null)
     {
         if (isSuccess && errors != null || !isSuccess && errors == null)
         {
@@ -12,7 +12,7 @@ public class GlobalResponse<T>
 
         IsSuccess = isSuccess;
         Message = message;
-        Data = data;
+        Data = value;
         Errors = errors;
     }
 

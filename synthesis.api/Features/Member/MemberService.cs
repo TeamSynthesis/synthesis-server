@@ -28,13 +28,13 @@ public class MemberService : IMemberService
 
     public async Task<GlobalResponse<MemberDto>> GetMemberProfileById(Guid id)
     {
-        var member = await _repository.Members.Where(m => m.Id == id).Include(m => m.User).SingleOrDefaultAsync();
+        var member = await _repository.Members.Where(m => m.Id == id).Include(m => m.User).Include(m => m.Teams).SingleOrDefaultAsync();
 
         if (member == null) return new GlobalResponse<MemberDto>(false, "get member profile failed", errors: [$"member with id: {id} not found"]);
 
         var memberToReturn = _mapper.Map<MemberDto>(member);
 
-        return new GlobalResponse<MemberDto>(true, "get member profile success", data: memberToReturn);
+        return new GlobalResponse<MemberDto>(true, "get member profile success", value: memberToReturn);
     }
 
     public async Task<GlobalResponse<MemberDto>> AssignMemberRole(Guid id, string role)

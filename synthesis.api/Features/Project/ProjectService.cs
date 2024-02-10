@@ -1,8 +1,5 @@
-using System.Net.Http.Headers;
+
 using AutoMapper;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using synthesis.api.Data.Models;
 using synthesis.api.Data.Repository;
 using synthesis.api.Features.User;
@@ -36,8 +33,8 @@ public class ProjectService : IProjectService
 
     public async Task<GlobalResponse<ProjectDto>> CreateProject(Guid organisationId, Guid memberId, CreateProjectDto createRequest)
     {
-        var organisationExists = await _repository.Organisations.AnyAsync(org => org.Id == organisationId);
-        if (!organisationExists) return new GlobalResponse<ProjectDto>(false, "create project failed", errors: [$"organisation with id: {organisationId} not found"]);
+        var organisation = await _repository.Organisations.FindAsync(organisationId);
+        if (organisation == null) return new GlobalResponse<ProjectDto>(false, "create project failed", errors: [$"organisation with id: {organisationId} not found"]);
 
         var member = await _repository.Members.FindAsync(memberId);
         if (member == null) return new GlobalResponse<ProjectDto>(false, "create project failed", errors: [$"member with id: {memberId} not found"]);
@@ -49,7 +46,7 @@ public class ProjectService : IProjectService
 
         var project = _mapper.Map<ProjectModel>(createRequest);
 
-        project.OrganisationId = organisationId;
+        project.Organisation = organisation;
 
         var validationResult = new ProjectValidator().Validate(project);
         if (!validationResult.IsValid) return new GlobalResponse<ProjectDto>(false, "create project failed", errors: validationResult.Errors.Select(e => e.ErrorMessage).ToList());
@@ -60,7 +57,7 @@ public class ProjectService : IProjectService
 
         var projectToReturn = _mapper.Map<ProjectDto>(project);
 
-        return new GlobalResponse<ProjectDto>(true, "create project success", data: projectToReturn);
+        return new GlobalResponse<ProjectDto>(true, "create project success", value: projectToReturn);
     }
 
     public async Task<GlobalResponse<ProjectDto>> GetProjectById(Guid id)
@@ -70,7 +67,7 @@ public class ProjectService : IProjectService
 
         var projectToReturn = _mapper.Map<ProjectDto>(project);
 
-        return new GlobalResponse<ProjectDto>(true, "get project success", data: projectToReturn);
+        return new GlobalResponse<ProjectDto>(true, "get project success", value: projectToReturn);
     }
 
     public async Task<GlobalResponse<ProjectDto>> UpdateProject(Guid id, UpdateProjectDto updateRequest)
