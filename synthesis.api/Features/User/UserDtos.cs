@@ -8,16 +8,8 @@ public record UserDto
     public string? Username { get; set; }
     public string? AvatarUrl { get; set; }
     public string? Email { get; set; }
-}
-public record UserProfileDto
-{
-    public Guid Id { get; set; }
-    public string? FirstName { get; set; }
-    public string? LastName { get; set; }
-    public string? Username { get; set; }
-    public string? AvatarUrl { get; set; }
-    public string? Email { get; set; }
-    public List<MemberProfileDto>? MemberProfiles { get; set; }
+    public List<MemberDto>? MemberProfiles { get; set; }
+
 }
 
 public record RegisterUserDto(string FirstName, string LastName, string Username, IFormFile Avatar, string Email, string Password);

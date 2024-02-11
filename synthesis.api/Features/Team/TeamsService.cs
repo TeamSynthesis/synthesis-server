@@ -11,7 +11,7 @@ public interface ITeamService
 {
     Task<GlobalResponse<TeamDto>> CreateTeam(Guid projectId, CreateTeamDto createRequest);
     Task<GlobalResponse<TeamDto>> GetTeamById(Guid id);
-    Task<GlobalResponse<List<TeamMemberDto>>> GetTeamMembers(Guid id);
+    Task<GlobalResponse<List<MemberDto>>> GetTeamMembers(Guid id);
     Task<GlobalResponse<TeamDto>> UpdateTeam(Guid id, UpdateTeamDto updateRequest);
     Task<GlobalResponse<TeamDto>> PatchTeam(Guid id, UpdateTeamDto updateRequest);
     Task<GlobalResponse<TeamDto>> DeleteTeam(Guid id);
@@ -113,18 +113,18 @@ public class TeamService : ITeamService
         return new GlobalResponse<TeamDto>(true, "delete team success");
     }
 
-    public async Task<GlobalResponse<List<TeamMemberDto>>> GetTeamMembers(Guid id)
+    public async Task<GlobalResponse<List<MemberDto>>> GetTeamMembers(Guid id)
     {
         var teamExists = await _repository.Teams.AnyAsync(t => t.Id == id);
 
         if (!teamExists)
         {
-            return new GlobalResponse<List<TeamMemberDto>>(false, "get team members failed", errors: [$"team with id: {id} not found"]);
+            return new GlobalResponse<List<MemberDto>>(false, "get team members failed", errors: [$"team with id: {id} not found"]);
         }
 
         var members = await _repository.Teams.Where(t => t.Id == id)
             .SelectMany(t => t.Developers)
-            .Select(x => new TeamMemberDto()
+            .Select(x => new MemberDto()
             {
                 Id = x.Id,
                 User = new UserDto()
@@ -141,7 +141,7 @@ public class TeamService : ITeamService
             .ToListAsync();
 
 
-        return new GlobalResponse<List<TeamMemberDto>>(true, "get team members success", value: members);
+        return new GlobalResponse<List<MemberDto>>(true, "get team members success", value: members);
     }
 
     public async Task<GlobalResponse<TeamDto>> AddTeamMember(Guid id, Guid memberId)

@@ -9,45 +9,37 @@ namespace synthesis.api.Mappings;
 
 public class MappingProfile : Profile
 {
-    public MappingProfile()
-    {
-        //user
-        CreateMap<UserDto, UserModel>().ReverseMap();
-        CreateMap<UserModel, UserProfileDto>()
-            .ForMember(dto => dto.MemberProfiles, opt => opt.MapFrom(u => u.MemberProfiles));
-        CreateMap<RegisterUserDto, UserModel>();
-        CreateMap<UpdateUserDto, UserModel>().ReverseMap();
+  public MappingProfile()
+  {
+    //user
+    CreateMap<UserDto, UserModel>().ReverseMap();
+    CreateMap<RegisterUserDto, UserModel>();
+    CreateMap<UpdateUserDto, UserModel>().ReverseMap();
 
-        //organisation
-        CreateMap<OrganisationDto, OrganisationModel>().ReverseMap();
-        CreateMap<OrganisationModel, OrganisationProfileDto>();
-        CreateMap<CreateOrganisationDto, OrganisationModel>();
-        CreateMap<UpdateOrganisationDto, OrganisationModel>().ReverseMap();
+    //organisation
+    CreateMap<OrganisationDto, OrganisationModel>().ReverseMap();
+    CreateMap<CreateOrganisationDto, OrganisationModel>();
+    CreateMap<UpdateOrganisationDto, OrganisationModel>().ReverseMap();
 
-        //project
-        CreateMap<ProjectDto, ProjectModel>().ReverseMap();
-        CreateMap<CreateProjectDto, ProjectModel>();
-        CreateMap<UpdateProjectDto, ProjectModel>().ReverseMap();
+    //project
+    CreateMap<ProjectDto, ProjectModel>().ReverseMap();
+    CreateMap<CreateProjectDto, ProjectModel>();
+    CreateMap<UpdateProjectDto, ProjectModel>().ReverseMap();
 
-        //team
-        CreateMap<TeamDto, TeamModel>().ReverseMap();
-        CreateMap<TeamModel, TeamProfileDto>();
-        CreateMap<CreateTeamDto, TeamModel>();
-        CreateMap<UpdateTeamDto, TeamModel>().ReverseMap();
+    //team
+    CreateMap<TeamDto, TeamModel>().ReverseMap();
+    CreateMap<CreateTeamDto, TeamModel>();
+    CreateMap<UpdateTeamDto, TeamModel>().ReverseMap();
 
-        //Member
-        CreateMap<MemberModel, MemberDto>()
-          .ForMember(dto => dto.User,
-          opt => opt.MapFrom(m => m.User));
-
-        CreateMap<MemberModel, MemberProfileDto>()
-        .ForMember(dto => dto.Organisation,
-        opt => opt.MapFrom(m => m.Organisation))
-  ;
+    //Member
+    CreateMap<MemberModel, MemberDto>()
+      .ForMember(dto => dto.User,
+      opt => opt.MapFrom(m => m.User));
+    ;
 
 
 
 
-    }
+  }
 
 }
