@@ -125,16 +125,37 @@ public class OrganisationService : IOrganisationService
 
     public async Task<GlobalResponse<OrganisationDto>> GetOrganisationWithResourcesById(Guid id)
     {
-        var organisation = await _repository.Organisations.Where(org => org.Id == id).Include(org => org.Members).ThenInclude(m => m.User).Include(org => org.Projects).SingleOrDefaultAsync();
+        var organisation = await _repository.Organisations.Where(org => org.Id == id)
+        .Select(org => new OrganisationDto()
+        {
+            Id = org.Id,
+            Name = org.Name,
+            LogoUrl = org.LogoUrl,
+            Members = org.Members.Select(x => new OrganisationMemberDto()
+            {
+                Id = x.Id,
+                User = new UserDto()
+                {
+                    Id = x.User.Id,
+                    FirstName = x.User.FirstName,
+                    LastName = x.User.LastName,
+                    Username = x.User.UserName,
+                    AvatarUrl = x.User.AvatarUrl,
+                    Email = x.User.AvatarUrl
+
+                },
+                Roles = x.Roles
+            }).ToList()
+        }).
+        SingleOrDefaultAsync();
 
         if (organisation == null)
         {
             return new GlobalResponse<OrganisationDto>(true, "get organisation failed", errors: [$"organisation with id: {id} not found"]);
         }
 
-        var organisationToReturn = _mapper.Map<OrganisationDto>(organisation);
 
-        return new GlobalResponse<OrganisationDto>(true, "get organisation success", value: organisationToReturn);
+        return new GlobalResponse<OrganisationDto>(true, "get organisation success", value: organisation);
 
     }
 

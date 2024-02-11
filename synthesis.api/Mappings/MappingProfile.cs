@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using AutoMapper;
 using synthesis.api.Data.Models;
 using synthesis.api.Features.Project;
@@ -19,6 +20,7 @@ public class MappingProfile : Profile
 
         //organisation
         CreateMap<OrganisationDto, OrganisationModel>().ReverseMap();
+        CreateMap<OrganisationModel, OrganisationProfileDto>();
         CreateMap<CreateOrganisationDto, OrganisationModel>();
         CreateMap<UpdateOrganisationDto, OrganisationModel>().ReverseMap();
 
@@ -29,6 +31,7 @@ public class MappingProfile : Profile
 
         //team
         CreateMap<TeamDto, TeamModel>().ReverseMap();
+        CreateMap<TeamModel, TeamProfileDto>();
         CreateMap<CreateTeamDto, TeamModel>();
         CreateMap<UpdateTeamDto, TeamModel>().ReverseMap();
 
@@ -38,7 +41,12 @@ public class MappingProfile : Profile
           opt => opt.MapFrom(m => m.User));
 
         CreateMap<MemberModel, MemberProfileDto>()
-        ;
+        .ForMember(dto => dto.Organisation,
+        opt => opt.MapFrom(m => m.Organisation))
+  ;
+
+
+
 
     }
 

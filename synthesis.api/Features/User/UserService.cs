@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using synthesis.api.Data.Models;
@@ -79,12 +80,25 @@ public class UserService : IUserService
 
     public async Task<GlobalResponse<UserProfileDto>> GetUserById(Guid id)
     {
-        var user = await _repository.Users.Where(u => u.Id == id).Include(u => u.MemberProfiles).SingleOrDefaultAsync();
+        var user = await _repository.Users
+        .Where(u => u.Id == id)
+        .Include(u => u.MemberProfiles).ThenInclude(m => m.Organisation)
+        .Select(u => new UserProfileDto
+        {
+            Id = u.Id,
+            FirstName = u.FirstName,
+            LastName = u.LastName,
+            Username = u.UserName,
+            AvatarUrl = u.AvatarUrl,
+            Email = u.Email,
+            MemberProfiles = _mapper.Map<List<MemberProfileDto>>(u.MemberProfiles)
+
+        }).SingleOrDefaultAsync();
+
+
         if (user == null) return new GlobalResponse<UserProfileDto>(false, "get user failed", errors: [$"user with id:{id} not found"]);
 
-        var userToReturn = _mapper.Map<UserProfileDto>(user);
-
-        return new GlobalResponse<UserProfileDto>(true, "get user success", value: userToReturn);
+        return new GlobalResponse<UserProfileDto>(true, "get user success", value: user);
     }
 
     public async Task<GlobalResponse<UserDto>> UpdateUser(Guid id, UpdateUserDto updateRequest)
