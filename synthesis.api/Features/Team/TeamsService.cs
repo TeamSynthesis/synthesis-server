@@ -2,6 +2,7 @@ using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using synthesis.api.Data.Models;
 using synthesis.api.Data.Repository;
+using synthesis.api.Features.User;
 using synthesis.api.Mappings;
 
 namespace synthesis.api.Features.Team;
@@ -121,12 +122,26 @@ public class TeamService : ITeamService
             return new GlobalResponse<List<MemberDto>>(false, "get team members failed", errors: [$"team with id: {id} not found"]);
         }
 
-        var members = await _repository.Teams.Where(t => t.Id == id).Include(t => t.Developers).ThenInclude(d => d.User).Select(t => t.Developers).SingleOrDefaultAsync();
+        var members = await _repository.Teams.Where(t => t.Id == id)
+            .SelectMany(t => t.Developers)
+            .Select(x => new MemberDto()
+            {
+                Id = x.Id,
+                User = new UserDto()
+                {
+                    Id = x.User.Id,
+                    FirstName = x.User.FirstName,
+                    LastName = x.User.LastName,
+                    Username = x.User.UserName,
+                    AvatarUrl = x.User.AvatarUrl,
+                    Email = x.User.AvatarUrl
+                },
 
-        var membersToReturn = _mapper.Map<List<MemberDto>>(members);
+            })
+            .ToListAsync();
 
-    
-        return new GlobalResponse<List<MemberDto>>(true, "get team members success", value: membersToReturn);
+
+        return new GlobalResponse<List<MemberDto>>(true, "get team members success", value: members);
     }
 
     public async Task<GlobalResponse<TeamDto>> AddTeamMember(Guid id, Guid memberId)
