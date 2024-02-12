@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using synthesis.api.Data.Repository;
@@ -12,9 +13,11 @@ using synthesis.api.Data.Repository;
 namespace synthesis.api.Migrations
 {
     [DbContext(typeof(RepositoryContext))]
-    partial class RepositoryContextModelSnapshot : ModelSnapshot
+    [Migration("20240212075036_added_projectmetadata_col_stack_fixv2")]
+    partial class added_projectmetadata_col_stack_fixv2
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -573,28 +576,15 @@ namespace synthesis.api.Migrations
                                     b2.WithOwner()
                                         .HasForeignKey("ProjectMetadataProjectModelId");
 
-                                    b2.OwnsMany("synthesis.api.Data.Models.TechStack", "Stacks", b3 =>
+                                    b2.OwnsOne("System.Collections.Generic.List<synthesis.api.Data.Models.TechStack>", "Stacks", b3 =>
                                         {
                                             b3.Property<Guid>("TechnologyProjectMetadataProjectModelId")
                                                 .HasColumnType("uuid");
 
-                                            b3.Property<int>("Id")
-                                                .ValueGeneratedOnAdd()
+                                            b3.Property<int>("Capacity")
                                                 .HasColumnType("integer");
 
-                                            b3.Property<string>("Description")
-                                                .HasColumnType("text");
-
-                                            b3.Property<string>("LogoUrl")
-                                                .HasColumnType("text");
-
-                                            b3.Property<string>("Name")
-                                                .HasColumnType("text");
-
-                                            b3.Property<string>("Reason")
-                                                .HasColumnType("text");
-
-                                            b3.HasKey("TechnologyProjectMetadataProjectModelId", "Id");
+                                            b3.HasKey("TechnologyProjectMetadataProjectModelId");
 
                                             b3.ToTable("Projects");
 

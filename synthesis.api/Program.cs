@@ -4,7 +4,7 @@ using FluentValidation.AspNetCore;
 using Microsoft.Extensions.Options;
 using Scrutor;
 using synthesis.api.Exceptions;
-using synthesis.api.Services.BlobStorageService;
+using synthesis.api.Services.BlobStorage;
 
 var builder = WebApplication.CreateBuilder(args);
 

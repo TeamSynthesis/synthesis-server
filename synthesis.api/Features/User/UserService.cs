@@ -5,7 +5,7 @@ using synthesis.api.Data.Models;
 using synthesis.api.Data.Repository;
 using synthesis.api.Features.User;
 using synthesis.api.Mappings;
-using synthesis.api.Services.BlobStorageService;
+using synthesis.api.Services.BlobStorage;
 
 public interface IUserService
 {
@@ -101,7 +101,7 @@ public class UserService : IUserService
                 },
                 Roles = x.Roles
             }).ToList()
-            
+
         }).SingleOrDefaultAsync();
 
 
