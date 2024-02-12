@@ -4,7 +4,7 @@ using Azure.Messaging;
 using Azure.Storage.Blobs;
 using synthesis.api.Mappings;
 
-namespace synthesis.api.Services.BlobStorageService;
+namespace synthesis.api.Services.BlobStorage;
 
 public class AzureBlobService
 {

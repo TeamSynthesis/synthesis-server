@@ -1,4 +1,4 @@
-namespace synthesis.api.Services.BlobStorageService;
+namespace synthesis.api.Services.BlobStorage;
 
 public class BlobDto
 {

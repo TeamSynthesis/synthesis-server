@@ -154,9 +154,7 @@ public class OrganisationService : IOrganisationService
             }).ToList(),
             Projects = org.Projects.Select(x => new ProjectDto
             {
-                Id = x.Id,
-                Name = x.Name,
-                Description = x.Description
+                Id = x.Id
 
             }).ToList()
         }).
@@ -216,9 +214,7 @@ public class OrganisationService : IOrganisationService
             .Where(p => p.OrganisationId == id)
             .Select(x => new ProjectDto
             {
-                Id = x.Id,
-                Name = x.Name,
-                Description = x.Description
+                Id = x.Id
             }).ToListAsync();
 
 

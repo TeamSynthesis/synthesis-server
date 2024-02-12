@@ -32,7 +32,7 @@ public class ProjectsController : ControllerBase
         var response = await _service.GetProjectById(id);
         if (!response.IsSuccess) return BadRequest(response);
 
-        return Ok(response);
+        return Ok(response.Data);
     }
 
     [HttpPut("{id:guid}")]

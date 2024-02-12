@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 
-namespace synthesis.api.Services.BlobStorageService;
+namespace synthesis.api.Services.BlobStorage;
 
 [ApiController]
 [Route("api/[controller]")]
