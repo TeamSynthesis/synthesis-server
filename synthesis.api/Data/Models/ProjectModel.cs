@@ -1,5 +1,5 @@
-using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace synthesis.api.Data.Models;
 
@@ -10,6 +10,10 @@ public class ProjectModel
 
     [ForeignKey(nameof(OrganisationModel))]
     public Guid OrganisationId { get; set; }
+
+    public string? Name { get; set; }
+    public string? IconUrl { get; set; }
+
     public OrganisationModel? Organisation { get; set; }
 
     [Column(TypeName = "jsonb")]
@@ -85,7 +89,7 @@ public class Competitor
 {
     public string? Name { get; set; }
     public string? Size { get; set; }
-    public int ReviewSentiment { get; set; }
+    public double ReviewSentiment { get; set; }
     public List<string>? Features { get; set; }
     public string? PricingModel { get; set; }
     public string? Url { get; set; }

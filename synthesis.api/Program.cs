@@ -1,8 +1,10 @@
 using System.Text.Json.Serialization;
+using Azure.Identity;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using Microsoft.Extensions.Options;
 using Scrutor;
+using synthesis.api.Configurations;
 using synthesis.api.Exceptions;
 using synthesis.api.Services.BlobStorage;
 

@@ -2,8 +2,9 @@
 using AutoMapper;
 using synthesis.api.Data.Models;
 using synthesis.api.Data.Repository;
-using synthesis.api.Features.User;
 using synthesis.api.Mappings;
+using synthesis.api.Services.OpenAi;
+using System.Text.Json;
 
 namespace synthesis.api.Features.Project;
 
@@ -11,11 +12,9 @@ public interface IProjectService
 {
     Task<GlobalResponse<ProjectDto>> CreateProject(Guid organisationId, Guid memberId, CreateProjectDto createRequest);
 
+    Task<GlobalResponse<GeneratedProjectDto>> GenerateProject(string prompt);
+
     Task<GlobalResponse<ProjectModel>> GetProjectById(Guid id);
-
-    Task<GlobalResponse<ProjectDto>> UpdateProject(Guid id, UpdateProjectDto updateRequest);
-
-    Task<GlobalResponse<ProjectDto>> PatchProject(Guid id, UpdateProjectDto patchRequest);
 
     Task<GlobalResponse<ProjectDto>> DeleteProject(Guid id);
 }
@@ -24,11 +23,13 @@ public class ProjectService : IProjectService
 {
     private readonly RepositoryContext _repository;
     private readonly IMapper _mapper;
+    private readonly IChatGptService _gptService;
 
-    public ProjectService(RepositoryContext repository, IMapper mapper)
+    public ProjectService(RepositoryContext repository, IMapper mapper, IChatGptService gptService)
     {
         _repository = repository;
         _mapper = mapper;
+        _gptService = gptService;
     }
 
     public Task<GlobalResponse<ProjectDto>> CreateProject(Guid organisationId, Guid memberId, CreateProjectDto createRequest)
@@ -36,10 +37,15 @@ public class ProjectService : IProjectService
         throw new NotImplementedException();
     }
 
-    public Task<GlobalResponse<ProjectDto>> DeleteProject(Guid id)
+    public async Task<GlobalResponse<GeneratedProjectDto>> GenerateProject(string prompt)
     {
-        throw new NotImplementedException();
+        var gptResponse = await _gptService.GenerateProject(prompt);
+
+        var projectMetaDataResponse = JsonSerializer.Deserialize<ProjectMetadata>(gptResponse.Choices[0].Message.Content);
+
+        return new GlobalResponse<GeneratedProjectDto>(true, "success", value: new GeneratedProjectDto { Metadata = projectMetaDataResponse });
     }
+
 
     public async Task<GlobalResponse<ProjectModel>> GetProjectById(Guid id)
     {
@@ -47,13 +53,11 @@ public class ProjectService : IProjectService
         return new GlobalResponse<ProjectModel>(true, "success", value: project);
     }
 
-    public Task<GlobalResponse<ProjectDto>> PatchProject(Guid id, UpdateProjectDto patchRequest)
+    public Task<GlobalResponse<ProjectDto>> DeleteProject(Guid id)
     {
         throw new NotImplementedException();
     }
 
-    public Task<GlobalResponse<ProjectDto>> UpdateProject(Guid id, UpdateProjectDto updateRequest)
-    {
-        throw new NotImplementedException();
-    }
+
+
 }
