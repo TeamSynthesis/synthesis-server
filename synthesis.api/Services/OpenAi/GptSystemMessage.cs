@@ -31,6 +31,6 @@
 
             for each image user this{
             imagurl: https://picsum.photos/350,
-            description: relevant generic description"
-}
+            description: relevant generic description";
+    }
 }
