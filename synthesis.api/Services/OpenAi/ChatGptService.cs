@@ -1,5 +1,3 @@
-/* The code provided is a C# implementation of a service that interacts with the OpenAI GPT-3 API to
-generate chat-based completions. */
 namespace synthesis.api.Services.OpenAi;
 
 using Azure;
@@ -14,8 +12,8 @@ public interface IChatGptService
 public class ChatGptService : IChatGptService
 {
 
-    private static readonly string _OpenAiEndpoint = "https://manasseh-gpt.openai.azure.com/";
-    private static readonly string _OpenAiKey = "5f78e95d6fb946a8b7805822bade4cb4";
+    private static readonly string _OpenAiEndpoint = "https://synthesis-ai.openai.azure.com/";
+    private static readonly string _OpenAiKey = "cb53dc167aee459292e6e4cff7573476";
     private static readonly string _DeploymentName = "synthesis-gpt4";
     private IG2Service _g2Service;
     private OpenAIClient _client;
@@ -71,10 +69,10 @@ public class ChatGptService : IChatGptService
                 new ChatRequestAssistantMessage(GptSystemMessage.SoftwareProjectAssistant),
                 new ChatRequestUserMessage(prompt)
             },
-            Functions = { getCompetitorsFunction },
-            FunctionCall = FunctionDefinition.Auto,
-            Temperature = (float)0.6,
-            MaxTokens = 4000,
+            // Functions = { getCompetitorsFunction },
+            // FunctionCall = FunctionDefinition.Auto,
+            Temperature = (float)0.7,
+            MaxTokens = 5000,
             NucleusSamplingFactor = (float)0.95,
             FrequencyPenalty = 0,
             PresencePenalty = 0,

@@ -107,10 +107,17 @@ public class Swot
 
 public class ColorPalette
 {
-    public List<string>? Primary { get; set; }
-    public List<string>? Neutral { get; set; }
+
+    public Dictionary<string, string>? Primary { get; set; }
+    public Dictionary<string, string>? Secondary { get; set; }
+    public Dictionary<string, string>? Neutral { get; set; }
+    public string? PreviewUrl { get; set; }
     public string? Reason { get; set; }
 }
+
+
+
+
 
 public class Mockups
 {
