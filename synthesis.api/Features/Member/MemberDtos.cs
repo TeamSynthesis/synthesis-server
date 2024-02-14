@@ -1,6 +1,12 @@
 
+using synthesis.api.Features.Team;
 using synthesis.api.Features.User;
 
-public record MemberDto(Guid Id, UserDto User, Guid OrganisationId, List<string> Roles);
-public record MemberProfileDto(Guid Id, Guid OrganisationId, List<string> Roles);
-
+public record MemberDto()
+{
+    public Guid Id { get; set; }
+    public UserDto? User { get; set; }
+    public OrganisationDto? Organisation { get; set; }
+    public List<string>? Roles { get; set; }
+    public List<TeamDto>? Teams { get; set; }
+}

@@ -1,8 +1,12 @@
+using System.Text.Json.Serialization;
+using Azure.Identity;
 using FluentValidation;
 using FluentValidation.AspNetCore;
+using Microsoft.Extensions.Options;
 using Scrutor;
+using synthesis.api.Configurations;
 using synthesis.api.Exceptions;
-using synthesis.api.Services.BlobStorageService;
+using synthesis.api.Services.BlobStorage;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -26,9 +30,11 @@ builder.Services.Scan(x =>
     .WithScopedLifetime()
 );
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+.AddJsonOptions(opt => opt.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
 
 var app = builder.Build();
 

@@ -4,7 +4,7 @@ using Azure.Messaging;
 using Azure.Storage.Blobs;
 using synthesis.api.Mappings;
 
-namespace synthesis.api.Services.BlobStorageService;
+namespace synthesis.api.Services.BlobStorage;
 
 public class AzureBlobService
 {
@@ -60,7 +60,7 @@ public class AzureBlobService
 
         var blobToReturn = new BlobDto() { Uri = client.Uri.AbsoluteUri + "?" + SasKey, Name = client.Name };
 
-        return new GlobalResponse<BlobDto>(true, "upload success", data: blobToReturn);
+        return new GlobalResponse<BlobDto>(true, "upload success", value: blobToReturn);
 
     }
 

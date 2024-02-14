@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Mvc;
-using synthesis.api.Data.Repository;
 
 namespace synthesis.api.Features.Project;
 
@@ -23,7 +22,7 @@ public class ProjectsController : ControllerBase
             return BadRequest(response);
         }
 
-        return CreatedAtRoute("ProjectById", new { id = response.Data.Id }, response.Data);
+        return Ok(response);
     }
 
     [HttpGet("{id:guid}", Name = "ProjectById")]
@@ -32,26 +31,34 @@ public class ProjectsController : ControllerBase
         var response = await _service.GetProjectById(id);
         if (!response.IsSuccess) return BadRequest(response);
 
-        return Ok(response);
+        return Ok(response.Data);
     }
 
-    [HttpPut("{id:guid}")]
-    public async Task<IActionResult> UpdateProject(Guid id, [FromBody] UpdateProjectDto project)
+    [HttpPost("generate")]
+    public async Task<IActionResult> GenerateProject([FromBody] string prompt)
     {
-        var response = await _service.UpdateProject(id, project);
+        var response = await _service.GenerateProject(prompt);
         if (!response.IsSuccess) return BadRequest(response);
 
         return Ok(response);
     }
+    // [HttpPut("{id:guid}")]
+    // public async Task<IActionResult> UpdateProject(Guid id, [FromBody] UpdateProjectDto project)
+    // {
+    //     var response = await _service.UpdateProject(id, project);
+    //     if (!response.IsSuccess) return BadRequest(response);
 
-    [HttpPatch("{id:guid}")]
-    public async Task<IActionResult> PatchProject(Guid id, [FromBody] UpdateProjectDto project)
-    {
-        var response = await _service.PatchProject(id, project);
-        if (!response.IsSuccess) return BadRequest(response);
+    //     return Ok(response);
+    // }
 
-        return Ok(response);
-    }
+    // [HttpPatch("{id:guid}")]
+    // public async Task<IActionResult> PatchProject(Guid id, [FromBody] UpdateProjectDto project)
+    // {
+    //     var response = await _service.PatchProject(id, project);
+    //     if (!response.IsSuccess) return BadRequest(response);
+
+    //     return Ok(response);
+    // }
 
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> DeleteProject(Guid id)

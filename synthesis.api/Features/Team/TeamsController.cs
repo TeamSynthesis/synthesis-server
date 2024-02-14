@@ -18,13 +18,22 @@ public class TeamsController : ControllerBase
         var response = await _service.CreateTeam(projectId, team);
         if (!response.IsSuccess) return BadRequest(response);
 
-        return CreatedAtRoute("TeamById", new { response.Data.id }, response.Data);
+        return Ok(response);
     }
 
     [HttpGet("{id:guid}", Name = "TeamById")]
     public async Task<IActionResult> GetTeamById(Guid id)
     {
         var response = await _service.GetTeamById(id);
+        if (!response.IsSuccess) return BadRequest(response);
+
+        return Ok(response);
+    }
+
+    [HttpGet("{id:guid}/team-members")]
+    public async Task<IActionResult> GetTeamMembers(Guid id)
+    {
+        var response = await _service.GetTeamMembers(id);
         if (!response.IsSuccess) return BadRequest(response);
 
         return Ok(response);
@@ -60,7 +69,16 @@ public class TeamsController : ControllerBase
     [HttpPost("{id:guid}/developers/add")]
     public async Task<IActionResult> AddDeveloper(Guid id, Guid memberId)
     {
-        var response = await _service.AddDeveloper(id, memberId);
+        var response = await _service.AddTeamMember(id, memberId);
+        if (!response.IsSuccess) return BadRequest(response);
+
+        return Ok(response);
+    }
+
+    [HttpDelete("{id:guid}/developer/remove")]
+    public async Task<IActionResult> RemoveDeveloper(Guid id, Guid memeberId)
+    {
+        var response = await _service.RemoveTeamMember(id, memeberId);
         if (!response.IsSuccess) return BadRequest(response);
 
         return Ok(response);

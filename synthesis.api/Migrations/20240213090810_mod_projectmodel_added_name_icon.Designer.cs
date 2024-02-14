@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using synthesis.api.Data.Repository;
@@ -12,16 +13,17 @@ using synthesis.api.Data.Repository;
 namespace synthesis.api.Migrations
 {
     [DbContext(typeof(RepositoryContext))]
-    partial class RepositoryContextModelSnapshot : ModelSnapshot
+    [Migration("20240213090810_mod_projectmodel_added_name_icon")]
+    partial class mod_projectmodel_added_name_icon
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
                 .HasAnnotation("ProductVersion", "8.0.0")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
-            NpgsqlModelBuilderExtensions.HasPostgresExtension(modelBuilder, "hstore");
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
             modelBuilder.Entity("MemberModelTeamModel", b =>
@@ -264,20 +266,14 @@ namespace synthesis.api.Migrations
                                     b2.Property<Guid>("ProjectMetadataProjectModelId")
                                         .HasColumnType("uuid");
 
-                                    b2.Property<Dictionary<string, string>>("Neutral")
-                                        .HasColumnType("hstore");
+                                    b2.Property<List<string>>("Neutral")
+                                        .HasColumnType("text[]");
 
-                                    b2.Property<string>("PreviewUrl")
-                                        .HasColumnType("text");
-
-                                    b2.Property<Dictionary<string, string>>("Primary")
-                                        .HasColumnType("hstore");
+                                    b2.Property<List<string>>("Primary")
+                                        .HasColumnType("text[]");
 
                                     b2.Property<string>("Reason")
                                         .HasColumnType("text");
-
-                                    b2.Property<Dictionary<string, string>>("Secondary")
-                                        .HasColumnType("hstore");
 
                                     b2.HasKey("ProjectMetadataProjectModelId");
 
@@ -323,8 +319,8 @@ namespace synthesis.api.Migrations
                                             b3.Property<string>("PricingModel")
                                                 .HasColumnType("text");
 
-                                            b3.Property<double>("ReviewSentiment")
-                                                .HasColumnType("double precision");
+                                            b3.Property<int>("ReviewSentiment")
+                                                .HasColumnType("integer");
 
                                             b3.Property<string>("Size")
                                                 .HasColumnType("text");

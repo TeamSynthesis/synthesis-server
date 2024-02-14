@@ -23,7 +23,7 @@ public class OrganisationsController : ControllerBase
 
         if (!response.IsSuccess) return BadRequest(response);
 
-        return CreatedAtAction("OrganisationById", new { id = response.Data.Id }, response.Data);
+        return Ok(response.Data);
     }
 
     [HttpPost("{id:guid}/members/add")]

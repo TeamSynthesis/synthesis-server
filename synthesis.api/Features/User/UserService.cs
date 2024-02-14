@@ -1,16 +1,17 @@
+using System.Collections.Immutable;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using synthesis.api.Data.Models;
 using synthesis.api.Data.Repository;
 using synthesis.api.Features.User;
 using synthesis.api.Mappings;
-using synthesis.api.Services.BlobStorageService;
+using synthesis.api.Services.BlobStorage;
 
 public interface IUserService
 {
     Task<GlobalResponse<UserDto>> RegisterUser(RegisterUserDto registerRequest);
 
-    Task<GlobalResponse<UserProfileDto>> GetUserById(Guid id);
+    Task<GlobalResponse<UserDto>> GetUserById(Guid id);
 
     Task<GlobalResponse<UserDto>> UpdateUser(Guid id, UpdateUserDto updateRequest);
 
@@ -73,18 +74,40 @@ public class UserService : IUserService
 
         var userToReturn = _mapper.Map<UserDto>(user);
 
-        return new GlobalResponse<UserDto>(true, "user registered successfully", data: userToReturn);
+        return new GlobalResponse<UserDto>(true, "user registered successfully", value: userToReturn);
 
     }
 
-    public async Task<GlobalResponse<UserProfileDto>> GetUserById(Guid id)
+    public async Task<GlobalResponse<UserDto>> GetUserById(Guid id)
     {
-        var user = await _repository.Users.Where(u => u.Id == id).Include(u => u.MemberProfiles).SingleOrDefaultAsync();
-        if (user == null) return new GlobalResponse<UserProfileDto>(false, "get user failed", errors: [$"user with id:{id} not found"]);
+        var user = await _repository.Users
+        .Where(u => u.Id == id)
+        .Select(u => new UserDto
+        {
+            Id = u.Id,
+            FirstName = u.FirstName,
+            LastName = u.LastName,
+            Username = u.UserName,
+            AvatarUrl = u.AvatarUrl,
+            Email = u.Email,
+            MemberProfiles = u.MemberProfiles.Select(x => new MemberDto()
+            {
+                Id = x.Id,
+                Organisation = new OrganisationDto()
+                {
+                    Id = x.Organisation.Id,
+                    Name = x.Organisation.Name,
+                    LogoUrl = x.Organisation.LogoUrl
+                },
+                Roles = x.Roles
+            }).ToList()
 
-        var userToReturn = _mapper.Map<UserProfileDto>(user);
+        }).SingleOrDefaultAsync();
 
-        return new GlobalResponse<UserProfileDto>(true, "get user success", data: userToReturn);
+
+        if (user == null) return new GlobalResponse<UserDto>(false, "get user failed", errors: [$"user with id:{id} not found"]);
+
+        return new GlobalResponse<UserDto>(true, "get user success", value: user);
     }
 
     public async Task<GlobalResponse<UserDto>> UpdateUser(Guid id, UpdateUserDto updateRequest)
