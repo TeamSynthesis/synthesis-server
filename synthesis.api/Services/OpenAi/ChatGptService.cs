@@ -72,7 +72,7 @@ public class ChatGptService : IChatGptService
             // Functions = { getCompetitorsFunction },
             // FunctionCall = FunctionDefinition.Auto,
             Temperature = (float)0.7,
-            MaxTokens = 5000,
+            MaxTokens = 4000,
             NucleusSamplingFactor = (float)0.95,
             FrequencyPenalty = 0,
             PresencePenalty = 0,
