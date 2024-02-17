@@ -42,6 +42,15 @@ public class ProjectsController : ControllerBase
 
         return Ok(response);
     }
+
+    [HttpPost("branding")]
+    public async Task<IActionResult> GenerateBranding([FromBody] string prompt)
+    {
+        var response = await _service.GetProjectBranding(prompt);
+        if (!response.IsSuccess) return BadRequest(response);
+
+        return Ok(response);
+    }
     // [HttpPut("{id:guid}")]
     // public async Task<IActionResult> UpdateProject(Guid id, [FromBody] UpdateProjectDto project)
     // {

@@ -1,3 +1,4 @@
+using Azure.AI.OpenAI;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -23,16 +24,10 @@ public class ProjectModel
 public class ProjectMetadata
 {
     public Overview? Overview { get; set; }
-    public MoodBoard? MoodBoard { get; set; }
-    public Branding? Branding { get; set; }
     public CompetitiveAnalysis? CompetitiveAnalysis { get; set; }
-    public ColorPalette? ColorPalette { get; set; }
-    public Mockups? Mockups { get; set; }
-    public List<Wireframe>? Wireframes { get; set; }
-    public Typography? Typography { get; set; }
+    public Branding? Branding { get; set; }
     public Features? Features { get; set; }
     public Technology? Technology { get; set; }
-    public TargetAudience? TargetAudience { get; set; }
 }
 
 public class Overview
@@ -42,6 +37,58 @@ public class Overview
     public string? Description { get; set; }
     public List<SuggestedName>? SuggestedNames { get; set; }
     public List<SuggestedDomain>? SuggestedDomains { get; set; }
+}
+
+public class CompetitiveAnalysis
+{
+    public List<Competitor>? Competitors { get; set; }
+    public Swot? Swot { get; set; }
+    public TargetAudience? TargetAudience { get; set; }
+}
+public class Branding
+{
+
+    public Image? Icon { get; set; }
+    public string? Slogan { get; set; }
+
+    public List<Wireframe>? Wireframes { get; set; }
+
+    public List<Image>? MoodBoards { get; set; }
+
+    public ColorPalette? Palette { get; set; }
+
+    public Typography? Typography { get; set; }
+
+}
+
+public class Features
+{
+    public List<Feature>? Must { get; set; }
+    public List<Feature>? Should { get; set; }
+    public List<Feature>? Could { get; set; }
+    public List<string>? Wont { get; set; }
+}
+
+public class Feature
+{
+    public string? Name { get; set; }
+    public string? Description { get; set; }
+    public List<TaskToDo>? Tasks { get; set; }
+}
+
+public class TaskToDo
+{
+    public string? TaskId { get; set; }
+    public string? Activity { get; set; }
+    public int State { get; set; }
+    public string? MemberId { get; set; }
+}
+
+public enum TaskState
+{
+    Pending,
+    InProgress,
+    Done
 }
 
 public class SuggestedName
@@ -56,33 +103,10 @@ public class SuggestedDomain
     public string? Reason { get; set; }
 }
 
-public class MoodBoard
-{
-    public List<Image>? Images { get; set; }
-}
-
 public class Image
 {
     public string? ImgUrl { get; set; }
     public string? Description { get; set; }
-}
-
-public class Branding
-{
-    public List<Icon>? Icons { get; set; }
-    public string? Slogan { get; set; }
-}
-
-public class Icon
-{
-    public string? Reason { get; set; }
-    public string? ImgUrl { get; set; }
-}
-
-public class CompetitiveAnalysis
-{
-    public List<Competitor>? Competitors { get; set; }
-    public Swot? Swot { get; set; }
 }
 
 public class Competitor
@@ -115,20 +139,10 @@ public class ColorPalette
     public string? Reason { get; set; }
 }
 
-
-
-
-
-public class Mockups
-{
-    public List<Image>? Images { get; set; }
-}
-
 public class Wireframe
 {
     public string? Screen { get; set; }
-    public string? Description { get; set; }
-    public string? ImgUrl { get; set; }
+    public Image? Image { get; set; }
 }
 
 public class Typography
@@ -137,19 +151,10 @@ public class Typography
     public string? Reason { get; set; }
 }
 
-public class Features
-{
-    public List<string>? Must { get; set; }
-    public List<string>? Should { get; set; }
-    public List<string>? Could { get; set; }
-    public List<string>? Wont { get; set; }
-}
-
 public class Technology
 {
-    public List<TechStack>? Stacks { get; set; }
+    public List<TechStack>? TechStacks { get; set; }
 }
-
 public class TechStack
 {
     public string? Name { get; set; }

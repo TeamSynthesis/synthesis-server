@@ -1,13 +1,19 @@
 namespace synthesis.api.Services.OpenAi;
-
+ 
 using Azure;
 using Azure.AI.OpenAI;
+using synthesis.api.Data.Models;
 using synthesis.api.Services.g2;
+using synthesis.api.Services.OpenAi.Dtos;
 using System.Text.Json;
 
 public interface IChatGptService
 {
-    Task<ChatCompletions> GenerateProject(string prompt);
+    Task<Overview> GetProjectOverview(string prompt);
+    Task<CompetitiveAnalysis> GetProjectCompetitiveAnalysis(string prompt);
+    Task<Features> GetProjectFeatures(string prompt);
+    Task<ProjectMetadata> GenerateProjectMetaData(string prompt);
+    Task<BrandingResponseDto> GetProjectBranding(string prompt);
 }
 public class ChatGptService : IChatGptService
 {
@@ -24,54 +30,62 @@ public class ChatGptService : IChatGptService
         _client = new OpenAIClient(new Uri(_OpenAiEndpoint), new AzureKeyCredential(_OpenAiKey));
     }
 
-    public async Task<ChatCompletions> GenerateProject(string prompt)
+    public async Task<ProjectMetadata> GenerateProjectMetaData(string prompt)
     {
-        var getCompetitorsFunction = new FunctionDefinition()
-        {
-            Name = "get_top_competitors",
-            Description = "Gets the top competitors for a project proposal idea",
-            Parameters = BinaryData.FromObjectAsJson(new
-            {
-                Type = "object",
-                Properties = new
-                {
-                    Description = new
-                    {
-                        Type = "string",
-                        Description = "very short search keyword description of the proposed app idea"
-                    }
-                },
-                Required = new[] { "Description" }
-            },
-            new JsonSerializerOptions() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }
-            )
+        var overview = GetProjectOverview(prompt);
+        var competitiveAnalysis = GetProjectCompetitiveAnalysis(prompt);
+        var features = GetProjectFeatures(prompt);
 
+        await Task.WhenAll(overview, competitiveAnalysis, features);
+
+        var projectMetadata = new ProjectMetadata()
+        {
+            Overview = overview.Result,
+            CompetitiveAnalysis = competitiveAnalysis.Result,
+            Features = features.Result
         };
 
-        ChatRequestFunctionMessage GetFunctionCallResponseMessage(FunctionCall functionCall)
-        {
-            if (functionCall?.Name == getCompetitorsFunction.Name)
-            {
-                string unvalidatedArguments = functionCall.Arguments;
-                var functionResultData = _g2Service.GetCompetitors(unvalidatedArguments);
+        return projectMetadata;
+    }
 
-                return new ChatRequestFunctionMessage(functionCall.Name, functionResultData.ToString());
-            }
-            else throw new NotImplementedException();
-        }
-
-
+    public async Task<Overview> GetProjectOverview(string prompt)
+    {
         var ChatCompletionOptions = new ChatCompletionsOptions()
         {
             DeploymentName = _DeploymentName,
             Messages =
             {
-                new ChatRequestAssistantMessage(GptSystemMessage.SoftwareProjectAssistant),
+                new ChatRequestAssistantMessage(GptSystemMessage.GetOveview),
                 new ChatRequestUserMessage(prompt)
             },
-            // Functions = { getCompetitorsFunction },
-            // FunctionCall = FunctionDefinition.Auto,
-            Temperature = (float)0.7,
+            Temperature = (float)0.8,
+            MaxTokens = 3000,
+            NucleusSamplingFactor = (float)0.95,
+            FrequencyPenalty = 0,
+            PresencePenalty = 0,
+        };
+
+        var responseWithoutStream = await _client.GetChatCompletionsAsync(ChatCompletionOptions);
+
+        var response = responseWithoutStream.Value;
+
+        var overview = JsonSerializer.Deserialize<Overview>(response.Choices[0].Message.Content);
+
+        return overview ?? new Overview();
+
+    }
+
+    public async Task<Features> GetProjectFeatures(string prompt)
+    {
+        var ChatCompletionOptions = new ChatCompletionsOptions()
+        {
+            DeploymentName = _DeploymentName,
+            Messages =
+            {
+                new ChatRequestAssistantMessage(GptSystemMessage.GetFeatures),
+                new ChatRequestUserMessage(prompt)
+            },
+            Temperature = (float)0.8,
             MaxTokens = 4000,
             NucleusSamplingFactor = (float)0.95,
             FrequencyPenalty = 0,
@@ -79,31 +93,65 @@ public class ChatGptService : IChatGptService
         };
 
 
-        Response<ChatCompletions> responseWithoutStream = await _client.GetChatCompletionsAsync(ChatCompletionOptions);
+        var responseWithoutStream = await _client.GetChatCompletionsAsync(ChatCompletionOptions);
 
-        ChatCompletions response = responseWithoutStream.Value;
+        var response = responseWithoutStream.Value;
 
-        var reponseChoice = response.Choices[0];
+        var features = JsonSerializer.Deserialize<Features>(response.Choices[0].Message.Content);
 
-        if (reponseChoice.FinishReason == CompletionsFinishReason.FunctionCall)
-        {
-            var choice = response.Choices[0];
-
-            ChatCompletionOptions.Messages.Add(GetFunctionCallResponseMessage(choice.Message.FunctionCall));
-
-        }
-        else
-        {
-            return response;
-        }
-
-        Response<ChatCompletions> responseWithFunctionCallWithoutStream
-         = await _client.GetChatCompletionsAsync(ChatCompletionOptions);
-
-        ChatCompletions responseWithFunctionCall = responseWithFunctionCallWithoutStream.Value;
-
-        return responseWithFunctionCall;
+        return features ?? new Features();
     }
 
+    public async Task<CompetitiveAnalysis> GetProjectCompetitiveAnalysis(string prompt)
+    {
+        var ChatCompletionOptions = new ChatCompletionsOptions()
+        {
+            DeploymentName = _DeploymentName,
+            Messages =
+            {
+                new ChatRequestAssistantMessage(GptSystemMessage.GetProjectCompetitiveAnalysis),
+                new ChatRequestUserMessage(prompt)
+            },
+            Temperature = (float)0.7,
+            MaxTokens = 4000,
+            NucleusSamplingFactor = (float)0.95,
+            FrequencyPenalty = 0,
+            PresencePenalty = 0,
+        };
+
+        var responseWithoutStream = await _client.GetChatCompletionsAsync(ChatCompletionOptions);
+
+        var response = responseWithoutStream.Value;
+
+        var competitiveAnalysis = JsonSerializer.Deserialize<CompetitiveAnalysis>(response.Choices[0].Message.Content);
+
+        return competitiveAnalysis ?? new CompetitiveAnalysis();
+    }
+
+    public async Task<BrandingResponseDto> GetProjectBranding(string prompt)
+    {
+        var ChatCompletionOptions = new ChatCompletionsOptions()
+        {
+            DeploymentName = _DeploymentName,
+            Messages =
+            {
+                new ChatRequestAssistantMessage(GptSystemMessage.GetBranding),
+                new ChatRequestUserMessage(prompt)
+            },
+            Temperature = (float)0.8,
+            MaxTokens = 4000,
+            NucleusSamplingFactor = (float)0.95,
+            FrequencyPenalty = 0,
+            PresencePenalty = 0,
+        };
+
+        var responseWithoutStream = await _client.GetChatCompletionsAsync(ChatCompletionOptions);
+
+        var response = responseWithoutStream.Value;
+
+        var brandingResponse = JsonSerializer.Deserialize<BrandingResponseDto>(response.Choices[0].Message.Content);
+
+        return brandingResponse;
+    }
 
 }

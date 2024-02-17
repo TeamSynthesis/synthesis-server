@@ -4,7 +4,7 @@ using synthesis.api.Data.Models;
 using synthesis.api.Data.Repository;
 using synthesis.api.Mappings;
 using synthesis.api.Services.OpenAi;
-using System.Text.Json;
+using synthesis.api.Services.OpenAi.Dtos;
 
 namespace synthesis.api.Features.Project;
 
@@ -13,6 +13,8 @@ public interface IProjectService
     Task<GlobalResponse<ProjectDto>> CreateProject(Guid organisationId, Guid memberId, CreateProjectDto createRequest);
 
     Task<GlobalResponse<GeneratedProjectDto>> GenerateProject(string prompt);
+
+    Task<GlobalResponse<BrandingResponseDto>> GetProjectBranding(string prompt);
 
     Task<GlobalResponse<ProjectModel>> GetProjectById(Guid id);
 
@@ -39,9 +41,8 @@ public class ProjectService : IProjectService
 
     public async Task<GlobalResponse<GeneratedProjectDto>> GenerateProject(string prompt)
     {
-        var gptResponse = await _gptService.GenerateProject(prompt);
 
-        var projectMetaDataResponse = JsonSerializer.Deserialize<ProjectMetadata>(gptResponse.Choices[0].Message.Content);
+        var projectMetaDataResponse = await _gptService.GenerateProjectMetaData(prompt);
 
         return new GlobalResponse<GeneratedProjectDto>(true, "success", value: new GeneratedProjectDto { Metadata = projectMetaDataResponse });
     }
@@ -56,6 +57,14 @@ public class ProjectService : IProjectService
     public Task<GlobalResponse<ProjectDto>> DeleteProject(Guid id)
     {
         throw new NotImplementedException();
+    }
+
+    public async Task<GlobalResponse<BrandingResponseDto>> GetProjectBranding(string prompt)
+    {
+
+        var brandingResponse = await _gptService.GetProjectBranding(prompt);
+
+        return new GlobalResponse<BrandingResponseDto>(true, "success", value: brandingResponse);
     }
 
 
