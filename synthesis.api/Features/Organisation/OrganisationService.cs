@@ -257,7 +257,7 @@ public class OrganisationService : IOrganisationService
 
         var patchedOrganisation = _mapper.Map(patchedOrganisationDto, organisation);
 
-        var validationResult = await new OrganisationValidator().ValidateAsync(patchedOrganisation);
+        var validationResult = new OrganisationValidator().Validate(patchedOrganisation);
         if (!validationResult.IsValid)
         {
             return new GlobalResponse<OrganisationDto>(false, "update organisation failed", errors: validationResult.Errors.Select(e => e.ErrorMessage).ToList());

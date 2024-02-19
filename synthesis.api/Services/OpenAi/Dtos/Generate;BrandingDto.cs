@@ -1,6 +1,6 @@
 namespace synthesis.api.Services.OpenAi.Dtos;
 
-public class BrandingResponseDto
+public class GenerateBrandingDto
 {
     public ColorPalette? ColorPalette { get; set; }
     public List<Wireframe>? Wireframes { get; set; }

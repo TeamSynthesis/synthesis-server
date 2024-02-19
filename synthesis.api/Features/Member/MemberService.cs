@@ -2,9 +2,7 @@ using System.Collections.Immutable;
 using System.Security.Cryptography.X509Certificates;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
-using synthesis.api.Data.Models;
 using synthesis.api.Data.Repository;
-using synthesis.api.Features.Team;
 using synthesis.api.Features.User;
 using synthesis.api.Mappings;
 
@@ -48,14 +46,7 @@ public class MemberService : IMemberService
                 Id = x.Organisation.Id,
                 Name = x.Organisation.Name,
                 LogoUrl = x.Organisation.LogoUrl
-            },
-            Teams = x.Teams.Select(y => new TeamDto
-            {
-                Id = y.Id,
-                Name = y.Name,
-                Description = y.Description
-            }).ToList()
-
+            }
         }).SingleOrDefaultAsync();
 
 

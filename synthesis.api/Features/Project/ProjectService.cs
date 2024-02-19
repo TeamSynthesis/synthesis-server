@@ -14,7 +14,7 @@ public interface IProjectService
 
     Task<GlobalResponse<GeneratedProjectDto>> GenerateProject(string prompt);
 
-    Task<GlobalResponse<BrandingResponseDto>> GetProjectBranding(string prompt);
+    Task<GlobalResponse<GenerateBrandingDto>> GetProjectBranding(string prompt);
 
     Task<GlobalResponse<ProjectModel>> GetProjectById(Guid id);
 
@@ -59,12 +59,12 @@ public class ProjectService : IProjectService
         throw new NotImplementedException();
     }
 
-    public async Task<GlobalResponse<BrandingResponseDto>> GetProjectBranding(string prompt)
+    public async Task<GlobalResponse<GenerateBrandingDto>> GetProjectBranding(string prompt)
     {
 
         var brandingResponse = await _gptService.GetProjectBranding(prompt);
 
-        return new GlobalResponse<BrandingResponseDto>(true, "success", value: brandingResponse);
+        return new GlobalResponse<GenerateBrandingDto>(true, "success", value: brandingResponse);
     }
 
 

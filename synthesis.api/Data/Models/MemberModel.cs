@@ -16,5 +16,6 @@ public class MemberModel
     public Guid OrganisationId { get; set; }
     public OrganisationModel? Organisation { get; set; }
 
-    public List<TeamModel>? Teams { get; set; }
+    public List<TaskToDoModel>? Tasks { get; set; }
+
 }

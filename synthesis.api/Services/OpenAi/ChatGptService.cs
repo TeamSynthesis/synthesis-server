@@ -1,5 +1,5 @@
 namespace synthesis.api.Services.OpenAi;
- 
+
 using Azure;
 using Azure.AI.OpenAI;
 using synthesis.api.Data.Models;
@@ -11,9 +11,8 @@ public interface IChatGptService
 {
     Task<Overview> GetProjectOverview(string prompt);
     Task<CompetitiveAnalysis> GetProjectCompetitiveAnalysis(string prompt);
-    Task<Features> GetProjectFeatures(string prompt);
     Task<ProjectMetadata> GenerateProjectMetaData(string prompt);
-    Task<BrandingResponseDto> GetProjectBranding(string prompt);
+    Task<GenerateBrandingDto> GetProjectBranding(string prompt);
 }
 public class ChatGptService : IChatGptService
 {
@@ -34,15 +33,15 @@ public class ChatGptService : IChatGptService
     {
         var overview = GetProjectOverview(prompt);
         var competitiveAnalysis = GetProjectCompetitiveAnalysis(prompt);
-        var features = GetProjectFeatures(prompt);
+        // var features = GetProjectFeatures(prompt);
 
-        await Task.WhenAll(overview, competitiveAnalysis, features);
+        await Task.WhenAll(overview, competitiveAnalysis);
 
         var projectMetadata = new ProjectMetadata()
         {
             Overview = overview.Result,
             CompetitiveAnalysis = competitiveAnalysis.Result,
-            Features = features.Result
+            // Features = features.Resultl
         };
 
         return projectMetadata;
@@ -75,32 +74,32 @@ public class ChatGptService : IChatGptService
 
     }
 
-    public async Task<Features> GetProjectFeatures(string prompt)
-    {
-        var ChatCompletionOptions = new ChatCompletionsOptions()
-        {
-            DeploymentName = _DeploymentName,
-            Messages =
-            {
-                new ChatRequestAssistantMessage(GptSystemMessage.GetFeatures),
-                new ChatRequestUserMessage(prompt)
-            },
-            Temperature = (float)0.8,
-            MaxTokens = 4000,
-            NucleusSamplingFactor = (float)0.95,
-            FrequencyPenalty = 0,
-            PresencePenalty = 0,
-        };
+    // public async Task<Features> GetProjectFeatures(string prompt)
+    // {
+    //     var ChatCompletionOptions = new ChatCompletionsOptions()
+    //     {
+    //         DeploymentName = _DeploymentName,
+    //         Messages =
+    //         {
+    //             new ChatRequestAssistantMessage(GptSystemMessage.GetFeatures),
+    //             new ChatRequestUserMessage(prompt)
+    //         },
+    //         Temperature = (float)0.8,
+    //         MaxTokens = 4000,
+    //         NucleusSamplingFactor = (float)0.95,
+    //         FrequencyPenalty = 0,
+    //         PresencePenalty = 0,
+    //     };
 
 
-        var responseWithoutStream = await _client.GetChatCompletionsAsync(ChatCompletionOptions);
+    //     var responseWithoutStream = await _client.GetChatCompletionsAsync(ChatCompletionOptions);
 
-        var response = responseWithoutStream.Value;
+    //     var response = responseWithoutStream.Value;
 
-        var features = JsonSerializer.Deserialize<Features>(response.Choices[0].Message.Content);
+    //     var features = JsonSerializer.Deserialize<Features>(response.Choices[0].Message.Content);
 
-        return features ?? new Features();
-    }
+    //     return features ?? new Features();
+    // }
 
     public async Task<CompetitiveAnalysis> GetProjectCompetitiveAnalysis(string prompt)
     {
@@ -128,7 +127,7 @@ public class ChatGptService : IChatGptService
         return competitiveAnalysis ?? new CompetitiveAnalysis();
     }
 
-    public async Task<BrandingResponseDto> GetProjectBranding(string prompt)
+    public async Task<GenerateBrandingDto> GetProjectBranding(string prompt)
     {
         var ChatCompletionOptions = new ChatCompletionsOptions()
         {
@@ -149,7 +148,7 @@ public class ChatGptService : IChatGptService
 
         var response = responseWithoutStream.Value;
 
-        var brandingResponse = JsonSerializer.Deserialize<BrandingResponseDto>(response.Choices[0].Message.Content);
+        var brandingResponse = JsonSerializer.Deserialize<GenerateBrandingDto>(response.Choices[0].Message.Content);
 
         return brandingResponse;
     }
