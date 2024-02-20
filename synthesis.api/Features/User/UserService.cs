@@ -93,11 +93,11 @@ public class UserService : IUserService
             MemberProfiles = u.MemberProfiles.Select(x => new MemberDto()
             {
                 Id = x.Id,
-                Organisation = new OrganisationDto()
+                Team = new TeamDto()
                 {
-                    Id = x.Organisation.Id,
-                    Name = x.Organisation.Name,
-                    LogoUrl = x.Organisation.LogoUrl
+                    Id = x.Team.Id,
+                    Name = x.Team.Name,
+                    LogoUrl = x.Team.LogoUrl
                 },
                 Roles = x.Roles
             }).ToList()

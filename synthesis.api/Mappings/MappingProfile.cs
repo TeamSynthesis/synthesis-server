@@ -15,9 +15,9 @@ public class MappingProfile : Profile
     CreateMap<UpdateUserDto, UserModel>().ReverseMap();
 
     //organisation
-    CreateMap<OrganisationDto, OrganisationModel>().ReverseMap();
-    CreateMap<CreateOrganisationDto, OrganisationModel>();
-    CreateMap<UpdateOrganisationDto, OrganisationModel>().ReverseMap();
+    CreateMap<TeamDto, TeamModel>().ReverseMap();
+    CreateMap<CreateTeamDto, TeamModel>();
+    CreateMap<UpdateTeamDto, TeamModel>().ReverseMap();
 
     //project
     CreateMap<ProjectDto, ProjectModel>().ReverseMap();

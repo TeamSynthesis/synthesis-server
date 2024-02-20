@@ -41,11 +41,11 @@ public class MemberService : IMemberService
                 Email = x.User.Email,
                 AvatarUrl = x.User.AvatarUrl,
             },
-            Organisation = new OrganisationDto
+            Team = new TeamDto
             {
-                Id = x.Organisation.Id,
-                Name = x.Organisation.Name,
-                LogoUrl = x.Organisation.LogoUrl
+                Id = x.Team.Id,
+                Name = x.Team.Name,
+                LogoUrl = x.Team.LogoUrl
             }
         }).SingleOrDefaultAsync();
 

@@ -1,7 +1,7 @@
 
 using synthesis.api.Features.Project;
 
-public record OrganisationDto
+public record TeamDto
 {
     public Guid Id { get; set; }
     public string? Name { get; set; }
@@ -10,5 +10,5 @@ public record OrganisationDto
     public List<ProjectDto>? Projects { get; set; }
 }
 
-public record CreateOrganisationDto(string Name, string LogoUrl);
-public record UpdateOrganisationDto(string Name, string LogoUrl);
+public record CreateTeamDto(string Name, string LogoUrl);
+public record UpdateTeamDto(string Name, string LogoUrl);

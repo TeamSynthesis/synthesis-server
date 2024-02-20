@@ -2,24 +2,24 @@ using System.ComponentModel.Design.Serialization;
 using Microsoft.AspNetCore.Mvc;
 using Scrutor;
 
-namespace synthesis.api.Features.Organisation;
+namespace synthesis.api.Features.Teams;
 
 
 [ApiController]
 [Route("api/[controller]")]
-public class OrganisationsController : ControllerBase
+public class TeamsController : ControllerBase
 {
-    private readonly IOrganisationService _service;
+    private readonly ITeamService _service;
 
-    public OrganisationsController(IOrganisationService service)
+    public TeamsController(ITeamService service)
     {
         _service = service;
     }
 
     [HttpPost]
-    public async Task<IActionResult> CreateOrganisation(Guid userId, [FromBody] CreateOrganisationDto organisation)
+    public async Task<IActionResult> CreateOrganisation(Guid userId, [FromBody] CreateTeamDto organisation)
     {
-        var response = await _service.CreateOrganisation(userId, organisation);
+        var response = await _service.CreateTeam(userId, organisation);
 
         if (!response.IsSuccess) return BadRequest(response);
 
@@ -39,7 +39,7 @@ public class OrganisationsController : ControllerBase
     [HttpGet("{id:guid}", Name = "OrganisationById")]
     public async Task<IActionResult> GetOrganisationById(Guid id)
     {
-        var response = await _service.GetOrganisationById(id);
+        var response = await _service.GetTeamById(id);
 
         if (!response.IsSuccess) return BadRequest(response);
 
@@ -49,7 +49,7 @@ public class OrganisationsController : ControllerBase
     [HttpGet("{id:guid}/all", Name = "OrganisationWithResourcesById")]
     public async Task<IActionResult> GetOrganisationWithResourcesById(Guid id)
     {
-        var response = await _service.GetOrganisationWithResourcesById(id);
+        var response = await _service.GetTeamWithResourcesById(id);
 
         if (!response.IsSuccess) return BadRequest(response);
 
@@ -59,7 +59,7 @@ public class OrganisationsController : ControllerBase
     [HttpGet("{id:guid}/members")]
     public async Task<IActionResult> GetOrganisationMembers(Guid id)
     {
-        var response = await _service.GetOrganisationMembers(id);
+        var response = await _service.GetTeamMembers(id);
 
         if (!response.IsSuccess) return BadRequest(response);
 
@@ -69,7 +69,7 @@ public class OrganisationsController : ControllerBase
     [HttpGet("{id:guid}/projects")]
     public async Task<IActionResult> GetOrganisationProjects(Guid id)
     {
-        var response = await _service.GetOrganisationProjects(id);
+        var response = await _service.GetTeamProjects(id);
 
         if (!response.IsSuccess) return BadRequest(response);
 
@@ -77,18 +77,18 @@ public class OrganisationsController : ControllerBase
     }
 
     [HttpPut("{id:guid}")]
-    public async Task<IActionResult> UpdateOrganisation(Guid id, [FromBody] UpdateOrganisationDto organisation)
+    public async Task<IActionResult> UpdateOrganisation(Guid id, [FromBody] UpdateTeamDto organisation)
     {
-        var response = await _service.UpdateOrganisation(id, organisation);
+        var response = await _service.UpdateTeam(id, organisation);
         if (!response.IsSuccess) return BadRequest(response);
 
         return Ok(response);
     }
 
     [HttpPatch("{id:guid}")]
-    public async Task<IActionResult> PatchOrganisation(Guid id, [FromBody] UpdateOrganisationDto organisation)
+    public async Task<IActionResult> PatchOrganisation(Guid id, [FromBody] UpdateTeamDto organisation)
     {
-        var response = await _service.PatchOrganisation(id, organisation);
+        var response = await _service.PatchTeam(id, organisation);
         if (!response.IsSuccess)
         {
             return BadRequest(response);
@@ -100,7 +100,7 @@ public class OrganisationsController : ControllerBase
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> DeleteOrganisation(Guid id)
     {
-        var response = await _service.DeleteOrganisation(id);
+        var response = await _service.DeleteTeam(id);
         if (!response.IsSuccess)
         {
             return BadRequest(response);

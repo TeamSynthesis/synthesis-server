@@ -1,12 +1,12 @@
 using FluentValidation;
 using synthesis.api.Data.Models;
 
-namespace synthesis.api.Features.Organisation;
+namespace synthesis.api.Features.Teams;
 
-public class OrganisationValidator : AbstractValidator<OrganisationModel>
+public class TeamValidator : AbstractValidator<TeamModel>
 {
     private readonly string pattern = @"^[a-zA-Z][a-zA-Z_.-]*[a-zA-Z]$";
-    public OrganisationValidator()
+    public TeamValidator()
     {
         RuleFor(org => org.Name)
         .NotNull().NotEmpty().WithMessage("name cannot be null")

@@ -9,9 +9,9 @@ public class ProjectModel
     [Column("ProjectId")]
     public Guid Id { get; set; }
 
-    [ForeignKey(nameof(OrganisationModel))]
-    public Guid OrganisationId { get; set; }
-    public OrganisationModel? Organisation { get; set; }
+    [ForeignKey(nameof(TeamModel))]
+    public Guid TeamId { get; set; }
+    public TeamModel? Team { get; set; }
 
     public string? Name { get; set; }
 

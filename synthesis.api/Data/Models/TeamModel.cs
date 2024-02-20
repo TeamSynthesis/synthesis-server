@@ -2,9 +2,9 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace synthesis.api.Data.Models;
 
-public class OrganisationModel
+public class TeamModel
 {
-    [Column("OrganisationId")]
+    [Column("TeamId")]
     public Guid Id { get; set; }
     public string? Name { get; set; }
     public string? LogoUrl { get; set; }

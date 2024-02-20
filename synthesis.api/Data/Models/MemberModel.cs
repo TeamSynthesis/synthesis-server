@@ -12,9 +12,9 @@ public class MemberModel
     public UserModel? User { get; set; }
     public List<string>? Roles { get; set; }
 
-    [ForeignKey(nameof(OrganisationModel))]
-    public Guid OrganisationId { get; set; }
-    public OrganisationModel? Organisation { get; set; }
+    [ForeignKey(nameof(TeamModel))]
+    public Guid TeamId { get; set; }
+    public TeamModel? Team { get; set; }
 
     public List<TaskToDoModel>? Tasks { get; set; }
 
