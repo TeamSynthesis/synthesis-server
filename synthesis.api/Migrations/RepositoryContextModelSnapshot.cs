@@ -57,40 +57,22 @@ namespace synthesis.api.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("MemberId");
 
-                    b.Property<Guid>("OrganisationId")
-                        .HasColumnType("uuid");
-
                     b.Property<List<string>>("Roles")
                         .HasColumnType("text[]");
+
+                    b.Property<Guid>("TeamId")
+                        .HasColumnType("uuid");
 
                     b.Property<Guid>("UserId")
                         .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("OrganisationId");
+                    b.HasIndex("TeamId");
 
                     b.HasIndex("UserId");
 
                     b.ToTable("Members");
-                });
-
-            modelBuilder.Entity("synthesis.api.Data.Models.OrganisationModel", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("OrganisationId");
-
-                    b.Property<string>("LogoUrl")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Name")
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Organisations");
                 });
 
             modelBuilder.Entity("synthesis.api.Data.Models.ProjectModel", b =>
@@ -106,12 +88,12 @@ namespace synthesis.api.Migrations
                     b.Property<string>("Name")
                         .HasColumnType("text");
 
-                    b.Property<Guid>("OrganisationId")
+                    b.Property<Guid>("TeamId")
                         .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("OrganisationId");
+                    b.HasIndex("TeamId");
 
                     b.ToTable("Projects");
                 });
@@ -164,6 +146,24 @@ namespace synthesis.api.Migrations
                     b.ToTable("Tasks");
                 });
 
+            modelBuilder.Entity("synthesis.api.Data.Models.TeamModel", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("TeamId");
+
+                    b.Property<string>("LogoUrl")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Teams");
+                });
+
             modelBuilder.Entity("synthesis.api.Data.Models.UserModel", b =>
                 {
                     b.Property<Guid>("Id")
@@ -211,9 +211,9 @@ namespace synthesis.api.Migrations
 
             modelBuilder.Entity("synthesis.api.Data.Models.MemberModel", b =>
                 {
-                    b.HasOne("synthesis.api.Data.Models.OrganisationModel", "Organisation")
+                    b.HasOne("synthesis.api.Data.Models.TeamModel", "Team")
                         .WithMany("Members")
-                        .HasForeignKey("OrganisationId")
+                        .HasForeignKey("TeamId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -223,16 +223,16 @@ namespace synthesis.api.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Organisation");
+                    b.Navigation("Team");
 
                     b.Navigation("User");
                 });
 
             modelBuilder.Entity("synthesis.api.Data.Models.ProjectModel", b =>
                 {
-                    b.HasOne("synthesis.api.Data.Models.OrganisationModel", "Organisation")
+                    b.HasOne("synthesis.api.Data.Models.TeamModel", "Team")
                         .WithMany("Projects")
-                        .HasForeignKey("OrganisationId")
+                        .HasForeignKey("TeamId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -644,9 +644,9 @@ namespace synthesis.api.Migrations
                             b1.Navigation("Technology");
                         });
 
-                    b.Navigation("Organisation");
-
                     b.Navigation("ProjectMetadata");
+
+                    b.Navigation("Team");
                 });
 
             modelBuilder.Entity("synthesis.api.Data.Models.TaskToDoModel", b =>
@@ -682,18 +682,18 @@ namespace synthesis.api.Migrations
                     b.Navigation("Tasks");
                 });
 
-            modelBuilder.Entity("synthesis.api.Data.Models.OrganisationModel", b =>
-                {
-                    b.Navigation("Members");
-
-                    b.Navigation("Projects");
-                });
-
             modelBuilder.Entity("synthesis.api.Data.Models.ProjectModel", b =>
                 {
                     b.Navigation("Features");
 
                     b.Navigation("Tasks");
+                });
+
+            modelBuilder.Entity("synthesis.api.Data.Models.TeamModel", b =>
+                {
+                    b.Navigation("Members");
+
+                    b.Navigation("Projects");
                 });
 
             modelBuilder.Entity("synthesis.api.Data.Models.UserModel", b =>

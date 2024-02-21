@@ -1,5 +1,6 @@
 using AutoMapper;
 using synthesis.api.Data.Models;
+using synthesis.api.Features.Feature;
 using synthesis.api.Features.Project;
 using synthesis.api.Features.User;
 
@@ -28,6 +29,8 @@ public class MappingProfile : Profile
     CreateMap<TaskDto, TaskToDoModel>().ReverseMap();
     CreateMap<UpdateTaskDto, TaskToDoModel>().ReverseMap();
 
+    //tasks
+    CreateMap<FeatureDto, FeatureModel>().ReverseMap();
 
     //Member
     CreateMap<MemberModel, MemberDto>()

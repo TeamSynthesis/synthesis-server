@@ -16,16 +16,16 @@ namespace synthesis.api.Migrations
                 .Annotation("Npgsql:PostgresExtension:hstore", ",,");
 
             migrationBuilder.CreateTable(
-                name: "Organisations",
+                name: "Teams",
                 columns: table => new
                 {
-                    OrganisationId = table.Column<Guid>(type: "uuid", nullable: false),
+                    TeamId = table.Column<Guid>(type: "uuid", nullable: false),
                     Name = table.Column<string>(type: "text", nullable: true),
                     LogoUrl = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Organisations", x => x.OrganisationId);
+                    table.PrimaryKey("PK_Teams", x => x.TeamId);
                 });
 
             migrationBuilder.CreateTable(
@@ -50,7 +50,7 @@ namespace synthesis.api.Migrations
                 columns: table => new
                 {
                     ProjectId = table.Column<Guid>(type: "uuid", nullable: false),
-                    OrganisationId = table.Column<Guid>(type: "uuid", nullable: false),
+                    TeamId = table.Column<Guid>(type: "uuid", nullable: false),
                     Name = table.Column<string>(type: "text", nullable: true),
                     IconUrl = table.Column<string>(type: "text", nullable: true),
                     ProjectMetadata = table.Column<string>(type: "jsonb", nullable: true)
@@ -59,10 +59,10 @@ namespace synthesis.api.Migrations
                 {
                     table.PrimaryKey("PK_Projects", x => x.ProjectId);
                     table.ForeignKey(
-                        name: "FK_Projects_Organisations_OrganisationId",
-                        column: x => x.OrganisationId,
-                        principalTable: "Organisations",
-                        principalColumn: "OrganisationId",
+                        name: "FK_Projects_Teams_TeamId",
+                        column: x => x.TeamId,
+                        principalTable: "Teams",
+                        principalColumn: "TeamId",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -73,16 +73,16 @@ namespace synthesis.api.Migrations
                     MemberId = table.Column<Guid>(type: "uuid", nullable: false),
                     UserId = table.Column<Guid>(type: "uuid", nullable: false),
                     Roles = table.Column<List<string>>(type: "text[]", nullable: true),
-                    OrganisationId = table.Column<Guid>(type: "uuid", nullable: false)
+                    TeamId = table.Column<Guid>(type: "uuid", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Members", x => x.MemberId);
                     table.ForeignKey(
-                        name: "FK_Members_Organisations_OrganisationId",
-                        column: x => x.OrganisationId,
-                        principalTable: "Organisations",
-                        principalColumn: "OrganisationId",
+                        name: "FK_Members_Teams_TeamId",
+                        column: x => x.TeamId,
+                        principalTable: "Teams",
+                        principalColumn: "TeamId",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_Members_Users_UserId",
@@ -121,23 +121,25 @@ namespace synthesis.api.Migrations
                     Activity = table.Column<string>(type: "text", nullable: true),
                     State = table.Column<int>(type: "integer", nullable: false),
                     Priority = table.Column<int>(type: "integer", nullable: false),
+                    IsComplete = table.Column<bool>(type: "boolean", nullable: false),
+                    CreatedOn = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    AssignedOn = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    DueDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     ProjectId = table.Column<Guid>(type: "uuid", nullable: false),
                     FeatureId = table.Column<Guid>(type: "uuid", nullable: true),
-                    MemberId = table.Column<Guid>(type: "uuid", nullable: true),
-                    FeatureModelId = table.Column<Guid>(type: "uuid", nullable: true),
-                    MemberModelId = table.Column<Guid>(type: "uuid", nullable: true)
+                    MemberId = table.Column<Guid>(type: "uuid", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Tasks", x => x.TaskId);
                     table.ForeignKey(
-                        name: "FK_Tasks_Features_FeatureModelId",
-                        column: x => x.FeatureModelId,
+                        name: "FK_Tasks_Features_FeatureId",
+                        column: x => x.FeatureId,
                         principalTable: "Features",
                         principalColumn: "FeatureId");
                     table.ForeignKey(
-                        name: "FK_Tasks_Members_MemberModelId",
-                        column: x => x.MemberModelId,
+                        name: "FK_Tasks_Members_MemberId",
+                        column: x => x.MemberId,
                         principalTable: "Members",
                         principalColumn: "MemberId");
                     table.ForeignKey(
@@ -154,9 +156,9 @@ namespace synthesis.api.Migrations
                 column: "ProjectId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Members_OrganisationId",
+                name: "IX_Members_TeamId",
                 table: "Members",
-                column: "OrganisationId");
+                column: "TeamId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Members_UserId",
@@ -164,19 +166,19 @@ namespace synthesis.api.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Projects_OrganisationId",
+                name: "IX_Projects_TeamId",
                 table: "Projects",
-                column: "OrganisationId");
+                column: "TeamId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Tasks_FeatureModelId",
+                name: "IX_Tasks_FeatureId",
                 table: "Tasks",
-                column: "FeatureModelId");
+                column: "FeatureId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Tasks_MemberModelId",
+                name: "IX_Tasks_MemberId",
                 table: "Tasks",
-                column: "MemberModelId");
+                column: "MemberId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Tasks_ProjectId",
@@ -213,7 +215,7 @@ namespace synthesis.api.Migrations
                 name: "Users");
 
             migrationBuilder.DropTable(
-                name: "Organisations");
+                name: "Teams");
         }
     }
 }
