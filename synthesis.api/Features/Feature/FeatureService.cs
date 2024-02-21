@@ -21,6 +21,7 @@ public class FeatureService : IFeatureService
     public FeatureService(RepositoryContext repository, IMapper mapper)
     {
         _repository = repository;
+        _mapper = mapper;
     }
     public async Task<GlobalResponse<FeatureDto>> CreateFeature(Guid projectId, CreateFeatureDto createCommand)
     {
