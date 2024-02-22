@@ -14,5 +14,6 @@ public class UserModel
     public string? Password { get; set; }
 
     public List<MemberModel>? MemberProfiles { get; set; }
+    public List<UserSessionModel>? Sessions { get; set; }
 
 }
