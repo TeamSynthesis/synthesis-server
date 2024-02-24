@@ -12,5 +12,4 @@ public record UserDto
 
 }
 
-public record RegisterUserDto(string FirstName, string LastName, string Username, IFormFile Avatar, string Email, string Password);
 public record UpdateUserDto(string FirstName, string LastName, string Username, IFormFile Avatar, string Email);

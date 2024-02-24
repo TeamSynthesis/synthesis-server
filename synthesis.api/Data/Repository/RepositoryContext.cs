@@ -18,6 +18,7 @@ public class RepositoryContext : DbContext
 
         modelBuilder.Entity<UserModel>().HasIndex(u => u.UserName);
         modelBuilder.Entity<UserModel>().HasIndex(u => u.Email);
+        modelBuilder.Entity<UserModel>().HasIndex(u => u.GitHubId);
 
         modelBuilder.Entity<ProjectModel>().OwnsOne(project => project.ProjectMetadata, OwnedNavigationBuilder =>
         {
@@ -59,12 +60,17 @@ public class RepositoryContext : DbContext
 
         });
 
+        modelBuilder.Entity<UserModel>().OwnsMany(user => user.Skills, OwnedNavigationBuilder =>
+        {
+            OwnedNavigationBuilder.ToJson();
+        });
         modelBuilder.Entity<FeatureModel>().HasMany(ft => ft.Tasks).WithOne(t => t.Feature).IsRequired(false);
         modelBuilder.Entity<MemberModel>().HasMany(m => m.Tasks).WithOne(t => t.Member).IsRequired(false);
 
     }
 
     public DbSet<UserModel> Users { get; set; }
+    public DbSet<UserSessionModel> UserSessions { get; set; }
     public DbSet<TeamModel> Teams { get; set; }
     public DbSet<MemberModel> Members { get; set; }
     public DbSet<ProjectModel> Projects { get; set; }

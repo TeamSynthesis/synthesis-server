@@ -9,7 +9,6 @@ using synthesis.api.Services.BlobStorage;
 
 public interface IUserService
 {
-    Task<GlobalResponse<UserDto>> RegisterUser(RegisterUserDto registerRequest);
 
     Task<GlobalResponse<UserDto>> GetUserById(Guid id);
 
@@ -36,47 +35,6 @@ public class UserService : IUserService
 
     }
 
-    public async Task<GlobalResponse<UserDto>> RegisterUser(RegisterUserDto registerRequest)
-    {
-
-        var user = _mapper.Map<UserModel>(registerRequest);
-
-        var validationResult = await new UserValidator(_repository).ValidateAsync(user);
-
-        if (!validationResult.IsValid)
-        {
-            return new GlobalResponse<UserDto>(false, "failed to register user", errors: validationResult.Errors.Select(e => e.ErrorMessage).ToList());
-        }
-
-        if (registerRequest.Avatar == null)
-        {
-            user.AvatarUrl = $"https://eu.ui-avatars.com/api/?name={user.UserName}&size=250";
-        }
-        else
-        {
-            var avatarBlob = await _blobService.Upload(registerRequest.Avatar);
-
-            if (avatarBlob?.Data == null)
-            {
-                user.AvatarUrl = $"https://eu.ui-avatars.com/api/?name={user.UserName}&size=250";
-            }
-            else
-            {
-                user.AvatarUrl = avatarBlob.Data.Uri;
-            }
-
-        }
-
-
-
-        await _repository.Users.AddAsync(user);
-        await _repository.SaveChangesAsync();
-
-        var userToReturn = _mapper.Map<UserDto>(user);
-
-        return new GlobalResponse<UserDto>(true, "user registered successfully", value: userToReturn);
-
-    }
 
     public async Task<GlobalResponse<UserDto>> GetUserById(Guid id)
     {
@@ -85,8 +43,6 @@ public class UserService : IUserService
         .Select(u => new UserDto
         {
             Id = u.Id,
-            FirstName = u.FirstName,
-            LastName = u.LastName,
             Username = u.UserName,
             AvatarUrl = u.AvatarUrl,
             Email = u.Email,

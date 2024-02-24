@@ -13,14 +13,6 @@ public class UserValidator : AbstractValidator<UserModel>
     public UserValidator(RepositoryContext _repository, UserModel? userToBeUpdated = null)
     {
 
-        RuleFor(u => u.FirstName)
-        .Matches("[a-zA-Z]+").WithMessage("FirstName can only contain letters")
-        .When(u => !string.IsNullOrEmpty(u.FirstName));
-
-        RuleFor(u => u.LastName)
-        .Matches("[a-zA-Z]+").WithMessage("LastName may contain letter only")
-        .When(u => !string.IsNullOrEmpty(u.LastName));
-
         RuleFor(u => u.UserName)
         .NotNull().NotEmpty().WithMessage("Username must not be empty")
         .Length(2, 20).WithMessage("Username must be between 2 - 20 characters")
@@ -53,13 +45,6 @@ public class UserValidator : AbstractValidator<UserModel>
                 return !await _repository.Users.AnyAsync(u => u.Email == email);
             }
         ).WithMessage("email must be unique");
-
-
-        RuleFor(u => u.Password)
-        .NotNull().NotEmpty().WithMessage("Password must not be empty")
-        .MinimumLength(8).WithMessage("Password must be at least 8 characters long")
-        .Matches("(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}")
-        .WithMessage("Password must contain at least one lowercase letter, one uppercase letter, one digit, and one special character");
     }
 
 }

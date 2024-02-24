@@ -1,4 +1,5 @@
 using System.Reflection.Metadata.Ecma335;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Npgsql.Internal;
@@ -16,16 +17,7 @@ public class UsersController : ControllerBase
         _service = service;
     }
 
-    [HttpPost("register")]
-    public async Task<IActionResult> RegisterUser(RegisterUserDto user)
-    {
-        var response = await _service.RegisterUser(user);
-        if (!response.IsSuccess) return BadRequest(response);
-
-        return CreatedAtRoute("UserById", new { id = response.Data.Id }, response.Data);
-    }
-
-
+    [Authorize]
     [HttpGet("{id:guid}", Name = "UserById")]
     public async Task<IActionResult> GetUserById(Guid id)
     {
