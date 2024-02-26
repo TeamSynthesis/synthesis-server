@@ -23,16 +23,12 @@ public interface IUserService
 public class UserService : IUserService
 {
     private readonly RepositoryContext _repository;
-    private readonly AzureBlobService _blobService;
     private readonly IMapper _mapper;
 
-    public UserService(RepositoryContext repository, IMapper mapper, AzureBlobService blobService)
+    public UserService(RepositoryContext repository, IMapper mapper)
     {
         _repository = repository;
         _mapper = mapper;
-
-        _blobService = blobService;
-
     }
 
 
@@ -73,7 +69,7 @@ public class UserService : IUserService
 
         var updatedUser = _mapper.Map(updateRequest, user);
 
-        var validationResult = await new UserValidator(_repository, user).ValidateAsync(updatedUser);
+        var validationResult = await new UserValidator().ValidateAsync(updatedUser);
         if (!validationResult.IsValid)
         {
             return new GlobalResponse<UserDto>(false, "update user failed", errors: validationResult.Errors.Select(e => e.ErrorMessage).ToList());
@@ -98,7 +94,7 @@ public class UserService : IUserService
 
         var patchedUser = _mapper.Map(patchedUserDto, user);
 
-        var validationResult = await new UserValidator(_repository, existingUser).ValidateAsync(patchedUser);
+        var validationResult = await new UserValidator().ValidateAsync(patchedUser);
         if (!validationResult.IsValid)
         {
             return new GlobalResponse<UserDto>(false, "update user failed", errors: validationResult.Errors.Select(e => e.ErrorMessage).ToList());

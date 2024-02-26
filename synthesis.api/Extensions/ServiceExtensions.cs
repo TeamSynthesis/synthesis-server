@@ -1,9 +1,9 @@
-using System.Text;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.Net.Http.Headers;
 using synthesis.api.Data.Repository;
 using synthesis.api.Features.Auth;
+using System.Text;
 
 public static class ServiceExtensions
 {
@@ -26,11 +26,14 @@ public static class ServiceExtensions
     {
         services.AddAuthentication(options =>
         {
-            options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-            options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-            options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+            options.DefaultScheme = "JWT_OR_COOKIE";
+            options.DefaultChallengeScheme = "JWT_OR_COOKIE";
         })
-        .AddJwtBearer(options =>
+        .AddCookie("Cookies", options =>
+        {
+            options.ExpireTimeSpan = TimeSpan.FromDays(1);
+        })
+        .AddJwtBearer("Bearer", options =>
         {
             options.TokenValidationParameters = new TokenValidationParameters
             {
@@ -44,13 +47,23 @@ public static class ServiceExtensions
                 .GetBytes(configuration.GetSection("JwtConfig:Secret").Value))
             };
         })
-
-         .AddGitHub(options =>
+        .AddGitHub(options =>
         {
             options.ClientId = "846d55a778c8a634c4e7";
             options.ClientSecret = "05ff1507f36557dca5ee592b7307c5c280967bd1";
             options.CallbackPath = "/api/oauth/github-cb";
             options.SaveTokens = true;
+        })
+        .AddPolicyScheme("JWT_OR_COOKIE", "JWT_OR_COOKIE", options =>
+        {
+            options.ForwardDefaultSelector = context =>
+            {
+                string authorization = context.Request.Headers[HeaderNames.Authorization];
+                if (!string.IsNullOrEmpty(authorization) && authorization.StartsWith("Bearer "))
+                    return "Bearer";
+
+                return "Cookies";
+            };
         });
 
         services.Configure<JwtConfig>(configuration.GetSection("JwtConfig"));

@@ -1,4 +1,3 @@
-using System.Text.Json.Serialization;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Identity;
@@ -6,7 +5,8 @@ using Scrutor;
 using synthesis.api.Data.Models;
 using synthesis.api.Exceptions;
 using synthesis.api.Features.Auth;
-using synthesis.api.Services.BlobStorage;
+using Synthesis.Api.Services.BlobStorage;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,7 +20,7 @@ builder.Services.AddValidatorsFromAssembly(typeof(Program).Assembly);
 
 builder.Services.AddSingleton<IPasswordHasher<UserModel>, PasswordHasher<UserModel>>();
 
-builder.Services.AddSingleton<AzureBlobService>();
+builder.Services.AddSingleton<R2CloudStorage>();
 builder.Services.AddSingleton<JwtConfig>();
 
 
@@ -34,6 +34,7 @@ builder.Services.Scan(x =>
     .WithScopedLifetime()
 );
 
+builder.Services.AddHttpClient();
 builder.Services.AddControllers()
 .AddJsonOptions(opt => opt.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull);
 builder.Services.AddEndpointsApiExplorer();

@@ -1,11 +1,6 @@
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Win32.SafeHandles;
-using Octokit;
-using synthesis.api.Data.Models;
 using synthesis.api.Data.Repository;
 
 namespace synthesis.api.Features.Auth
@@ -15,13 +10,15 @@ namespace synthesis.api.Features.Auth
     public class AuthController : ControllerBase
     {
         private readonly IAuthService _service;
-        public AuthController(IAuthService service)
+        private readonly RepositoryContext _repository;
+        public AuthController(IAuthService service, RepositoryContext repository)
         {
             _service = service;
+            _repository = repository;
         }
 
         [HttpPost("register")]
-        public async Task<IActionResult> Register([FromBody] RegisterUserDto registerCommand)
+        public async Task<IActionResult> Register([FromBody] RegisterUserDto registerCommand, IFormFile avatar)
         {
             if (registerCommand == null)
                 return BadRequest("required body param is null");
@@ -37,60 +34,34 @@ namespace synthesis.api.Features.Auth
 
 
         [HttpGet("github")]
-        public IActionResult GithubAuth()
+        public IActionResult GithubLogin()
         {
-            var authenticationProperties = new AuthenticationProperties
+            var authProps = new AuthenticationProperties
             {
-                RedirectUri = Url.Action(nameof(SignInGithub), "Auth")
+                RedirectUri = Url.Action("Callback", "Auth")
             };
+            return Challenge(authProps, "GitHub");
 
-            return Challenge(authenticationProperties, "GitHub");
         }
 
-        [Authorize]
-        [HttpGet("github/sign-in")]
-        public async Task<IActionResult> SignInGithub()
+
+        [HttpGet("github/callback")]
+        public async Task<IActionResult> Callback()
         {
+            var authenticationResult = await HttpContext.AuthenticateAsync("Cookies");
 
-            var result = await HttpContext.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-
-            if (result?.Succeeded != true)
+            if (!authenticationResult.Succeeded)
             {
-                return BadRequest("External authentication error");
+                return BadRequest("Authentication failed");
             }
-            var accessToken = result.Properties.GetTokenValue("access_token");
+            var accessToken = authenticationResult.Properties.GetTokenValue("access_token");
 
-            // Use the access token with Octokit
-            var github = new GitHubClient(new ProductHeaderValue("Synthesis"))
-            {
-                Credentials = new Credentials(accessToken)
-            };
+            var response = await _service.GitHubLogin(accessToken);
 
-            // Get the user's information
-            var githubUser = await github.User.Current();
+            if (!response.IsSuccess) return BadRequest(response);
 
-            var githubEmails = await github.User.Email.GetAll();
-
-            // var userExists = await _repository.Users.AnyAsync(u => u.GitHubId == githubUser.Id.ToString());
-
-            // if (!userExists)
-            // {
-            //     var user = new UserModel()
-            //     {
-            //         UserName = githubUser.Name,
-            //         Email = githubEmails.First().Email,
-            //         AvatarUrl = githubUser.AvatarUrl,
-            //         EmailConfirmed = true
-            //     };
-
-            //     await _repository.Users.AddAsync(user);
-            //     await _repository.SaveChangesAsync();
-            // }
-
-            return Ok(githubUser.Bio);
-
+            return Ok(response.Data);
         }
-
 
         [HttpGet("logout")]
         public async Task<IActionResult> Logout()

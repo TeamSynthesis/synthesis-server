@@ -1,4 +1,6 @@
+using Azure.AI.OpenAI;
 using Microsoft.AspNetCore.Mvc;
+using Synthesis.Api.Services.BlobStorage;
 
 namespace synthesis.api.Services.BlobStorage;
 
@@ -6,9 +8,9 @@ namespace synthesis.api.Services.BlobStorage;
 [Route("api/[controller]")]
 public class BlobStorageController : ControllerBase
 {
-    private readonly AzureBlobService _blobService;
+    private readonly R2CloudStorage _blobService;
 
-    public BlobStorageController(AzureBlobService blobService)
+    public BlobStorageController(R2CloudStorage blobService)
     {
         _blobService = blobService;
     }
@@ -16,14 +18,16 @@ public class BlobStorageController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
-        var response = await _blobService.GetAllBlobs();
-        return Ok(response);
+        // var response = await _blobService.GetAllBlobs();
+        // return Ok(response);
+        return Ok();
     }
 
     [HttpPost]
-    public async Task<IActionResult> Upload(IFormFile file)
+    public async Task<IActionResult> Upload(IFormFile file, string fileName)
     {
-        var response = await _blobService.Upload(file);
+        var response = await _blobService.UploadFileAsync(file, fileName);
+        if (!response.IsSuccess) return BadRequest(response);
 
         return Ok(response);
     }
@@ -31,7 +35,6 @@ public class BlobStorageController : ControllerBase
     [HttpDelete("{blobName}")]
     public async Task<IActionResult> DeleteBlob(string blobName)
     {
-        await _blobService.Delete(blobName);
         return Ok();
     }
 }
