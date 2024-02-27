@@ -13,7 +13,7 @@ using synthesis.api.Data.Repository;
 namespace synthesis.api.Migrations
 {
     [DbContext(typeof(RepositoryContext))]
-    [Migration("20240221145327_init")]
+    [Migration("20240227115935_init")]
     partial class init
     {
         /// <inheritdoc />
@@ -180,13 +180,16 @@ namespace synthesis.api.Migrations
                     b.Property<string>("Email")
                         .HasColumnType("text");
 
-                    b.Property<string>("FirstName")
-                        .HasColumnType("text");
+                    b.Property<bool>("EmailConfirmed")
+                        .HasColumnType("boolean");
 
-                    b.Property<string>("LastName")
-                        .HasColumnType("text");
+                    b.Property<int?>("GitHubId")
+                        .HasColumnType("integer");
 
-                    b.Property<string>("Password")
+                    b.Property<int>("OnBoardingProgress")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("PasswordHash")
                         .HasColumnType("text");
 
                     b.Property<string>("UserName")
@@ -196,9 +199,39 @@ namespace synthesis.api.Migrations
 
                     b.HasIndex("Email");
 
+                    b.HasIndex("GitHubId");
+
                     b.HasIndex("UserName");
 
                     b.ToTable("Users");
+                });
+
+            modelBuilder.Entity("synthesis.api.Data.Models.UserSessionModel", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("IpAddress")
+                        .HasColumnType("text");
+
+                    b.Property<string>("UserAgent")
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("UserSessions");
                 });
 
             modelBuilder.Entity("synthesis.api.Data.Models.FeatureModel", b =>
@@ -675,6 +708,41 @@ namespace synthesis.api.Migrations
                     b.Navigation("Project");
                 });
 
+            modelBuilder.Entity("synthesis.api.Data.Models.UserModel", b =>
+                {
+                    b.OwnsMany("System.Collections.Generic.Dictionary<string, int>", "Skills", b1 =>
+                        {
+                            b1.Property<Guid>("UserModelId")
+                                .HasColumnType("uuid");
+
+                            b1.Property<int>("Id")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("integer");
+
+                            b1.HasKey("UserModelId", "Id");
+
+                            b1.ToTable("Users");
+
+                            b1.ToJson("Skills");
+
+                            b1.WithOwner()
+                                .HasForeignKey("UserModelId");
+                        });
+
+                    b.Navigation("Skills");
+                });
+
+            modelBuilder.Entity("synthesis.api.Data.Models.UserSessionModel", b =>
+                {
+                    b.HasOne("synthesis.api.Data.Models.UserModel", "User")
+                        .WithMany("Sessions")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("synthesis.api.Data.Models.FeatureModel", b =>
                 {
                     b.Navigation("Tasks");
@@ -702,6 +770,8 @@ namespace synthesis.api.Migrations
             modelBuilder.Entity("synthesis.api.Data.Models.UserModel", b =>
                 {
                     b.Navigation("MemberProfiles");
+
+                    b.Navigation("Sessions");
                 });
 #pragma warning restore 612, 618
         }

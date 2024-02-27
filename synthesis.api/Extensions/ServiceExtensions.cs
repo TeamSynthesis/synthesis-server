@@ -37,6 +37,7 @@ public static class ServiceExtensions
         {
             options.TokenValidationParameters = new TokenValidationParameters
             {
+                SaveSigninToken = true,
                 ValidateIssuer = true,
                 ValidateAudience = true,
                 ValidateLifetime = true,
@@ -53,6 +54,8 @@ public static class ServiceExtensions
             options.ClientSecret = "05ff1507f36557dca5ee592b7307c5c280967bd1";
             options.CallbackPath = "/api/oauth/github-cb";
             options.SaveTokens = true;
+            options.Scope.Add("user:email");
+            options.Scope.Add("read:user");
         })
         .AddPolicyScheme("JWT_OR_COOKIE", "JWT_OR_COOKIE", options =>
         {
@@ -68,4 +71,8 @@ public static class ServiceExtensions
 
         services.Configure<JwtConfig>(configuration.GetSection("JwtConfig"));
     }
+
+    //options.ClientId = "Iv1.07ed0182751867d4";
+    //options.ClientSecret = "6cf27ae148402fb13b65f6d704def276ab3a628f";
+    //options.CallbackPath = "/api/oauth/github-cb";
 }

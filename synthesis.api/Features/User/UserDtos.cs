@@ -1,3 +1,5 @@
+using synthesis.api.Data.Models;
+
 namespace synthesis.api.Features.User;
 
 public record UserDto
@@ -8,6 +10,7 @@ public record UserDto
     public string? Username { get; set; }
     public string? AvatarUrl { get; set; }
     public string? Email { get; set; }
+    public string? OnBoarding { get; set; }
     public List<MemberDto>? MemberProfiles { get; set; }
 
 }

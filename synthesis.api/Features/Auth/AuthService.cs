@@ -1,6 +1,7 @@
 using AutoMapper;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi.Extensions;
 using synthesis.api.Data.Models;
 using synthesis.api.Data.Repository;
 using synthesis.api.Features.User;
@@ -34,57 +35,97 @@ public class AuthService : IAuthService
         _jwtManager = jwtManager;
     }
 
-    public async Task<GlobalResponse<LoginResponseDto>> GitHubLogin(string access_token)
+    public async Task<GlobalResponse<LoginResponseDto>> GitHubLogin(string accessToken)
     {
-        using var httpClient = _httpClient.CreateClient();
-        httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", access_token);
+        using var httpClient = _httpClient.CreateClient("GitHub");
+        httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
         httpClient.DefaultRequestHeaders.Add("Accept", "application/vnd.github+json");
         httpClient.DefaultRequestHeaders.Add("X-GitHub-Api-Version", "2022-11-28");
         httpClient.DefaultRequestHeaders.Add("User-Agent", "synthesis.api/1.0");
 
         var userUrl = "https://api.github.com/user";
+
         var userResponse = await httpClient.GetAsync(userUrl);
+
         if (!userResponse.IsSuccessStatusCode)
         {
-            return new GlobalResponse<LoginResponseDto>(false, "error", errors: ["something went wrong"]);
+            return new GlobalResponse<LoginResponseDto>(false, "login failed", errors: ["Failed to fetch user data from GitHub API."]);
         }
+
         var githubUser = await userResponse.Content.ReadFromJsonAsync<GitHubUserDto>();
 
+        var userExists = await _repository.Users.AnyAsync(u => u.GitHubId == githubUser.id);
+
+        if (userExists)
+        {
+            var user = await _repository.Users.Where(u => u.GitHubId == githubUser.id).Select(x => new UserDto
+            {
+                Id = x.Id,
+                Username = x.UserName,
+                Email = x.Email,
+                AvatarUrl = x.AvatarUrl,
+                OnBoarding = x.OnBoardingProgress.GetDisplayName()
+
+            }).SingleOrDefaultAsync();
+
+            var userCredentials = _mapper.Map<UserModel>(user);
+            var token = _jwtManager.GenerateToken(userCredentials);
+
+            var existingUserReponse = new LoginResponseDto(token, user);
+
+            return new GlobalResponse<LoginResponseDto>(true, "Login successful", value: existingUserReponse);
+        }
+
         var emailUrl = "https://api.github.com/user/emails";
+
         var emailResponse = await httpClient.GetAsync(emailUrl);
+
         if (!emailResponse.IsSuccessStatusCode)
         {
-            return new GlobalResponse<LoginResponseDto>(false, "error", errors: ["something went wrong"]);
+            return new GlobalResponse<LoginResponseDto>(false, "login failed", errors: ["Failed to fetch user data from GitHub API."]);
+
         }
+
         var emails = await emailResponse.Content.ReadFromJsonAsync<List<GitHubEmailDto>>();
 
-        var existingUser = await _repository.Users.AnyAsync(u => u.GitHubId == githubUser.id);
+        if (emails == null)
+        {
+            return new GlobalResponse<LoginResponseDto>(false, "login failed", errors: ["Failed to fetch user data from GitHub API."]);
 
-        UserModel user;
-        if (!existingUser)
-        {
-            user = new UserModel
-            {
-                UserName = githubUser.name,
-                Email = FindPrimaryEmail(emails),
-                AvatarUrl = githubUser.avatar_url,
-                EmailConfirmed = true,
-                OnBoardingProgress = OnBoardingProgress.CreateAccount
-            };
-            await _repository.Users.AddAsync(user);
-            await _repository.SaveChangesAsync();
-        }
-        else
-        {
-            user = await _repository.Users.FirstAsync(u => u.GitHubId == githubUser.id);
         }
 
-        var jwtToken = _jwtManager.GenerateToken(user);
 
-        var response = new LoginResponseDto(jwtToken);
+        var newUser = new UserModel
+        {
+            UserName = "gh_" + githubUser.login,
+            Email = FindPrimaryEmail(emails),
+            GitHubId = githubUser.id,
+            AvatarUrl = githubUser.avatar_url,
+            EmailConfirmed = true,
+            OnBoardingProgress = OnBoardingProgress.CreateAccount
+        };
+        await _repository.Users.AddAsync(newUser);
+        await _repository.SaveChangesAsync();
 
-        return new GlobalResponse<LoginResponseDto>(true, "login success", value: response);
+
+        var jwtToken = _jwtManager.GenerateToken(newUser);
+
+        var userToReturn = new UserDto()
+        {
+            Id = newUser.Id,
+            Username = newUser.UserName,
+            Email = newUser.Email,
+            AvatarUrl = newUser.AvatarUrl,
+            OnBoarding = newUser.OnBoardingProgress.GetDisplayName()
+        };
+
+        var response = new LoginResponseDto(jwtToken, userToReturn);
+
+        return new GlobalResponse<LoginResponseDto>(true, "Login successful", value: response);
+
+
     }
+
     private string FindPrimaryEmail(List<GitHubEmailDto> emails)
     {
         if (emails == null)
@@ -93,12 +134,32 @@ public class AuthService : IAuthService
         }
 
         var primary = emails.FirstOrDefault(e => e.primary == true && e.verified == true);
-        return primary.email != null ? primary.email : emails.FirstOrDefault(e => e.verified == true).email;
+        return primary?.email ?? emails.FirstOrDefault(e => e.verified == true)?.email;
     }
 
-    public Task<GlobalResponse<LoginResponseDto>> Login(LoginUserDto loginCommand)
+    public async Task<GlobalResponse<LoginResponseDto>> Login(LoginUserDto loginCommand)
     {
-        throw new NotImplementedException();
+        var user = await _repository.Users.Where(u => u.UserName.ToLower() == loginCommand.UsernameEmail.ToLower() || u.Email.ToLower() == loginCommand.UsernameEmail.ToLower()).SingleOrDefaultAsync();
+
+        if (user == null)
+        {
+            return new GlobalResponse<LoginResponseDto>(false, "login failed", errors: ["bad credentials"]);
+        }
+
+        var result = _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, loginCommand.Password);
+
+        if (result == PasswordVerificationResult.Failed)
+        {
+            return new GlobalResponse<LoginResponseDto>(false, "login failed", errors: ["bad credentials"]);
+        }
+
+        var token = _jwtManager.GenerateToken(user);
+        var userToReturn = _mapper.Map<UserDto>(user);
+
+        var loginResponse = new LoginResponseDto(token, userToReturn);
+
+        return new GlobalResponse<LoginResponseDto>(true, "login success", value: loginResponse);
+
     }
 
     public async Task<GlobalResponse<RegisterResponseDto>> Register(RegisterUserDto registerCommand)

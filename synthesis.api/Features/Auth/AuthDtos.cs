@@ -11,7 +11,7 @@ public record RegisterUserDto
 
 public record GitHubUserDto
 {
-    public string? id { get; set; }
+    public int? id { get; set; }
     public string? login { get; set; }
     public string? avatar_url { get; set; }
     public string? name { get; set; }
@@ -24,6 +24,6 @@ public record GitHubEmailDto
     public bool? verified { get; set; }
 }
 
-public record RegisterResponseDto(string token, UserDto User);
-public record LoginResponseDto(string token);
-public record LoginUserDto(string Email, string Password);
+public record RegisterResponseDto(string Token, UserDto User);
+public record LoginResponseDto(string Token, UserDto User);
+public record LoginUserDto(string? UsernameEmail, string Password);

@@ -35,7 +35,7 @@ namespace synthesis.api.Features.Auth
                 issuer: _config.GetSection("JwtConfig:Issuer").Value,
                 audience: _config.GetSection("JwtConfig:Audience").Value,
                 claims: claims,
-                expires: DateTime.UtcNow.AddDays(1),
+                expires: DateTime.UtcNow.AddMonths(1),
                 signingCredentials: credentials
             );
 

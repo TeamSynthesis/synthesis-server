@@ -5,24 +5,23 @@
 namespace synthesis.api.Migrations
 {
     /// <inheritdoc />
-    public partial class mod_passwordfield : Migration
+    public partial class mod_index : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.RenameColumn(
-                name: "Password",
-                table: "Users",
-                newName: "PasswordHash");
+            migrationBuilder.DropIndex(
+                name: "IX_Users_GitHubId",
+                table: "Users");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.RenameColumn(
-                name: "PasswordHash",
+            migrationBuilder.CreateIndex(
+                name: "IX_Users_GitHubId",
                 table: "Users",
-                newName: "Password");
+                column: "GitHubId");
         }
     }
 }

@@ -32,14 +32,30 @@ namespace synthesis.api.Features.Auth
             return Ok(response);
         }
 
+        [HttpPost("login")]
+        public async Task<IActionResult> Login([FromBody] LoginUserDto user)
+        {
+            if (user == null)
+                return BadRequest("required body param is null");
+
+            var response = await _service.Login(user);
+
+            if (!response.IsSuccess)
+                return BadRequest(response);
+
+            return Ok(response);
+        }
+        
 
         [HttpGet("github")]
         public IActionResult GithubLogin()
         {
+            var origin = Request.Headers.Origin.ToString();
             var authProps = new AuthenticationProperties
             {
                 RedirectUri = Url.Action("Callback", "Auth")
             };
+            authProps.Items.Add("origin", origin);
             return Challenge(authProps, "GitHub");
 
         }
@@ -58,9 +74,12 @@ namespace synthesis.api.Features.Auth
 
             var response = await _service.GitHubLogin(accessToken);
 
-            if (!response.IsSuccess) return BadRequest(response);
+            var origin = authenticationResult.Properties.Items["origin"];
 
-            return Ok(response.Data);
+            if (!response.IsSuccess) return Redirect($"{origin}/auth/sign-up?error={response.Message}");
+
+            return Redirect($"{origin}/account/auth?token={response.Data.Token} & userId ={response.Data.User.Id}");
+
         }
 
         [HttpGet("logout")]

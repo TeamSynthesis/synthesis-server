@@ -98,6 +98,41 @@ namespace synthesis.api.Migrations
                     b.ToTable("Projects");
                 });
 
+            modelBuilder.Entity("synthesis.api.Data.Models.RefreshTokenModel", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("RefreshTokenId");
+
+                    b.Property<DateTime?>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsRevoked")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsUsed")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("JwtId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Token")
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("RefreshTokens");
+                });
+
             modelBuilder.Entity("synthesis.api.Data.Models.TaskToDoModel", b =>
                 {
                     b.Property<Guid>("Id")
@@ -180,8 +215,8 @@ namespace synthesis.api.Migrations
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("boolean");
 
-                    b.Property<string>("GitHubId")
-                        .HasColumnType("text");
+                    b.Property<int?>("GitHubId")
+                        .HasColumnType("integer");
 
                     b.Property<int>("OnBoardingProgress")
                         .HasColumnType("integer");
@@ -201,34 +236,6 @@ namespace synthesis.api.Migrations
                     b.HasIndex("UserName");
 
                     b.ToTable("Users");
-                });
-
-            modelBuilder.Entity("synthesis.api.Data.Models.UserSessionModel", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime>("ExpiresAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("IpAddress")
-                        .HasColumnType("text");
-
-                    b.Property<string>("UserAgent")
-                        .HasColumnType("text");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("UserSessions");
                 });
 
             modelBuilder.Entity("synthesis.api.Data.Models.FeatureModel", b =>
@@ -682,6 +689,17 @@ namespace synthesis.api.Migrations
                     b.Navigation("Team");
                 });
 
+            modelBuilder.Entity("synthesis.api.Data.Models.RefreshTokenModel", b =>
+                {
+                    b.HasOne("synthesis.api.Data.Models.UserModel", "User")
+                        .WithMany("RefreshTokens")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("synthesis.api.Data.Models.TaskToDoModel", b =>
                 {
                     b.HasOne("synthesis.api.Data.Models.FeatureModel", "Feature")
@@ -729,17 +747,6 @@ namespace synthesis.api.Migrations
                     b.Navigation("Skills");
                 });
 
-            modelBuilder.Entity("synthesis.api.Data.Models.UserSessionModel", b =>
-                {
-                    b.HasOne("synthesis.api.Data.Models.UserModel", "User")
-                        .WithMany("Sessions")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("synthesis.api.Data.Models.FeatureModel", b =>
                 {
                     b.Navigation("Tasks");
@@ -768,7 +775,7 @@ namespace synthesis.api.Migrations
                 {
                     b.Navigation("MemberProfiles");
 
-                    b.Navigation("Sessions");
+                    b.Navigation("RefreshTokens");
                 });
 #pragma warning restore 612, 618
         }

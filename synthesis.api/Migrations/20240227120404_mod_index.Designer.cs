@@ -13,8 +13,8 @@ using synthesis.api.Data.Repository;
 namespace synthesis.api.Migrations
 {
     [DbContext(typeof(RepositoryContext))]
-    [Migration("20240223091812_mod_user")]
-    partial class mod_user
+    [Migration("20240227120404_mod_index")]
+    partial class mod_index
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -183,13 +183,13 @@ namespace synthesis.api.Migrations
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("boolean");
 
-                    b.Property<string>("GitHubId")
-                        .HasColumnType("text");
+                    b.Property<int?>("GitHubId")
+                        .HasColumnType("integer");
 
                     b.Property<int>("OnBoardingProgress")
                         .HasColumnType("integer");
 
-                    b.Property<string>("Password")
+                    b.Property<string>("PasswordHash")
                         .HasColumnType("text");
 
                     b.Property<string>("UserName")
@@ -198,8 +198,6 @@ namespace synthesis.api.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("Email");
-
-                    b.HasIndex("GitHubId");
 
                     b.HasIndex("UserName");
 

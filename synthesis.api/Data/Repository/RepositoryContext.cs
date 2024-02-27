@@ -70,7 +70,7 @@ public class RepositoryContext : DbContext
     }
 
     public DbSet<UserModel> Users { get; set; }
-    public DbSet<UserSessionModel> UserSessions { get; set; }
+    public DbSet<RefreshTokenModel> RefreshTokens { get; set; }
     public DbSet<TeamModel> Teams { get; set; }
     public DbSet<MemberModel> Members { get; set; }
     public DbSet<ProjectModel> Projects { get; set; }
