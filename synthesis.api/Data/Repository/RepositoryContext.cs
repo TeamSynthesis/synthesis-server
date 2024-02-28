@@ -18,72 +18,59 @@ public class RepositoryContext : DbContext
 
         modelBuilder.Entity<UserModel>().HasIndex(u => u.UserName);
         modelBuilder.Entity<UserModel>().HasIndex(u => u.Email);
-
-        modelBuilder.Entity<TeamModel>()
-           .HasMany(t => t.Developers)
-           .WithMany(m => m.Teams)
-           .UsingEntity(j => j.ToTable("TeamMembers"));
+        modelBuilder.Entity<UserModel>().HasIndex(u => u.GitHubId);
 
         modelBuilder.Entity<ProjectModel>().OwnsOne(project => project.ProjectMetadata, OwnedNavigationBuilder =>
         {
             OwnedNavigationBuilder.ToJson();
 
-            OwnedNavigationBuilder.OwnsOne(overview => overview.Overview, OwnedNavigationBuilder =>
+            OwnedNavigationBuilder.OwnsOne(project => project.Overview, OwnedNavigationBuilder =>
             {
-                OwnedNavigationBuilder.OwnsMany(suggestedName => suggestedName.SuggestedNames);
-                OwnedNavigationBuilder.OwnsMany(suggestedDomain => suggestedDomain.SuggestedDomains);
-            });
-
-            OwnedNavigationBuilder.OwnsOne(moodBoard => moodBoard.MoodBoard, OwnedNavigationBuilder =>
-            {
-                OwnedNavigationBuilder.OwnsMany(image => image.Images);
+                OwnedNavigationBuilder.OwnsMany(overview => overview.SuggestedNames);
+                OwnedNavigationBuilder.OwnsMany(overview => overview.SuggestedDomains);
             });
 
             OwnedNavigationBuilder.OwnsOne(branding => branding.Branding, OwnedNavigationBuilder =>
             {
-                OwnedNavigationBuilder.OwnsMany(icon => icon.Icons);
+                OwnedNavigationBuilder.OwnsOne(branding => branding.Icon);
+                OwnedNavigationBuilder.OwnsMany(branding => branding.Wireframes, OwnedNavigationBuilder =>
+                {
+                    OwnedNavigationBuilder.OwnsOne(wireframe => wireframe.Image);
+                });
+                OwnedNavigationBuilder.OwnsMany(branding => branding.MoodBoards);
+                OwnedNavigationBuilder.OwnsOne(branding => branding.Palette);
+                OwnedNavigationBuilder.OwnsOne(branding => branding.Typography);
 
             });
 
             OwnedNavigationBuilder.OwnsOne(competitiveAnalysis => competitiveAnalysis.CompetitiveAnalysis, OwnedNavigationBuilder =>
             {
-                OwnedNavigationBuilder.OwnsMany(competitor => competitor.Competitors);
-                OwnedNavigationBuilder.OwnsOne(swot => swot.Swot);
+                OwnedNavigationBuilder.OwnsMany(competitiveAnalysis => competitiveAnalysis.Competitors);
+                OwnedNavigationBuilder.OwnsOne(competitiveAnalysis => competitiveAnalysis.Swot);
+                OwnedNavigationBuilder.OwnsOne(competitiveAnalysis => competitiveAnalysis.TargetAudience, OwnedNavigationBuilder =>
+                {
+                    OwnedNavigationBuilder.OwnsOne(targetAudience => targetAudience.Demographics);
+                });
             });
-
-            OwnedNavigationBuilder.OwnsOne(colorPalette => colorPalette.ColorPalette);
-
-            OwnedNavigationBuilder.OwnsOne(mockups => mockups.Mockups, OwnedNavigationBuilder =>
-            {
-                OwnedNavigationBuilder.OwnsMany(image => image.Images);
-            });
-
-            OwnedNavigationBuilder.OwnsMany(wireframe => wireframe.Wireframes);
-
-            OwnedNavigationBuilder.OwnsOne(typography => typography.Typography);
-
-            OwnedNavigationBuilder.OwnsOne(features => features.Features);
 
             OwnedNavigationBuilder.OwnsOne(technology => technology.Technology, OwnedNavigationBuilder =>
             {
-                OwnedNavigationBuilder.OwnsMany(techstack => techstack.Stacks);
-            });
-
-            OwnedNavigationBuilder.OwnsOne(targetAudience => targetAudience.TargetAudience, OwnedNavigationBuilder =>
-            {
-                OwnedNavigationBuilder.OwnsOne(demographics => demographics.Demographics);
+                OwnedNavigationBuilder.OwnsMany(technology => technology.TechStacks);
             });
 
         });
+
+        modelBuilder.Entity<FeatureModel>().HasMany(ft => ft.Tasks).WithOne(t => t.Feature).IsRequired(false);
+        modelBuilder.Entity<MemberModel>().HasMany(m => m.Tasks).WithOne(t => t.Member).IsRequired(false);
+
     }
 
     public DbSet<UserModel> Users { get; set; }
-    public DbSet<OrganisationModel> Organisations { get; set; }
+    public DbSet<RefreshTokenModel> RefreshTokens { get; set; }
+    public DbSet<TeamModel> Teams { get; set; }
     public DbSet<MemberModel> Members { get; set; }
     public DbSet<ProjectModel> Projects { get; set; }
-    public DbSet<TeamModel> Teams { get; set; }
-
-
-
+    public DbSet<FeatureModel> Features { get; set; }
+    public DbSet<TaskToDoModel> Tasks { get; set; }
 
 }

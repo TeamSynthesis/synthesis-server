@@ -1,21 +1,26 @@
 using System.Collections.Immutable;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi.Extensions;
 using synthesis.api.Data.Models;
 using synthesis.api.Data.Repository;
 using synthesis.api.Features.User;
 using synthesis.api.Mappings;
 using synthesis.api.Services.BlobStorage;
+using Synthesis.Api.Services.BlobStorage;
 
 public interface IUserService
 {
-    Task<GlobalResponse<UserDto>> RegisterUser(RegisterUserDto registerRequest);
 
     Task<GlobalResponse<UserDto>> GetUserById(Guid id);
 
     Task<GlobalResponse<UserDto>> UpdateUser(Guid id, UpdateUserDto updateRequest);
 
     Task<GlobalResponse<UserDto>> PatchUser(Guid id, UpdateUserDto patchRequest);
+
+    Task<GlobalResponse<UserDto>> PostUserDetails(Guid id, PostUserDetailsDto postCommand);
+
+    Task<GlobalResponse<UserDto>> PostUserSkills(Guid id, List<string> postSkillsCommand);
 
     Task<GlobalResponse<UserDto>> DeleteUser(Guid id);
 
@@ -24,59 +29,16 @@ public interface IUserService
 public class UserService : IUserService
 {
     private readonly RepositoryContext _repository;
-    private readonly AzureBlobService _blobService;
     private readonly IMapper _mapper;
+    private readonly R2CloudStorage _r2Cloud;
 
-    public UserService(RepositoryContext repository, IMapper mapper, AzureBlobService blobService)
+    public UserService(RepositoryContext repository, IMapper mapper, R2CloudStorage r2Cloud)
     {
         _repository = repository;
         _mapper = mapper;
-
-        _blobService = blobService;
-
+        _r2Cloud = r2Cloud;
     }
 
-    public async Task<GlobalResponse<UserDto>> RegisterUser(RegisterUserDto registerRequest)
-    {
-
-        var user = _mapper.Map<UserModel>(registerRequest);
-
-        var validationResult = await new UserValidator(_repository).ValidateAsync(user);
-
-        if (!validationResult.IsValid)
-        {
-            return new GlobalResponse<UserDto>(false, "failed to register user", errors: validationResult.Errors.Select(e => e.ErrorMessage).ToList());
-        }
-
-        if (registerRequest.Avatar == null)
-        {
-            user.AvatarUrl = $"https://eu.ui-avatars.com/api/?name={user.UserName}&size=250";
-        }
-        else
-        {
-            var avatarBlob = await _blobService.Upload(registerRequest.Avatar);
-
-            if (avatarBlob?.Data == null)
-            {
-                user.AvatarUrl = $"https://eu.ui-avatars.com/api/?name={user.UserName}&size=250";
-            }
-            else
-            {
-                user.AvatarUrl = avatarBlob.Data.Uri;
-            }
-
-        }
-
-
-
-        await _repository.Users.AddAsync(user);
-        await _repository.SaveChangesAsync();
-
-        var userToReturn = _mapper.Map<UserDto>(user);
-
-        return new GlobalResponse<UserDto>(true, "user registered successfully", value: userToReturn);
-
-    }
 
     public async Task<GlobalResponse<UserDto>> GetUserById(Guid id)
     {
@@ -85,19 +47,21 @@ public class UserService : IUserService
         .Select(u => new UserDto
         {
             Id = u.Id,
-            FirstName = u.FirstName,
-            LastName = u.LastName,
-            Username = u.UserName,
+            UserName = u.UserName,
             AvatarUrl = u.AvatarUrl,
             Email = u.Email,
+            FullName = u.FullName,
+            OnBoarding = u.OnBoarding.GetDisplayName(),
+            Profession = u.Profession,
+            Skills = u.Skills,
             MemberProfiles = u.MemberProfiles.Select(x => new MemberDto()
             {
                 Id = x.Id,
-                Organisation = new OrganisationDto()
+                Team = new TeamDto()
                 {
-                    Id = x.Organisation.Id,
-                    Name = x.Organisation.Name,
-                    LogoUrl = x.Organisation.LogoUrl
+                    Id = x.Team.Id,
+                    Name = x.Team.Name,
+                    LogoUrl = x.Team.LogoUrl
                 },
                 Roles = x.Roles
             }).ToList()
@@ -117,7 +81,7 @@ public class UserService : IUserService
 
         var updatedUser = _mapper.Map(updateRequest, user);
 
-        var validationResult = await new UserValidator(_repository, user).ValidateAsync(updatedUser);
+        var validationResult = await new UserValidator().ValidateAsync(updatedUser);
         if (!validationResult.IsValid)
         {
             return new GlobalResponse<UserDto>(false, "update user failed", errors: validationResult.Errors.Select(e => e.ErrorMessage).ToList());
@@ -142,7 +106,7 @@ public class UserService : IUserService
 
         var patchedUser = _mapper.Map(patchedUserDto, user);
 
-        var validationResult = await new UserValidator(_repository, existingUser).ValidateAsync(patchedUser);
+        var validationResult = await new UserValidator().ValidateAsync(patchedUser);
         if (!validationResult.IsValid)
         {
             return new GlobalResponse<UserDto>(false, "update user failed", errors: validationResult.Errors.Select(e => e.ErrorMessage).ToList());
@@ -151,6 +115,53 @@ public class UserService : IUserService
         await _repository.SaveChangesAsync();
 
         return new GlobalResponse<UserDto>(true, "patch user success");
+    }
+
+    public async Task<GlobalResponse<UserDto>> PostUserDetails(Guid id, PostUserDetailsDto postDetailsCommand)
+    {
+        var user = await _repository.Users.FindAsync(id);
+        if (user == null) return new GlobalResponse<UserDto>(false, "delete user failed", errors: [$"user with id{id} not found"]);
+
+        user.Profession = postDetailsCommand.Profession;
+        user.FullName = postDetailsCommand.FullName;
+        user.UserName = postDetailsCommand.UserName;
+
+        var validationResult = await new UserValidator().ValidateAsync(user);
+        if (!validationResult.IsValid)
+        {
+            return new GlobalResponse<UserDto>(false, "update user failed", errors: validationResult.Errors.Select(e => e.ErrorMessage).ToList());
+        }
+
+        if (postDetailsCommand.Avatar != null)
+        {
+            var uploadResponse = await _r2Cloud.UploadFileAsync(postDetailsCommand.Avatar, $"img_{user.UserName}");
+            if (uploadResponse.IsSuccess)
+            {
+                user.AvatarUrl = uploadResponse.Data.Url;
+            }
+            else
+            {
+                user.AvatarUrl = $"https://eu.ui-avatars.com/api/?name={user.UserName}&size=250";
+            }
+        }
+
+        user.OnBoarding = OnBoardingProgress.Details;
+
+        await _repository.SaveChangesAsync();
+
+        return new GlobalResponse<UserDto>(true, "post details success");
+    }
+
+    public async Task<GlobalResponse<UserDto>> PostUserSkills(Guid id, List<string> postSkillsCommand)
+    {
+        var user = await _repository.Users.FindAsync(id);
+        if (user == null) return new GlobalResponse<UserDto>(false, "delete user failed", errors: [$"user with id{id} not found"]);
+
+        user.Skills = postSkillsCommand;
+        await _repository.SaveChangesAsync();
+
+        return new GlobalResponse<UserDto>(true, "post skills success");
+
     }
 
     public async Task<GlobalResponse<UserDto>> DeleteUser(Guid id)

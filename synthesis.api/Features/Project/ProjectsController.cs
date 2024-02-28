@@ -42,6 +42,8 @@ public class ProjectsController : ControllerBase
 
         return Ok(response);
     }
+
+
     // [HttpPut("{id:guid}")]
     // public async Task<IActionResult> UpdateProject(Guid id, [FromBody] UpdateProjectDto project)
     // {

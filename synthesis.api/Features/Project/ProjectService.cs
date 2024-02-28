@@ -4,7 +4,7 @@ using synthesis.api.Data.Models;
 using synthesis.api.Data.Repository;
 using synthesis.api.Mappings;
 using synthesis.api.Services.OpenAi;
-using System.Text.Json;
+using synthesis.api.Services.OpenAi.Dtos;
 
 namespace synthesis.api.Features.Project;
 
@@ -12,7 +12,7 @@ public interface IProjectService
 {
     Task<GlobalResponse<ProjectDto>> CreateProject(Guid organisationId, Guid memberId, CreateProjectDto createRequest);
 
-    Task<GlobalResponse<GeneratedProjectDto>> GenerateProject(string prompt);
+    Task<GlobalResponse<GptProjectDto>> GenerateProject(string prompt);
 
     Task<GlobalResponse<ProjectModel>> GetProjectById(Guid id);
 
@@ -37,15 +37,14 @@ public class ProjectService : IProjectService
         throw new NotImplementedException();
     }
 
-    public async Task<GlobalResponse<GeneratedProjectDto>> GenerateProject(string prompt)
+    public async Task<GlobalResponse<GptProjectDto>> GenerateProject(string prompt)
     {
-        var gptResponse = await _gptService.GenerateProject(prompt);
 
-        var projectMetaDataResponse = JsonSerializer.Deserialize<ProjectMetadata>(gptResponse.Choices[0].Message.Content);
-
-        return new GlobalResponse<GeneratedProjectDto>(true, "success", value: new GeneratedProjectDto { Metadata = projectMetaDataResponse });
+        var projectDto = await _gptService.GenerateProject(prompt);
+        if (projectDto == null)
+            return new GlobalResponse<GptProjectDto>(false, "project generation failed", errors: [$"something went wrong"]);
+        return new GlobalResponse<GptProjectDto>(true, "success", value: projectDto);
     }
-
 
     public async Task<GlobalResponse<ProjectModel>> GetProjectById(Guid id)
     {
