@@ -1,11 +1,13 @@
 using System.Collections.Immutable;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi.Extensions;
 using synthesis.api.Data.Models;
 using synthesis.api.Data.Repository;
 using synthesis.api.Features.User;
 using synthesis.api.Mappings;
 using synthesis.api.Services.BlobStorage;
+using Synthesis.Api.Services.BlobStorage;
 
 public interface IUserService
 {
@@ -16,6 +18,10 @@ public interface IUserService
 
     Task<GlobalResponse<UserDto>> PatchUser(Guid id, UpdateUserDto patchRequest);
 
+    Task<GlobalResponse<UserDto>> PostUserDetails(Guid id, PostUserDetailsDto postCommand);
+
+    Task<GlobalResponse<UserDto>> PostUserSkills(Guid id, List<string> postSkillsCommand);
+
     Task<GlobalResponse<UserDto>> DeleteUser(Guid id);
 
 }
@@ -24,11 +30,13 @@ public class UserService : IUserService
 {
     private readonly RepositoryContext _repository;
     private readonly IMapper _mapper;
+    private readonly R2CloudStorage _r2Cloud;
 
-    public UserService(RepositoryContext repository, IMapper mapper)
+    public UserService(RepositoryContext repository, IMapper mapper, R2CloudStorage r2Cloud)
     {
         _repository = repository;
         _mapper = mapper;
+        _r2Cloud = r2Cloud;
     }
 
 
@@ -39,9 +47,13 @@ public class UserService : IUserService
         .Select(u => new UserDto
         {
             Id = u.Id,
-            Username = u.UserName,
+            UserName = u.UserName,
             AvatarUrl = u.AvatarUrl,
             Email = u.Email,
+            FullName = u.FullName,
+            OnBoarding = u.OnBoarding.GetDisplayName(),
+            Profession = u.Profession,
+            Skills = u.Skills,
             MemberProfiles = u.MemberProfiles.Select(x => new MemberDto()
             {
                 Id = x.Id,
@@ -103,6 +115,53 @@ public class UserService : IUserService
         await _repository.SaveChangesAsync();
 
         return new GlobalResponse<UserDto>(true, "patch user success");
+    }
+
+    public async Task<GlobalResponse<UserDto>> PostUserDetails(Guid id, PostUserDetailsDto postDetailsCommand)
+    {
+        var user = await _repository.Users.FindAsync(id);
+        if (user == null) return new GlobalResponse<UserDto>(false, "delete user failed", errors: [$"user with id{id} not found"]);
+
+        user.Profession = postDetailsCommand.Profession;
+        user.FullName = postDetailsCommand.FullName;
+        user.UserName = postDetailsCommand.UserName;
+
+        var validationResult = await new UserValidator().ValidateAsync(user);
+        if (!validationResult.IsValid)
+        {
+            return new GlobalResponse<UserDto>(false, "update user failed", errors: validationResult.Errors.Select(e => e.ErrorMessage).ToList());
+        }
+
+        if (postDetailsCommand.Avatar != null)
+        {
+            var uploadResponse = await _r2Cloud.UploadFileAsync(postDetailsCommand.Avatar, $"img_{user.UserName}");
+            if (uploadResponse.IsSuccess)
+            {
+                user.AvatarUrl = uploadResponse.Data.Url;
+            }
+            else
+            {
+                user.AvatarUrl = $"https://eu.ui-avatars.com/api/?name={user.UserName}&size=250";
+            }
+        }
+
+        user.OnBoarding = OnBoardingProgress.Details;
+
+        await _repository.SaveChangesAsync();
+
+        return new GlobalResponse<UserDto>(true, "post details success");
+    }
+
+    public async Task<GlobalResponse<UserDto>> PostUserSkills(Guid id, List<string> postSkillsCommand)
+    {
+        var user = await _repository.Users.FindAsync(id);
+        if (user == null) return new GlobalResponse<UserDto>(false, "delete user failed", errors: [$"user with id{id} not found"]);
+
+        user.Skills = postSkillsCommand;
+        await _repository.SaveChangesAsync();
+
+        return new GlobalResponse<UserDto>(true, "post skills success");
+
     }
 
     public async Task<GlobalResponse<UserDto>> DeleteUser(Guid id)

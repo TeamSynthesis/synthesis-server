@@ -41,15 +41,24 @@ public class R2CloudStorage
         };
 
 
-        var response = await _r2Client.PutObjectAsync(request);
-
-        if (response.HttpStatusCode == System.Net.HttpStatusCode.OK || response.HttpStatusCode == System.Net.HttpStatusCode.Accepted)
+        try
         {
-            var blob = new BlobDto() { Url = _publicAccessUrl + fileName };
-            return new GlobalResponse<BlobDto>(true, "blob upload success", value: blob);
-        }
+            var response = await _r2Client.PutObjectAsync(request);
 
+            if (response.HttpStatusCode == System.Net.HttpStatusCode.OK || response.HttpStatusCode == System.Net.HttpStatusCode.Accepted)
+            {
+                var blob = new BlobDto() { Url = _publicAccessUrl + fileName };
+                return new GlobalResponse<BlobDto>(true, "blob upload success", value: blob);
+            }
+
+        }
+        catch (Exception ex)
+        {
+            return new GlobalResponse<BlobDto>(false, "blob upload failed", errors: [$"something went wrong blob upload failed"]);
+        }
+        
         return new GlobalResponse<BlobDto>(false, "blob upload failed", errors: [$"something went wrong blob upload failed"]);
+
     }
 
 }

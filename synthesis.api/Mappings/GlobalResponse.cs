@@ -1,6 +1,6 @@
 namespace synthesis.api.Mappings;
 
-public class GlobalResponse<T>
+public struct GlobalResponse<T>
 {
     public GlobalResponse
       (bool isSuccess, string? message = null, T? value = default, List<string>? errors = null)

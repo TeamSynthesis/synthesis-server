@@ -1,4 +1,5 @@
 using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Extensions;
@@ -6,6 +7,7 @@ using synthesis.api.Data.Models;
 using synthesis.api.Data.Repository;
 using synthesis.api.Features.User;
 using synthesis.api.Mappings;
+using Synthesis.Api.Services.BlobStorage;
 using System.Net.Http.Headers;
 
 namespace synthesis.api.Features.Auth;
@@ -17,6 +19,7 @@ public interface IAuthService
     Task<GlobalResponse<LoginResponseDto>> GitHubLogin(string access_token);
 }
 
+[AllowAnonymous]
 public class AuthService : IAuthService
 {
     private readonly RepositoryContext _repository;
@@ -25,14 +28,16 @@ public class AuthService : IAuthService
     private readonly IPasswordHasher<UserModel> _passwordHasher;
     private readonly IJwtTokenManager _jwtManager;
 
+    private readonly R2CloudStorage _r2Cloud;
 
-    public AuthService(RepositoryContext repository, IMapper mapper, IPasswordHasher<UserModel> passwordHasher, IJwtTokenManager jwtManager, IHttpClientFactory httpClient)
+    public AuthService(RepositoryContext repository, IMapper mapper, IPasswordHasher<UserModel> passwordHasher, IJwtTokenManager jwtManager, IHttpClientFactory httpClient, R2CloudStorage r2Cloud)
     {
         _repository = repository;
         _httpClient = httpClient;
         _mapper = mapper;
         _passwordHasher = passwordHasher;
         _jwtManager = jwtManager;
+        _r2Cloud = r2Cloud;
     }
 
     public async Task<GlobalResponse<LoginResponseDto>> GitHubLogin(string accessToken)
@@ -58,20 +63,16 @@ public class AuthService : IAuthService
 
         if (userExists)
         {
-            var user = await _repository.Users.Where(u => u.GitHubId == githubUser.id).Select(x => new UserDto
+            var user = await _repository.Users.Where(u => u.GitHubId == githubUser.id).Select(x => new UserModel
             {
                 Id = x.Id,
-                Username = x.UserName,
-                Email = x.Email,
-                AvatarUrl = x.AvatarUrl,
-                OnBoarding = x.OnBoardingProgress.GetDisplayName()
+                UserName = x.UserName
 
             }).SingleOrDefaultAsync();
 
-            var userCredentials = _mapper.Map<UserModel>(user);
-            var token = _jwtManager.GenerateToken(userCredentials);
+            var token = _jwtManager.GenerateToken(user);
 
-            var existingUserReponse = new LoginResponseDto(token, user);
+            var existingUserReponse = new LoginResponseDto(token, user.Id.ToString());
 
             return new GlobalResponse<LoginResponseDto>(true, "Login successful", value: existingUserReponse);
         }
@@ -102,7 +103,7 @@ public class AuthService : IAuthService
             GitHubId = githubUser.id,
             AvatarUrl = githubUser.avatar_url,
             EmailConfirmed = true,
-            OnBoardingProgress = OnBoardingProgress.CreateAccount
+            OnBoarding = OnBoardingProgress.CreateAccount
         };
         await _repository.Users.AddAsync(newUser);
         await _repository.SaveChangesAsync();
@@ -110,16 +111,7 @@ public class AuthService : IAuthService
 
         var jwtToken = _jwtManager.GenerateToken(newUser);
 
-        var userToReturn = new UserDto()
-        {
-            Id = newUser.Id,
-            Username = newUser.UserName,
-            Email = newUser.Email,
-            AvatarUrl = newUser.AvatarUrl,
-            OnBoarding = newUser.OnBoardingProgress.GetDisplayName()
-        };
-
-        var response = new LoginResponseDto(jwtToken, userToReturn);
+        var response = new LoginResponseDto(jwtToken, newUser.Id.ToString());
 
         return new GlobalResponse<LoginResponseDto>(true, "Login successful", value: response);
 
@@ -139,7 +131,11 @@ public class AuthService : IAuthService
 
     public async Task<GlobalResponse<LoginResponseDto>> Login(LoginUserDto loginCommand)
     {
-        var user = await _repository.Users.Where(u => u.UserName.ToLower() == loginCommand.UsernameEmail.ToLower() || u.Email.ToLower() == loginCommand.UsernameEmail.ToLower()).SingleOrDefaultAsync();
+        var user = await _repository.Users
+        .Where(u => u.UserName.ToLower() == loginCommand.UsernameEmail.ToLower()
+        || u.Email.ToLower() == loginCommand.UsernameEmail.ToLower())
+        .Select(x => new UserModel() { Id = x.Id, UserName = x.UserName, PasswordHash = x.PasswordHash })
+        .SingleOrDefaultAsync();
 
         if (user == null)
         {
@@ -154,9 +150,8 @@ public class AuthService : IAuthService
         }
 
         var token = _jwtManager.GenerateToken(user);
-        var userToReturn = _mapper.Map<UserDto>(user);
 
-        var loginResponse = new LoginResponseDto(token, userToReturn);
+        var loginResponse = new LoginResponseDto(token, user.Id.ToString());
 
         return new GlobalResponse<LoginResponseDto>(true, "login success", value: loginResponse);
 
@@ -164,13 +159,6 @@ public class AuthService : IAuthService
 
     public async Task<GlobalResponse<RegisterResponseDto>> Register(RegisterUserDto registerCommand)
     {
-
-        var isUsernameTaken = await _repository.Users.AnyAsync(u => u.UserName.ToLower() == registerCommand.Username.ToLower());
-        if (isUsernameTaken)
-        {
-            return new GlobalResponse<RegisterResponseDto>(false, "register user failed ", errors: ["username is already taken "]);
-        }
-
         var isEmailTaken = await _repository.Users.AnyAsync(u => u.Email == registerCommand.Email);
         if (isEmailTaken)
         {
@@ -186,8 +174,8 @@ public class AuthService : IAuthService
 
         var user = new UserModel
         {
-            UserName = registerCommand.Username,
             Email = registerCommand.Email,
+            OnBoarding = OnBoardingProgress.CreateAccount,
         };
 
         user.PasswordHash = _passwordHasher.HashPassword(user, registerCommand.Password);

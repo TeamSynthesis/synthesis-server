@@ -35,7 +35,7 @@ public class MemberService : IMemberService
             User = new UserDto
             {
                 Id = x.User.Id,
-                Username = x.User.UserName,
+                UserName = x.User.UserName,
                 Email = x.User.Email,
                 AvatarUrl = x.User.AvatarUrl,
             },

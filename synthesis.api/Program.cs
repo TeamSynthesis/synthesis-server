@@ -15,7 +15,6 @@ builder.Services.ConfigureCors();
 builder.Services.ConfigurePostgresContext(builder.Configuration);
 
 builder.Services.AddAutoMapper(typeof(Program));
-builder.Services.AddFluentValidationAutoValidation(opt => { opt.DisableDataAnnotationsValidation = true; });
 builder.Services.AddValidatorsFromAssembly(typeof(Program).Assembly);
 
 builder.Services.AddSingleton<IPasswordHasher<UserModel>, PasswordHasher<UserModel>>();

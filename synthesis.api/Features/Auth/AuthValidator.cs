@@ -9,10 +9,12 @@ public class AuthValidator : AbstractValidator<RegisterUserDto>
     public AuthValidator()
     {
 
-        RuleFor(u => u.Username)
-        .NotNull().NotEmpty().WithMessage("Username must not be empty")
-        .Length(2, 20).WithMessage("Username must be between 2 - 20 characters")
-        .Matches(pattern).WithMessage("Username must start and end with alphanumeric characters, with optional special characters ( _.- )");
+        RuleFor(u => u.Password)
+        .NotNull().NotEmpty().WithMessage("Password must not be empty")
+        .MinimumLength(6).WithMessage("Password must be at least 6 characters")
+        .MaximumLength(60).WithMessage("Password must not exceed 60 characters")
+        .Matches(@"^(?=.*[A-Z])(?=.*[^a-zA-Z0-9\s]).+$").WithMessage("Password must have at least one uppercase and a special character excluding spaces");
+
 
         RuleFor(u => u.Email)
         .NotNull().NotEmpty().WithMessage("Email must not be empty")

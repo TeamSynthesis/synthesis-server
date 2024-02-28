@@ -60,10 +60,6 @@ public class RepositoryContext : DbContext
 
         });
 
-        modelBuilder.Entity<UserModel>().OwnsMany(user => user.Skills, OwnedNavigationBuilder =>
-        {
-            OwnedNavigationBuilder.ToJson();
-        });
         modelBuilder.Entity<FeatureModel>().HasMany(ft => ft.Tasks).WithOne(t => t.Feature).IsRequired(false);
         modelBuilder.Entity<MemberModel>().HasMany(m => m.Tasks).WithOne(t => t.Member).IsRequired(false);
 

@@ -4,7 +4,6 @@ namespace synthesis.api.Features.Auth;
 
 public record RegisterUserDto
 {
-    public string? Username { get; set; }
     public string? Email { get; set; }
     public string? Password { get; set; }
 }
@@ -25,5 +24,5 @@ public record GitHubEmailDto
 }
 
 public record RegisterResponseDto(string Token, UserDto User);
-public record LoginResponseDto(string Token, UserDto User);
+public record LoginResponseDto(string Token, string UserId);
 public record LoginUserDto(string? UsernameEmail, string Password);

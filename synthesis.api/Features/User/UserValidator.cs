@@ -18,9 +18,15 @@ public class UserValidator : AbstractValidator<UserModel>
         .Length(2, 20).WithMessage("Username must be between 2 - 20 characters")
         .Matches(pattern).WithMessage("Username must start and end with alphanumeric characters, with optional special characters ( _.- )");
 
-        RuleFor(u => u.Email)
-        .NotNull().NotEmpty().WithMessage("Email must not be empty")
-        .EmailAddress().WithMessage("Email must be a valid email addresss");
+        RuleFor(u => u.Profession)
+        .NotNull().NotEmpty().WithMessage("Profession must not be empty")
+        .Length(2, 20).WithMessage("Profession must be between 2 - 20 characters");
+
+        RuleFor(u => u.FullName)
+        .Matches("^[a-zA-Z ]*$").WithMessage("Full name may contain only letters and spaces")
+        .When(u => !string.IsNullOrEmpty(u.FullName));
+
+
     }
 
 }

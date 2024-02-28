@@ -12,9 +12,7 @@ public interface IProjectService
 {
     Task<GlobalResponse<ProjectDto>> CreateProject(Guid organisationId, Guid memberId, CreateProjectDto createRequest);
 
-    Task<GlobalResponse<GeneratedProjectDto>> GenerateProject(string prompt);
-
-    Task<GlobalResponse<GenerateBrandingDto>> GetProjectBranding(string prompt);
+    Task<GlobalResponse<GptProjectDto>> GenerateProject(string prompt);
 
     Task<GlobalResponse<ProjectModel>> GetProjectById(Guid id);
 
@@ -39,14 +37,14 @@ public class ProjectService : IProjectService
         throw new NotImplementedException();
     }
 
-    public async Task<GlobalResponse<GeneratedProjectDto>> GenerateProject(string prompt)
+    public async Task<GlobalResponse<GptProjectDto>> GenerateProject(string prompt)
     {
 
-        var projectMetaDataResponse = await _gptService.GenerateProjectMetaData(prompt);
-
-        return new GlobalResponse<GeneratedProjectDto>(true, "success", value: new GeneratedProjectDto { Metadata = projectMetaDataResponse });
+        var projectDto = await _gptService.GenerateProject(prompt);
+        if (projectDto == null)
+            return new GlobalResponse<GptProjectDto>(false, "project generation failed", errors: [$"something went wrong"]);
+        return new GlobalResponse<GptProjectDto>(true, "success", value: projectDto);
     }
-
 
     public async Task<GlobalResponse<ProjectModel>> GetProjectById(Guid id)
     {
@@ -57,14 +55,6 @@ public class ProjectService : IProjectService
     public Task<GlobalResponse<ProjectDto>> DeleteProject(Guid id)
     {
         throw new NotImplementedException();
-    }
-
-    public async Task<GlobalResponse<GenerateBrandingDto>> GetProjectBranding(string prompt)
-    {
-
-        var brandingResponse = await _gptService.GetProjectBranding(prompt);
-
-        return new GlobalResponse<GenerateBrandingDto>(true, "success", value: brandingResponse);
     }
 
 

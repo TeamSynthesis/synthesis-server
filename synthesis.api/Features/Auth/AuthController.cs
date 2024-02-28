@@ -18,7 +18,7 @@ namespace synthesis.api.Features.Auth
         }
 
         [HttpPost("register")]
-        public async Task<IActionResult> Register([FromBody] RegisterUserDto registerCommand, IFormFile avatar)
+        public async Task<IActionResult> Register([FromForm] RegisterUserDto registerCommand)
         {
             if (registerCommand == null)
                 return BadRequest("required body param is null");
@@ -45,7 +45,7 @@ namespace synthesis.api.Features.Auth
 
             return Ok(response);
         }
-        
+
 
         [HttpGet("github")]
         public IActionResult GithubLogin()
@@ -78,7 +78,7 @@ namespace synthesis.api.Features.Auth
 
             if (!response.IsSuccess) return Redirect($"{origin}/auth/sign-up?error={response.Message}");
 
-            return Redirect($"{origin}/account/auth?token={response.Data.Token} & userId ={response.Data.User.Id}");
+            return Redirect($"{origin}/account/auth?token={response.Data.Token} & userId ={response.Data.UserId}");
 
         }
 

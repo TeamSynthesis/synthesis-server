@@ -8,6 +8,7 @@ namespace synthesis.api.Features.User;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class UsersController : ControllerBase
 {
     private readonly IUserService _service;
@@ -17,7 +18,7 @@ public class UsersController : ControllerBase
         _service = service;
     }
 
-    [Authorize]
+
     [HttpGet("{id:guid}", Name = "UserById")]
     public async Task<IActionResult> GetUserById(Guid id)
     {
@@ -41,6 +42,24 @@ public class UsersController : ControllerBase
     public async Task<IActionResult> PatchUser(Guid id, [FromBody] UpdateUserDto user)
     {
         var response = await _service.PatchUser(id, user);
+        if (!response.IsSuccess) return BadRequest(response);
+
+        return Ok(response);
+    }
+
+    [HttpPost("{id:guid}/details")]
+    public async Task<IActionResult> PostUserDetails(Guid id, [FromForm] PostUserDetailsDto userDetails)
+    {
+        var response = await _service.PostUserDetails(id, userDetails);
+        if (!response.IsSuccess) return BadRequest(response);
+
+        return Ok(response);
+    }
+
+    [HttpPost("{id:guid}/skills")]
+    public async Task<IActionResult> PostUserSkills(Guid id, [FromBody] List<string> skills)
+    {
+        var response = await _service.PostUserSkills(id, skills);
         if (!response.IsSuccess) return BadRequest(response);
 
         return Ok(response);
