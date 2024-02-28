@@ -1,5 +1,4 @@
 using FluentValidation;
-using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Identity;
 using Scrutor;
 using synthesis.api.Data.Models;

@@ -26,7 +26,7 @@ namespace synthesis.api.Features.Auth
             var claims = new[]
             {
                 new Claim("UserId", user.Id.ToString()),
-                new Claim("UserName", user.UserName)
+                new Claim("Email", user.Email)
             };
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config.GetSection("JwtConfig:Secret").Value));

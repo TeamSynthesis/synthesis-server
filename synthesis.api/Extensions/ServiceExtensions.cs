@@ -20,14 +20,15 @@ public static class ServiceExtensions
     );
 
     public static void ConfigurePostgresContext(this IServiceCollection services, IConfiguration configuration)
-     => services.AddDbContext<RepositoryContext>(options => options.UseNpgsql(configuration.GetConnectionString("PostgresLocal")));
+     => services.AddDbContext<RepositoryContext>(options => options.UseNpgsql(configuration.GetConnectionString("PostgresCloud")));
 
     public static void ConfigureAuthentication(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddAuthentication(options =>
         {
-            options.DefaultScheme = "JWT_OR_COOKIE";
-            options.DefaultChallengeScheme = "JWT_OR_COOKIE";
+            options.DefaultScheme = "Bearer";
+            options.DefaultChallengeScheme = "Bearer";
+            options.DefaultSignInScheme = "Cookies";
         })
         .AddCookie("Cookies", options =>
         {
@@ -56,17 +57,6 @@ public static class ServiceExtensions
             options.SaveTokens = true;
             options.Scope.Add("user:email");
             options.Scope.Add("read:user");
-        })
-        .AddPolicyScheme("JWT_OR_COOKIE", "JWT_OR_COOKIE", options =>
-        {
-            options.ForwardDefaultSelector = context =>
-            {
-                string authorization = context.Request.Headers[HeaderNames.Authorization];
-                if (!string.IsNullOrEmpty(authorization) && authorization.StartsWith("Bearer "))
-                    return "Bearer";
-
-                return "Cookies";
-            };
         });
 
         services.Configure<JwtConfig>(configuration.GetSection("JwtConfig"));
