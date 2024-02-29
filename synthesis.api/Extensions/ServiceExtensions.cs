@@ -53,7 +53,7 @@ public static class ServiceExtensions
         {
             options.ClientId = "846d55a778c8a634c4e7";
             options.ClientSecret = "05ff1507f36557dca5ee592b7307c5c280967bd1";
-            options.CallbackPath = "/api/oauth/github-cb";
+            options.CallbackPath = "/api/auth/github/callback";
             options.SaveTokens = true;
             options.Scope.Add("user:email");
             options.Scope.Add("read:user");
