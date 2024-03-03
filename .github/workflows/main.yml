@@ -7,7 +7,7 @@ on:
       - Deployment
 
 env: 
-  AZURE_WEBAPP_NAME: synthesis-api
+  AZURE_WEBAPP_NAME: synthesis-server
   AZURE_WEBAPP_PACKAGE_PATH: "./publish"
   
 
