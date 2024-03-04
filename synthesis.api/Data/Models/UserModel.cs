@@ -14,7 +14,7 @@ public class UserModel
     public string? PasswordHash { get; set; }
     public int? GitHubId { get; set; }
     public bool EmailConfirmed { get; set; }
-    public OnBoardingProgress OnBoarding { get; set; }
+    public OnBoardingProgress OnBoardingProgress { get; set; }
     public List<string>? Skills { get; set; }
 
 

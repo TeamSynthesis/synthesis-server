@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using synthesis.api.Data.Repository;
@@ -12,9 +13,11 @@ using synthesis.api.Data.Repository;
 namespace synthesis.api.Migrations
 {
     [DbContext(typeof(RepositoryContext))]
-    partial class RepositoryContextModelSnapshot : ModelSnapshot
+    [Migration("20240302112545_mod_teams")]
+    partial class mod_teams
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -143,13 +146,13 @@ namespace synthesis.api.Migrations
                     b.Property<string>("Activity")
                         .HasColumnType("text");
 
-                    b.Property<DateTime>("AssignedOn")
+                    b.Property<DateTime?>("AssignedOn")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<DateTime>("CreatedOn")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<DateTime>("DueDate")
+                    b.Property<DateTime?>("DueDate")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<Guid?>("FeatureId")
@@ -188,11 +191,11 @@ namespace synthesis.api.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("TeamId");
 
-                    b.Property<string>("AvatarUrl")
-                        .HasColumnType("text");
-
                     b.Property<List<string>>("Invites")
                         .HasColumnType("text[]");
+
+                    b.Property<string>("LogoUrl")
+                        .HasColumnType("text");
 
                     b.Property<string>("Name")
                         .HasColumnType("text");
@@ -230,7 +233,7 @@ namespace synthesis.api.Migrations
                     b.Property<int?>("GitHubId")
                         .HasColumnType("integer");
 
-                    b.Property<int>("OnBoardingProgress")
+                    b.Property<int>("OnBoarding")
                         .HasColumnType("integer");
 
                     b.Property<string>("PasswordHash")

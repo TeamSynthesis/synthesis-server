@@ -1,6 +1,7 @@
 using AutoMapper;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi.Extensions;
 using Microsoft.VisualBasic;
 using synthesis.api.Data.Models;
 using synthesis.api.Data.Repository;
@@ -55,9 +56,11 @@ public class TaskToDoService : ITaskToDoService
         {
             Id = task.Id,
             Activity = task.Activity,
-            State = task.State,
-            Priority = task.Priority,
-            CreatedOn = task.CreatedOn
+            State = task.State.GetDisplayName(),
+            Priority = task.Priority.GetDisplayName(),
+            CreatedOn = task.CreatedOn.ToShortDateString(),
+            AssignedOn = task.AssignedOn.ToShortDateString(),
+            DueDate = task.DueDate.ToShortDateString()
         };
 
         return new GlobalResponse<TaskDto>(true, "create task success", value: taskToReturn);
@@ -70,8 +73,8 @@ public class TaskToDoService : ITaskToDoService
         {
             Id = x.Id,
             Activity = x.Activity,
-            State = x.State,
-            Priority = x.Priority
+            State = x.State.GetDisplayName(),
+            Priority = x.Priority.GetDisplayName()
         }).SingleOrDefaultAsync();
 
         if (task == null) return new GlobalResponse<TaskDto>(false, "get task failed", errors: [$"task with id: {id} not found "]);

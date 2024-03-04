@@ -5,16 +5,20 @@ namespace synthesis.api.Features.Teams;
 
 public class TeamValidator : AbstractValidator<TeamModel>
 {
-    private readonly string pattern = @"^[a-zA-Z][a-zA-Z_.-]*[a-zA-Z]$";
+
+    private readonly string pattern = @"^[a-zA-Z][a-zA-Z_-]*[a-zA-Z]$";
     public TeamValidator()
     {
-        RuleFor(org => org.Name)
-        .NotNull().NotEmpty().WithMessage("name cannot be null")
-        .MaximumLength(50).WithMessage("name cannot exceed 50 characters")
-        .Matches(pattern).WithMessage("name must start and end with letters, with optional special characters ( _.- ) inbetween");
+        RuleFor(t => t.Name)
+        .NotNull().NotEmpty().WithMessage("name is a required field")
+        .MaximumLength(64).WithMessage("name cannot exceed 64 characters");
 
-        RuleFor(org => org.LogoUrl)
-        .Matches("[a-zA-z]")
-        .When(org => !string.IsNullOrEmpty(org.LogoUrl));
+
+        RuleFor(t => t.Slug)
+        .NotNull().NotEmpty().WithMessage("slug is a required field")
+        .MaximumLength(64).WithMessage("slug cannot exceed 64 characters")
+        .Matches(pattern).WithMessage("name must start and end with letters, with optional special characters ( _- ) inbetween");
+
+
     }
 }

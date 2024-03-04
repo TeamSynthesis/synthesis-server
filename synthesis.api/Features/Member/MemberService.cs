@@ -3,6 +3,7 @@ using System.Security.Cryptography.X509Certificates;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using synthesis.api.Data.Repository;
+using synthesis.api.Features.Member;
 using synthesis.api.Features.User;
 using synthesis.api.Mappings;
 
@@ -38,14 +39,11 @@ public class MemberService : IMemberService
                 UserName = x.User.UserName,
                 Email = x.User.Email,
                 AvatarUrl = x.User.AvatarUrl,
+                Profession = x.User.Profession,
+                Skills = x.User.Skills
             },
-            Team = new TeamDto
-            {
-                Id = x.Team.Id,
-                Name = x.Team.Name,
-                LogoUrl = x.Team.LogoUrl
-            }
-        }).SingleOrDefaultAsync();
+            Roles = x.Roles
+        }).FirstOrDefaultAsync();
 
 
         return new GlobalResponse<MemberDto>(true, "get member profile success", value: member);
@@ -53,6 +51,7 @@ public class MemberService : IMemberService
 
     public async Task<GlobalResponse<MemberDto>> AssignMemberRole(Guid id, string role)
     {
+        var roleAssignment = role.ToLower();
         var member = await _repository.Members.FirstOrDefaultAsync(m => m.Id == id);
 
         if (member == null)
@@ -60,18 +59,17 @@ public class MemberService : IMemberService
             return new GlobalResponse<MemberDto>(false, "get member profile failed", errors: [$"member with id: {id} not found"]);
         }
 
-        if (member.Roles != null && member.Roles.Contains(role))
+        if (member.Roles != null && member.Roles.Contains(roleAssignment))
         {
             return new GlobalResponse<MemberDto>(false, "assign member role failed", errors: ["duplicate role assignment"]);
         }
 
-        if (role != "manager" && role != "owner")
+        if (roleAssignment != MemberRoles.Manager && roleAssignment != MemberRoles.Owner)
         {
             return new GlobalResponse<MemberDto>(false, "assign role failed", errors: ["member role invalid [Roles : manager || owner]"]);
         }
 
-        member.Roles ??= new List<string>();
-        member.Roles.Add(role);
+        member.Roles = [roleAssignment];
 
         await _repository.SaveChangesAsync();
 
@@ -80,6 +78,8 @@ public class MemberService : IMemberService
 
     public async Task<GlobalResponse<MemberDto>> ResignMemberRole(Guid id, string role)
     {
+
+        var roleAssignment = role.ToLower();
         var member = await _repository.Members.FirstOrDefaultAsync(m => m.Id == id);
 
         if (member == null)
@@ -87,13 +87,13 @@ public class MemberService : IMemberService
             return new GlobalResponse<MemberDto>(false, "get member profile failed", errors: [$"member with id: {id} not found"]);
         }
 
-        if (member.Roles == null || !member.Roles.Contains(role))
+        if (member.Roles == null || !member.Roles.Contains(roleAssignment))
         {
-            return new GlobalResponse<MemberDto>(false, "resign member role failed", errors: [$"member does not possess the role: {role}"]);
+            return new GlobalResponse<MemberDto>(false, "resign member role failed", errors: [$"member does not possess the role: {roleAssignment}"]);
         }
         else
         {
-            member.Roles.Remove(role);
+            member.Roles.Remove(roleAssignment);
         }
 
         await _repository.SaveChangesAsync();
@@ -113,4 +113,5 @@ public class MemberService : IMemberService
 
         return new GlobalResponse<MemberDto>(true, "delete member profile success");
     }
+
 }

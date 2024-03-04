@@ -15,13 +15,6 @@ public class BlobStorageController : ControllerBase
         _blobService = blobService;
     }
 
-    [HttpGet]
-    public async Task<IActionResult> GetAll()
-    {
-        // var response = await _blobService.GetAllBlobs();
-        // return Ok(response);
-        return Ok();
-    }
 
     [HttpPost]
     public async Task<IActionResult> Upload(IFormFile file, string fileName)

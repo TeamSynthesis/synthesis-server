@@ -18,10 +18,11 @@ public class UsersController : ControllerBase
         _service = service;
     }
 
-
+    [Authorize]
     [HttpGet("{id:guid}", Name = "UserById")]
     public async Task<IActionResult> GetUserById(Guid id)
     {
+
         var response = await _service.GetUserById(id);
 
         if (!response.IsSuccess) return BadRequest(response);

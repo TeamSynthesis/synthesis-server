@@ -27,7 +27,6 @@ public class FeaturesController : ControllerBase
         return Ok(response);
     }
 
-
     [HttpGet("{id:guid}")]
     public async Task<IActionResult> GetFeatureById(Guid id)
     {
