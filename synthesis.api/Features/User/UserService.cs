@@ -160,6 +160,7 @@ public class UserService : IUserService
         if (user == null) return new GlobalResponse<UserDto>(false, "delete user failed", errors: [$"user with id{id} not found"]);
 
         user.Skills = postSkillsCommand;
+        user.OnBoardingProgress = OnBoardingProgress.Skills;
         await _repository.SaveChangesAsync();
 
         return new GlobalResponse<UserDto>(true, "post skills success");
