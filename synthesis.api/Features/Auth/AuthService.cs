@@ -137,7 +137,7 @@ public class AuthService : IAuthService
     {
         var user = await _repository.Users
         .Where(u => u.UserName.ToLower() == loginCommand.UsernameEmail.ToLower() || u.Email.ToLower() == loginCommand.UsernameEmail.ToLower())
-        .Select(x => new UserModel() { Id = x.Id, UserName = x.UserName, PasswordHash = x.PasswordHash })
+        .Select(x => new UserModel() { Id = x.Id, UserName = x.UserName, Email = x.Email, PasswordHash = x.PasswordHash })
         .FirstOrDefaultAsync();
 
         if (user == null)

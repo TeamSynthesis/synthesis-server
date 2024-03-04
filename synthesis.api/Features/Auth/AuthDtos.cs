@@ -25,4 +25,4 @@ public record GitHubEmailDto
 
 public record RegisterResponseDto(string Token, UserDto User);
 public record LoginResponseDto(string Token, string UserId);
-public record LoginUserDto(string? UsernameEmail, string Password);
+public record LoginUserDto(string UsernameEmail, string Password);
