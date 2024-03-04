@@ -3,9 +3,11 @@ using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using synthesis.api.Data.Models;
 using synthesis.api.Data.Repository;
+using synthesis.api.Features.Member;
 using synthesis.api.Features.Project;
 using synthesis.api.Features.User;
 using synthesis.api.Mappings;
+using Synthesis.Api.Services.BlobStorage;
 
 namespace synthesis.api.Features.Teams;
 
@@ -13,6 +15,7 @@ public interface ITeamService
 {
     Task<GlobalResponse<TeamDto>> CreateTeam(Guid userId, CreateTeamDto createCommand);
     Task<GlobalResponse<MemberDto>> AddMember(Guid id, Guid userId);
+    Task<GlobalResponse<MemberDto>> RemoveMember(Guid id, Guid userId);
     Task<GlobalResponse<TeamDto>> GetTeamById(Guid id);
     Task<GlobalResponse<TeamDto>> GetTeamWithResourcesById(Guid id);
     Task<GlobalResponse<List<MemberDto>>> GetTeamMembers(Guid id);
@@ -27,11 +30,12 @@ public class TeamService : ITeamService
 {
     private readonly RepositoryContext _repository;
     private readonly IMapper _mapper;
-
-    public TeamService(RepositoryContext repository, IMapper mapper)
+    private readonly R2CloudStorage _r2Cloud;
+    public TeamService(RepositoryContext repository, IMapper mapper, R2CloudStorage r2Cloud)
     {
         _repository = repository;
         _mapper = mapper;
+        _r2Cloud = r2Cloud;
     }
 
     public async Task<GlobalResponse<TeamDto>> CreateTeam(Guid userId, CreateTeamDto createCommand)
@@ -46,7 +50,8 @@ public class TeamService : ITeamService
         var team = new TeamModel()
         {
             Name = createCommand.Name,
-            LogoUrl = createCommand.LogoUrl ?? $"https://eu.ui-avatars.com/api/?name={createCommand.Name}&size=250"
+            Slug = createCommand.Slug,
+            SeatsAvailable = 3,
         };
 
         var validationResult = new TeamValidator().Validate(team);
@@ -56,10 +61,24 @@ public class TeamService : ITeamService
             return new GlobalResponse<TeamDto>(false, "create team failed", errors: validationResult.Errors.Select(e => e.ErrorMessage).ToList());
         }
 
+        if (createCommand.Avatar != null)
+        {
+            var uploadResponse = await _r2Cloud.UploadFileAsync(createCommand.Avatar, $"t_img_{team.Slug}");
+            if (uploadResponse.IsSuccess)
+            {
+
+                team.AvatarUrl = uploadResponse.Data.Url;
+            }
+        }
+        else
+        {
+            team.AvatarUrl = $"https://eu.ui-avatars.com/api/?name={team.Name}&size=250";
+        }
+
         var member = new MemberModel()
         {
             User = user,
-            Roles = [UserRoles.Owner]
+            Roles = [MemberRoles.Owner]
         };
 
         team.Members = [member];
@@ -68,7 +87,13 @@ public class TeamService : ITeamService
 
         await _repository.SaveChangesAsync();
 
-        var teamToReturn = _mapper.Map<TeamDto>(team);
+        var teamToReturn = new TeamDto()
+        {
+            Id = team.Id,
+            Name = team.Name,
+            AvatarUrl = team.AvatarUrl
+        };
+
 
         return new GlobalResponse<TeamDto>(true, "team created", value: teamToReturn);
 
@@ -93,7 +118,7 @@ public class TeamService : ITeamService
         var memberExists = await _repository.Members.AnyAsync(m => m.UserId == userId && m.TeamId == id);
         if (memberExists)
         {
-            return new GlobalResponse<MemberDto>(false, "add member to team failed", errors: [$"member with id {userId} is already part of the team"]);
+            return new GlobalResponse<MemberDto>(false, "add member to team failed", errors: [$"member with id {userId} is already a member of the team"]);
         }
 
         var member = new MemberModel()
@@ -111,6 +136,35 @@ public class TeamService : ITeamService
         return new GlobalResponse<MemberDto>(true, "add member to team success", value: memberToReturn);
     }
 
+    public async Task<GlobalResponse<MemberDto>> RemoveMember(Guid id, Guid userId)
+    {
+        var team = await _repository.Teams.FindAsync(id);
+
+        if (team == null)
+        {
+            return new GlobalResponse<MemberDto>(false, "remove member from team failed", errors: [$"team with id {id} not found"]);
+        }
+
+        var user = await _repository.Users.AnyAsync(u => u.Id == userId);
+
+        if (!user)
+        {
+            return new GlobalResponse<MemberDto>(false, "remove member from team failed", errors: [$"user with id {userId} not found"]);
+        }
+
+        var member = await _repository.Members.FirstOrDefaultAsync(m => m.UserId == userId && m.TeamId == id);
+        if (member == null)
+        {
+            return new GlobalResponse<MemberDto>(false, "remove member from team failed", errors: [$"user with id: {userId} is not a member of the team"]);
+        }
+
+        _repository.Members.Remove(member);
+        await _repository.SaveChangesAsync();
+
+
+        return new GlobalResponse<MemberDto>(true, "remove member from team success");
+    }
+
     public async Task<GlobalResponse<TeamDto>> GetTeamById(Guid id)
     {
         var team = await _repository.Teams
@@ -119,7 +173,7 @@ public class TeamService : ITeamService
         {
             Id = x.Id,
             Name = x.Name,
-            LogoUrl = x.LogoUrl
+            AvatarUrl = x.AvatarUrl
         }
         ).SingleOrDefaultAsync();
 
@@ -139,7 +193,7 @@ public class TeamService : ITeamService
         {
             Id = org.Id,
             Name = org.Name,
-            LogoUrl = org.LogoUrl,
+            AvatarUrl = org.AvatarUrl,
             Members = org.Members.Select(x => new MemberDto
             {
                 Id = x.Id,
@@ -282,4 +336,6 @@ public class TeamService : ITeamService
 
         return new GlobalResponse<TeamDto>(true, "delete team success");
     }
+
+
 }

@@ -11,5 +11,5 @@ public class GlobalExceptionHandler : IExceptionHandler
             new GlobalResponse<Exception>(false, "err_internal", errors: [exception.Message])
         );
         return true;
-    }
+    } 
 }

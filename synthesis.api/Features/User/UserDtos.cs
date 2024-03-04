@@ -9,6 +9,7 @@ public record UserDto
     public string? UserName { get; set; }
     public string? Profession { get; set; }
     public string? AvatarUrl { get; set; }
+    public bool? EmailConfirmed { get; set; }
     public string? Email { get; set; }
     public string? OnBoarding { get; set; }
     public List<string>? Skills { get; set; }
@@ -24,6 +25,5 @@ public record PostUserDetailsDto
     public string? Profession { get; set; }
 
 }
-
 
 public record UpdateUserDto(string FirstName, string LastName, string Username, IFormFile Avatar, string Email);

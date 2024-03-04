@@ -95,7 +95,7 @@ public class ChatGptService : IChatGptService
         return features;
 
     }
-
+    
     private async Task<CompetitiveAnalysis> GetProjectCompetitiveAnalysis(string prompt)
     {
         var ChatCompletionOptions = new ChatCompletionsOptions()

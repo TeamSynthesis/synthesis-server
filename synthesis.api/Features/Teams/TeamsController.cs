@@ -17,14 +17,15 @@ public class TeamsController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> CreateOrganisation(Guid userId, [FromBody] CreateTeamDto organisation)
+    public async Task<IActionResult> CreateTeam(Guid userId, [FromForm] CreateTeamDto team)
     {
-        var response = await _service.CreateTeam(userId, organisation);
+        var response = await _service.CreateTeam(userId, team);
 
         if (!response.IsSuccess) return BadRequest(response);
 
         return Ok(response.Data);
     }
+
 
     [HttpPost("{id:guid}/members/add")]
     public async Task<IActionResult> AddMember(Guid id, Guid userId)
@@ -36,8 +37,20 @@ public class TeamsController : ControllerBase
         return Ok(response);
     }
 
-    [HttpGet("{id:guid}", Name = "OrganisationById")]
-    public async Task<IActionResult> GetOrganisationById(Guid id)
+
+    [HttpPost("{id:guid}/members/remove")]
+    public async Task<IActionResult> RemoveMember(Guid id, Guid userId)
+    {
+        var response = await _service.RemoveMember(id, userId);
+
+        if (!response.IsSuccess) return BadRequest(response);
+
+        return Ok(response);
+    }
+
+
+    [HttpGet("{id:guid}")]
+    public async Task<IActionResult> GetTeamById(Guid id)
     {
         var response = await _service.GetTeamById(id);
 
@@ -46,8 +59,9 @@ public class TeamsController : ControllerBase
         return Ok(response);
     }
 
-    [HttpGet("{id:guid}/all", Name = "OrganisationWithResourcesById")]
-    public async Task<IActionResult> GetOrganisationWithResourcesById(Guid id)
+
+    [HttpGet("{id:guid}/all")]
+    public async Task<IActionResult> GetTeamWithResourcesById(Guid id)
     {
         var response = await _service.GetTeamWithResourcesById(id);
 
@@ -57,7 +71,7 @@ public class TeamsController : ControllerBase
     }
 
     [HttpGet("{id:guid}/members")]
-    public async Task<IActionResult> GetOrganisationMembers(Guid id)
+    public async Task<IActionResult> GetTeamMembers(Guid id)
     {
         var response = await _service.GetTeamMembers(id);
 
@@ -67,7 +81,7 @@ public class TeamsController : ControllerBase
     }
 
     [HttpGet("{id:guid}/projects")]
-    public async Task<IActionResult> GetOrganisationProjects(Guid id)
+    public async Task<IActionResult> GetTeamProjects(Guid id)
     {
         var response = await _service.GetTeamProjects(id);
 
@@ -77,18 +91,18 @@ public class TeamsController : ControllerBase
     }
 
     [HttpPut("{id:guid}")]
-    public async Task<IActionResult> UpdateOrganisation(Guid id, [FromBody] UpdateTeamDto organisation)
+    public async Task<IActionResult> UpdateTeam(Guid id, [FromBody] UpdateTeamDto team)
     {
-        var response = await _service.UpdateTeam(id, organisation);
+        var response = await _service.UpdateTeam(id, team);
         if (!response.IsSuccess) return BadRequest(response);
 
         return Ok(response);
     }
 
     [HttpPatch("{id:guid}")]
-    public async Task<IActionResult> PatchOrganisation(Guid id, [FromBody] UpdateTeamDto organisation)
+    public async Task<IActionResult> PatchTeam(Guid id, [FromBody] UpdateTeamDto team)
     {
-        var response = await _service.PatchTeam(id, organisation);
+        var response = await _service.PatchTeam(id, team);
         if (!response.IsSuccess)
         {
             return BadRequest(response);
@@ -98,7 +112,7 @@ public class TeamsController : ControllerBase
 
 
     [HttpDelete("{id:guid}")]
-    public async Task<IActionResult> DeleteOrganisation(Guid id)
+    public async Task<IActionResult> DeleteTeam(Guid id)
     {
         var response = await _service.DeleteTeam(id);
         if (!response.IsSuccess)

@@ -2,6 +2,7 @@ using System.Collections.Immutable;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Extensions;
+using Octokit;
 using synthesis.api.Data.Models;
 using synthesis.api.Data.Repository;
 using synthesis.api.Features.User;
@@ -42,6 +43,7 @@ public class UserService : IUserService
 
     public async Task<GlobalResponse<UserDto>> GetUserById(Guid id)
     {
+
         var user = await _repository.Users
         .Where(u => u.Id == id)
         .Select(u => new UserDto
@@ -51,7 +53,8 @@ public class UserService : IUserService
             AvatarUrl = u.AvatarUrl,
             Email = u.Email,
             FullName = u.FullName,
-            OnBoarding = u.OnBoarding.GetDisplayName(),
+            OnBoarding = u.OnBoardingProgress.GetDisplayName(),
+            EmailConfirmed = u.EmailConfirmed,
             Profession = u.Profession,
             Skills = u.Skills,
             MemberProfiles = u.MemberProfiles.Select(x => new MemberDto()
@@ -61,13 +64,12 @@ public class UserService : IUserService
                 {
                     Id = x.Team.Id,
                     Name = x.Team.Name,
-                    LogoUrl = x.Team.LogoUrl
+                    AvatarUrl = x.Team.AvatarUrl
                 },
                 Roles = x.Roles
             }).ToList()
 
-        }).SingleOrDefaultAsync();
-
+        }).FirstOrDefaultAsync();
 
         if (user == null) return new GlobalResponse<UserDto>(false, "get user failed", errors: [$"user with id:{id} not found"]);
 
@@ -134,18 +136,18 @@ public class UserService : IUserService
 
         if (postDetailsCommand.Avatar != null)
         {
-            var uploadResponse = await _r2Cloud.UploadFileAsync(postDetailsCommand.Avatar, $"img_{user.UserName}");
+            var uploadResponse = await _r2Cloud.UploadFileAsync(postDetailsCommand.Avatar, $"u_img_{user.UserName}");
             if (uploadResponse.IsSuccess)
             {
                 user.AvatarUrl = uploadResponse.Data.Url;
             }
-            else
-            {
-                user.AvatarUrl = $"https://eu.ui-avatars.com/api/?name={user.UserName}&size=250";
-            }
+        }
+        else
+        {
+            user.AvatarUrl = $"https://eu.ui-avatars.com/api/?name={user.UserName}&size=250";
         }
 
-        user.OnBoarding = OnBoardingProgress.Details;
+        user.OnBoardingProgress = OnBoardingProgress.Details;
 
         await _repository.SaveChangesAsync();
 

@@ -4,12 +4,14 @@ using System.Security.Claims;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
 using synthesis.api.Data.Models;
+using synthesis.api.Data.Repository;
 
 namespace synthesis.api.Features.Auth
 {
     public interface IJwtTokenManager
     {
         string GenerateToken(UserModel user);
+        string GenerateEmailConfirmationToken(UserModel user);
     }
 
     public class JwtTokenManager : IJwtTokenManager
@@ -25,8 +27,8 @@ namespace synthesis.api.Features.Auth
         {
             var claims = new[]
             {
-                new Claim("UserId", user.Id.ToString()),
-                new Claim("Email", user.Email)
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                new Claim(ClaimTypes.Email, user.Email)
             };
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config.GetSection("JwtConfig:Secret").Value));
@@ -41,5 +43,24 @@ namespace synthesis.api.Features.Auth
 
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
+        public string GenerateEmailConfirmationToken(UserModel user)
+        {
+            var claims = new[]
+            {
+                new Claim(ClaimTypes.Email, user.Email)
+            };
+
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config.GetSection("JwtConfig:Secret").Value));
+            var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+            var token = new JwtSecurityToken(
+                claims: claims,
+                expires: DateTime.UtcNow.AddDays(1),
+                signingCredentials: credentials
+            );
+
+            return new JwtSecurityTokenHandler().WriteToken(token);
+        }
+
+
     }
 }

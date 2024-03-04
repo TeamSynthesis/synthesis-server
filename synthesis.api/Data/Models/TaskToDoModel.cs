@@ -7,14 +7,14 @@ public class TaskToDoModel
     [Column("TaskId")]
     public Guid Id { get; set; }
     public string? Activity { get; set; }
-    public TaskState State { get; set; } 
+    public TaskState State { get; set; }
     public TaskPriority Priority { get; set; }
 
     public bool IsComplete { get; set; }
 
     public DateTime CreatedOn { get; set; }
-    public DateTime? AssignedOn { get; set; }
-    public DateTime? DueDate { get; set; }
+    public DateTime AssignedOn { get; set; }
+    public DateTime DueDate { get; set; }
 
 
     [ForeignKey(nameof(ProjectModel))]

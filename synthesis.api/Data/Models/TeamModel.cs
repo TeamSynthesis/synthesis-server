@@ -7,7 +7,10 @@ public class TeamModel
     [Column("TeamId")]
     public Guid Id { get; set; }
     public string? Name { get; set; }
-    public string? LogoUrl { get; set; }
+    public string? Slug { get; set; }
+    public int SeatsAvailable { get; set; }
+    public List<string>? Invites { get; set; }
+    public string? AvatarUrl { get; set; }
     public List<MemberModel>? Members { get; set; }
     public List<ProjectModel>? Projects { get; set; }
 
