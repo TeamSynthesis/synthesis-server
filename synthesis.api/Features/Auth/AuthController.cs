@@ -66,7 +66,7 @@ namespace synthesis.api.Features.Auth
         [HttpGet("confirm-email")]
         public async Task<IActionResult> ConfirmEmail(Guid userId, string code)
         {
-            if(userId == Guid.Empty || code == null)
+            if (userId == Guid.Empty || code == null)
                 return BadRequest("required query params are null");
 
             var response = await _service.ConfirmEmail(userId, code);
@@ -74,14 +74,14 @@ namespace synthesis.api.Features.Auth
             if (!response.IsSuccess)
                 return BadRequest(response);
 
-            return Ok(response);
+            return Redirect("https://www.google.com");
         }
 
 
         [HttpPost("logout")]
         public async Task<IActionResult> Logout()
         {
-            return Ok("delete the token from the locals");
+            return Ok("remove the token from your locals");
         }
     }
 }
