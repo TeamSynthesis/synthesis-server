@@ -69,7 +69,7 @@ public class UserService : IUserService
                 Roles = x.Roles
             }).ToList()
 
-        }).SingleOrDefaultAsync();
+        }).FirstOrDefaultAsync();
 
         if (user == null) return new GlobalResponse<UserDto>(false, "get user failed", errors: [$"user with id:{id} not found"]);
 

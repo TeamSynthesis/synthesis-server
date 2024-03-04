@@ -52,6 +52,7 @@ namespace synthesis.api.Features.Auth
         [HttpPost("github")]
         public async Task<IActionResult> GithubLogin(string accessToken)
         {
+            if (accessToken == null) return BadRequest("required  param is null");
 
             var response = await _service.GitHubLogin(accessToken);
 
@@ -65,6 +66,9 @@ namespace synthesis.api.Features.Auth
         [HttpGet("confirm-email")]
         public async Task<IActionResult> ConfirmEmail(Guid userId, string code)
         {
+            if(userId == Guid.Empty || code == null)
+                return BadRequest("required query params are null");
+
             var response = await _service.ConfirmEmail(userId, code);
 
             if (!response.IsSuccess)
@@ -77,7 +81,7 @@ namespace synthesis.api.Features.Auth
         [HttpPost("logout")]
         public async Task<IActionResult> Logout()
         {
-            return Ok("logged out");
+            return Ok("delete the token from the locals");
         }
     }
 }
