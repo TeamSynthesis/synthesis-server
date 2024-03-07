@@ -13,9 +13,9 @@ public class ProjectsController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> CreateProject(Guid organisationId, Guid memberId, [FromBody] CreateProjectDto project)
+    public async Task<IActionResult> CreateProject(Guid teamId, [FromForm] CreateProjectDto project)
     {
-        var response = await _service.CreateProject(organisationId, memberId, project);
+        var response = await _service.CreateProject(teamId, project);
 
         if (!response.IsSuccess)
         {

@@ -58,9 +58,9 @@ public class TaskToDoService : ITaskToDoService
             Activity = task.Activity,
             State = task.State.GetDisplayName(),
             Priority = task.Priority.GetDisplayName(),
-            CreatedOn = task.CreatedOn.ToShortDateString(),
-            AssignedOn = task.AssignedOn.ToShortDateString(),
-            DueDate = task.DueDate.ToShortDateString()
+            CreatedOn = task.CreatedOn,
+            AssignedOn = task.AssignedOn,
+            DueDate = task.DueDate
         };
 
         return new GlobalResponse<TaskDto>(true, "create task success", value: taskToReturn);

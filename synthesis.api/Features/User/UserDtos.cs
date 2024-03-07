@@ -12,6 +12,7 @@ public record UserDto
     public bool? EmailConfirmed { get; set; }
     public string? Email { get; set; }
     public string? OnBoarding { get; set; }
+    public DateTime? CreatedOn { get; set; }
     public List<string>? Skills { get; set; }
     public List<MemberDto>? MemberProfiles { get; set; }
 
@@ -26,4 +27,4 @@ public record PostUserDetailsDto
 
 }
 
-public record UpdateUserDto(string FirstName, string LastName, string Username, IFormFile Avatar, string Email);
+public record UpdateUserDto(string FirstName, string LastName, string Username, string Email);

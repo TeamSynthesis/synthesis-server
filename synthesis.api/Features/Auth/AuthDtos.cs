@@ -23,6 +23,6 @@ public record GitHubEmailDto
     public bool? verified { get; set; }
 }
 
-public record RegisterResponseDto(string Token, UserDto User);
-public record LoginResponseDto(string Token, string UserId);
+public record RegisterResponseDto(string Token, Guid UserId);
+public record LoginResponseDto(string Token, Guid UserId);
 public record LoginUserDto(string UsernameEmail, string Password);

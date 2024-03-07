@@ -10,6 +10,7 @@ public class MemberModel
     [ForeignKey(nameof(UserModel))]
     public Guid UserId { get; set; }
     public UserModel? User { get; set; }
+    public DateTime? JoinedOn { get; set; }
     public List<string>? Roles { get; set; }
 
     [ForeignKey(nameof(TeamModel))]

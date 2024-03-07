@@ -1,6 +1,7 @@
 using AutoMapper;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.VisualBasic;
 using synthesis.api.Data.Models;
 using synthesis.api.Data.Repository;
 using synthesis.api.Features.Member;
@@ -49,6 +50,7 @@ public class TeamService : ITeamService
 
         var team = new TeamModel()
         {
+            CreatedOn = DateTime.UtcNow,
             Name = createCommand.Name,
             Slug = createCommand.Slug,
             SeatsAvailable = 3,
@@ -91,6 +93,7 @@ public class TeamService : ITeamService
         {
             Id = team.Id,
             Name = team.Name,
+            Slug = team.Slug,
             AvatarUrl = team.AvatarUrl
         };
 
@@ -131,7 +134,21 @@ public class TeamService : ITeamService
         await _repository.SaveChangesAsync();
 
 
-        var memberToReturn = _mapper.Map<MemberDto>(member);
+        var memberToReturn = new MemberDto()
+        {
+            Id = member.Id,
+            User = new UserDto()
+            {
+                Id = user.Id,
+                FullName = user.FullName,
+                UserName = user.UserName,
+                Email = user.Email,
+                Profession = user.Profession,
+                Skills = user.Skills,
+                AvatarUrl = user.AvatarUrl
+            },
+            Roles = member.Roles
+        };
 
         return new GlobalResponse<MemberDto>(true, "add member to team success", value: memberToReturn);
     }
@@ -173,9 +190,10 @@ public class TeamService : ITeamService
         {
             Id = x.Id,
             Name = x.Name,
-            AvatarUrl = x.AvatarUrl
+            AvatarUrl = x.AvatarUrl,
+            Slug = x.Slug
         }
-        ).SingleOrDefaultAsync();
+        ).FirstOrDefaultAsync();
 
         if (team == null)
         {
@@ -189,31 +207,34 @@ public class TeamService : ITeamService
     public async Task<GlobalResponse<TeamDto>> GetTeamWithResourcesById(Guid id)
     {
         var team = await _repository.Teams.Where(t => t.Id == id)
-        .Select(org => new TeamDto()
+        .Select(t => new TeamDto()
         {
-            Id = org.Id,
-            Name = org.Name,
-            AvatarUrl = org.AvatarUrl,
-            Members = org.Members.Select(x => new MemberDto
+            Id = t.Id,
+            Name = t.Name,
+            AvatarUrl = t.AvatarUrl,
+            Slug = t.Slug,
+            Members = t.Members.Select(m => new MemberDto
             {
-                Id = x.Id,
+                Id = m.Id,
                 User = new UserDto()
                 {
-                    Id = x.User.Id,
-                    UserName = x.User.UserName,
-                    AvatarUrl = x.User.AvatarUrl,
-                    Email = x.User.AvatarUrl
-
+                    Id = m.User.Id,
+                    FullName = m.User.FullName,
+                    UserName = m.User.UserName,
+                    AvatarUrl = m.User.AvatarUrl,
+                    Profession = m.User.Profession,
+                    Skills = m.User.Skills,
+                    Email = m.User.AvatarUrl
                 },
-                Roles = x.Roles
+                Roles = m.Roles
             }).ToList(),
-            Projects = org.Projects.Select(x => new ProjectDto
+            Projects = t.Projects.Select(p => new ProjectDto
             {
-                Id = x.Id
+                Id = p.Id
 
             }).ToList()
         }).
-        SingleOrDefaultAsync();
+        FirstOrDefaultAsync();
 
         if (team == null)
         {
@@ -242,8 +263,11 @@ public class TeamService : ITeamService
             User = new UserDto()
             {
                 Id = x.User.Id,
+                FullName = x.User.FullName,
                 UserName = x.User.UserName,
                 Email = x.User.Email,
+                Profession = x.User.Profession,
+                Skills = x.User.Skills,
                 AvatarUrl = x.User.AvatarUrl
             },
             Roles = x.Roles

@@ -30,19 +30,21 @@ public class MemberService : IMemberService
     {
         var member = await _repository.Members
         .Where(m => m.Id == id)
-        .Select(x => new MemberDto
+        .Select(m => new MemberDto
         {
-            Id = x.Id,
+            Id = m.Id,
             User = new UserDto
             {
-                Id = x.User.Id,
-                UserName = x.User.UserName,
-                Email = x.User.Email,
-                AvatarUrl = x.User.AvatarUrl,
-                Profession = x.User.Profession,
-                Skills = x.User.Skills
+                Id = m.User.Id,
+                FullName = m.User.FullName,
+                UserName = m.User.UserName,
+                Email = m.User.Email,
+                AvatarUrl = m.User.AvatarUrl,
+                Profession = m.User.Profession,
+                Skills = m.User.Skills
             },
-            Roles = x.Roles
+            Roles = m.Roles,
+            JoinedOn = m.JoinedOn
         }).FirstOrDefaultAsync();
 
 

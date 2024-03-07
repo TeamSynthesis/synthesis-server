@@ -33,9 +33,9 @@ public class MappingProfile : Profile
     CreateMap<TaskDto, TaskToDoModel>().ReverseMap();
     CreateMap<UpdateTaskDto, TaskToDoModel>().ReverseMap();
 
-    //tasks
+    //feature
     CreateMap<FeatureDto, FeatureModel>().ReverseMap();
-
+    CreateMap<UpdateFeatureDto, FeatureModel>().ReverseMap();
     //Member
     CreateMap<MemberModel, MemberDto>()
       .ForMember(dto => dto.User,

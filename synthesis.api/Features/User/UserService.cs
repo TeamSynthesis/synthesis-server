@@ -42,8 +42,8 @@ public class UserService : IUserService
 
 
     public async Task<GlobalResponse<UserDto>> GetUserById(Guid id)
-    {
 
+    {
         var user = await _repository.Users
         .Where(u => u.Id == id)
         .Select(u => new UserDto
@@ -57,16 +57,20 @@ public class UserService : IUserService
             EmailConfirmed = u.EmailConfirmed,
             Profession = u.Profession,
             Skills = u.Skills,
-            MemberProfiles = u.MemberProfiles.Select(x => new MemberDto()
+            CreatedOn = u.CreatedOn,
+            MemberProfiles = u.MemberProfiles.Select(m => new MemberDto()
             {
-                Id = x.Id,
+                Id = m.Id,
                 Team = new TeamDto()
                 {
-                    Id = x.Team.Id,
-                    Name = x.Team.Name,
-                    AvatarUrl = x.Team.AvatarUrl
+                    Id = m.Team.Id,
+                    Name = m.Team.Name,
+                    Slug = m.Team.Slug,
+                    AvatarUrl = m.Team.AvatarUrl
                 },
-                Roles = x.Roles
+                JoinedOn = m.JoinedOn,
+                Roles = m.Roles
+
             }).ToList()
 
         }).FirstOrDefaultAsync();

@@ -6,6 +6,7 @@ public class UserModel
 {
     [Column("UserId")]
     public Guid Id { get; set; }
+    public DateTime? CreatedOn { get; set; }
     public string? FullName { get; set; }
     public string? Profession { get; set; }
     public string? AvatarUrl { get; set; }
