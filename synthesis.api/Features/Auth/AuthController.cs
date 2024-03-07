@@ -56,13 +56,13 @@ namespace synthesis.api.Features.Auth
 
             var response = await _service.GitHubLogin(accessToken);
 
-            var origin = Request.Headers.Origin;
+            if (!response.IsSuccess) return BadRequest(response);
 
-            if (!response.IsSuccess) return Redirect($"{origin}/auth/sign-up?error={response.Message}");
-
-            return Redirect($"{origin}/account/auth?token={response.Data.Token} & userId ={response.Data.UserId}");
+            return Ok(response);
 
         }
+
+
         [HttpGet("confirm-email")]
         public async Task<IActionResult> ConfirmEmail(Guid userId, string code)
         {

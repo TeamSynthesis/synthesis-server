@@ -2,6 +2,7 @@ using System.Reflection.Metadata.Ecma335;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using Npgsql.Internal;
 
 namespace synthesis.api.Features.User;
@@ -22,7 +23,6 @@ public class UsersController : ControllerBase
     [HttpGet("{id:guid}", Name = "UserById")]
     public async Task<IActionResult> GetUserById(Guid id)
     {
-
         var response = await _service.GetUserById(id);
 
         if (!response.IsSuccess) return BadRequest(response);
@@ -31,8 +31,9 @@ public class UsersController : ControllerBase
     }
 
     [HttpPut("{id:guid}")]
-    public async Task<IActionResult> UpdateUser(Guid id, [FromBody] UpdateUserDto user)
+    public async Task<IActionResult> UpdateUser(Guid id, [FromForm] UpdateUserDto user)
     {
+        if (user == null) return BadRequest("required body param is null");
         var response = await _service.UpdateUser(id, user);
         if (!response.IsSuccess) return BadRequest(response);
 
@@ -51,6 +52,7 @@ public class UsersController : ControllerBase
     [HttpPost("{id:guid}/details")]
     public async Task<IActionResult> PostUserDetails(Guid id, [FromForm] PostUserDetailsDto userDetails)
     {
+        if (userDetails == null) return BadRequest("required body param is null");
         var response = await _service.PostUserDetails(id, userDetails);
         if (!response.IsSuccess) return BadRequest(response);
 
@@ -60,6 +62,7 @@ public class UsersController : ControllerBase
     [HttpPost("{id:guid}/skills")]
     public async Task<IActionResult> PostUserSkills(Guid id, [FromBody] List<string> skills)
     {
+        if (skills == null) return BadRequest("required body param is null");
         var response = await _service.PostUserSkills(id, skills);
         if (!response.IsSuccess) return BadRequest(response);
 

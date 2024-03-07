@@ -103,7 +103,6 @@ public class AuthService : IAuthService
 
         var newUser = new UserModel
         {
-            UserName = "gh_" + githubUser.login,
             Email = FindPrimaryEmail(emails),
             GitHubId = githubUser.id,
             AvatarUrl = githubUser.avatar_url,
@@ -177,6 +176,7 @@ public class AuthService : IAuthService
 
         var user = new UserModel
         {
+            CreatedOn = DateTime.UtcNow,
             Email = registerCommand.Email,
             OnBoardingProgress = OnBoardingProgress.CreateAccount,
         };

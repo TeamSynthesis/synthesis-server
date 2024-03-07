@@ -91,7 +91,7 @@ public class TeamsController : ControllerBase
     }
 
     [HttpPut("{id:guid}")]
-    public async Task<IActionResult> UpdateTeam(Guid id, [FromBody] UpdateTeamDto team)
+    public async Task<IActionResult> UpdateTeam(Guid id, [FromForm] UpdateTeamDto team)
     {
         var response = await _service.UpdateTeam(id, team);
         if (!response.IsSuccess) return BadRequest(response);
@@ -100,7 +100,7 @@ public class TeamsController : ControllerBase
     }
 
     [HttpPatch("{id:guid}")]
-    public async Task<IActionResult> PatchTeam(Guid id, [FromBody] UpdateTeamDto team)
+    public async Task<IActionResult> PatchTeam(Guid id, [FromForm] UpdateTeamDto team)
     {
         var response = await _service.PatchTeam(id, team);
         if (!response.IsSuccess)

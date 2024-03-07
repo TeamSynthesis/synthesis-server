@@ -4,6 +4,7 @@ using synthesis.api.Features.Project;
 public record TeamDto
 {
     public Guid Id { get; set; }
+    public string? Slug { get; set; }
     public string? Name { get; set; }
     public string? AvatarUrl { get; set; }
     public List<MemberDto>? Members { get; set; }
