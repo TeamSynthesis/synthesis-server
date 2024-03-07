@@ -43,7 +43,8 @@ public class MemberService : IMemberService
                 Profession = m.User.Profession,
                 Skills = m.User.Skills
             },
-            Roles = m.Roles
+            Roles = m.Roles,
+            JoinedOn = m.JoinedOn
         }).FirstOrDefaultAsync();
 
 

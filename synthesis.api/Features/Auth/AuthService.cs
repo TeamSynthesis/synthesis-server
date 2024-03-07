@@ -59,7 +59,7 @@ public class AuthService : IAuthService
 
         if (!userResponse.IsSuccessStatusCode)
         {
-            return new GlobalResponse<LoginResponseDto>(false, "login failed", errors: ["Failed to fetch user data from GitHub API."]);
+            return new GlobalResponse<LoginResponseDto>(false, "sign-in failed", errors: ["Failed to fetch user data from GitHub API."]);
         }
 
         var githubUser = await userResponse.Content.ReadFromJsonAsync<GitHubUserDto>();
@@ -71,15 +71,15 @@ public class AuthService : IAuthService
             var user = await _repository.Users.Where(u => u.GitHubId == githubUser.id).Select(x => new UserModel
             {
                 Id = x.Id,
-                UserName = x.UserName
+                Email = x.Email
 
-            }).SingleOrDefaultAsync();
+            }).FirstOrDefaultAsync();
 
             var token = _jwtManager.GenerateToken(user);
 
-            var existingUserReponse = new LoginResponseDto(token, user.Id.ToString());
+            var existingUserReponse = new LoginResponseDto(token, user.Id);
 
-            return new GlobalResponse<LoginResponseDto>(true, "Login successful", value: existingUserReponse);
+            return new GlobalResponse<LoginResponseDto>(true, "sign-in successful", value: existingUserReponse);
         }
 
         var emailUrl = "https://api.github.com/user/emails";
@@ -88,7 +88,7 @@ public class AuthService : IAuthService
 
         if (!emailResponse.IsSuccessStatusCode)
         {
-            return new GlobalResponse<LoginResponseDto>(false, "login failed", errors: ["Failed to fetch user data from GitHub API."]);
+            return new GlobalResponse<LoginResponseDto>(false, "sign-in failed", errors: ["Failed to fetch user data from GitHub API."]);
 
         }
 
@@ -96,7 +96,7 @@ public class AuthService : IAuthService
 
         if (emails == null)
         {
-            return new GlobalResponse<LoginResponseDto>(false, "login failed", errors: ["Failed to fetch user data from GitHub API."]);
+            return new GlobalResponse<LoginResponseDto>(false, "sign-in failed", errors: ["Failed to fetch user data from GitHub API."]);
 
         }
 
@@ -105,7 +105,6 @@ public class AuthService : IAuthService
         {
             Email = FindPrimaryEmail(emails),
             GitHubId = githubUser.id,
-            AvatarUrl = githubUser.avatar_url,
             EmailConfirmed = true,
             OnBoardingProgress = OnBoardingProgress.CreateAccount
         };
@@ -115,9 +114,9 @@ public class AuthService : IAuthService
 
         var jwtToken = _jwtManager.GenerateToken(newUser);
 
-        var response = new LoginResponseDto(jwtToken, newUser.Id.ToString());
+        var response = new LoginResponseDto(jwtToken, newUser.Id);
 
-        return new GlobalResponse<LoginResponseDto>(true, "Login successful", value: response);
+        return new GlobalResponse<LoginResponseDto>(true, "sign-in successful", value: response);
 
     }
 
@@ -153,7 +152,7 @@ public class AuthService : IAuthService
 
         var token = _jwtManager.GenerateToken(user);
 
-        var loginResponse = new LoginResponseDto(token, user.Id.ToString());
+        var loginResponse = new LoginResponseDto(token, user.Id);
 
         return new GlobalResponse<LoginResponseDto>(true, "login success", value: loginResponse);
 
@@ -189,9 +188,8 @@ public class AuthService : IAuthService
         await SendConfirmationEmail(user, request);
 
         var token = _jwtManager.GenerateToken(user);
-        var userToReturn = _mapper.Map<UserDto>(user);
 
-        var response = new RegisterResponseDto(token, userToReturn);
+        var response = new RegisterResponseDto(token, user.Id);
 
         return new GlobalResponse<RegisterResponseDto>(true, "register user success", value: response);
     }
