@@ -41,7 +41,7 @@ public class UsersController : ControllerBase
     }
 
     [HttpPatch("{id:guid}")]
-    public async Task<IActionResult> PatchUser(Guid id, [FromBody] UpdateUserDto user)
+    public async Task<IActionResult> PatchUser(Guid id, [FromForm] UpdateUserDto user)
     {
         var response = await _service.PatchUser(id, user);
         if (!response.IsSuccess) return BadRequest(response);
@@ -60,7 +60,7 @@ public class UsersController : ControllerBase
     }
 
     [HttpPost("{id:guid}/skills")]
-    public async Task<IActionResult> PostUserSkills(Guid id, [FromBody] List<string> skills)
+    public async Task<IActionResult> PostUserSkills(Guid id, [FromForm] List<string> skills)
     {
         if (skills == null) return BadRequest("required body param is null");
         var response = await _service.PostUserSkills(id, skills);
