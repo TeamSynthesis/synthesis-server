@@ -20,7 +20,9 @@ public class UserModel
 
 
     public List<MemberModel>? MemberProfiles { get; set; }
-    public List<RefreshTokenModel>? RefreshTokens { get; set; }
+
+    
+    // public List<RefreshTokenModel>? RefreshTokens { get; set; }
 
 }
 

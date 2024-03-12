@@ -16,26 +16,29 @@ public class ChatGptService : IChatGptService
     private OpenAIClient _gpt4Client;
     private OpenAIClient _gpt3TurboClient;
 
+    private IDalleService _dalleService;
+
     public ChatGptService()
     {
         _gpt3TurboClient = GptClients.GPT3Turbo();
         _gpt4Client = GptClients.GPT4();
+        _dalleService = new DalleService();
     }
 
     public async Task<GptProjectDto> GenerateProject(string prompt)
     {
-        var overview = GetProjectOverview(prompt);
-        var competitiveAnalysis = GetProjectCompetitiveAnalysis(prompt);
-        var features = GetProjectFeatures(prompt);
+        //var overview = GetProjectOverview(prompt);
+        //var competitiveAnalysis = GetProjectCompetitiveAnalysis(prompt);
+        //var features = GetProjectFeatures(prompt);
 
-        await Task.WhenAll(overview, competitiveAnalysis, features);
+        var branding = GetProjectBranding(prompt);
+
+        await Task.WhenAll(branding);
 
 
         var projectMetadata = new GptProjectDto()
         {
-            Overview = overview.Result,
-            CompetitiveAnalysis = competitiveAnalysis.Result,
-            Features = features.Result
+            Branding = branding.Result
         };
 
         return projectMetadata;
@@ -48,7 +51,7 @@ public class ChatGptService : IChatGptService
             DeploymentName = GptClients._GPT4Deployment,
             Messages =
             {
-                new ChatRequestAssistantMessage(GptSystemMessage.GetOveview),
+                new ChatRequestAssistantMessage(GptSystemMessages.GetOverviewPrompt()),
                 new ChatRequestUserMessage(prompt)
             },
             Temperature = (float)0.8,
@@ -75,7 +78,7 @@ public class ChatGptService : IChatGptService
             DeploymentName = GptClients._GPT3TurboDeployment,
             Messages =
             {
-                new ChatRequestAssistantMessage(GptSystemMessage.GetFeatures),
+                new ChatRequestAssistantMessage(GptSystemMessages.GetFeaturesPrompt()),
                 new ChatRequestUserMessage(prompt)
             },
             Temperature = (float)0.8,
@@ -95,7 +98,7 @@ public class ChatGptService : IChatGptService
         return features;
 
     }
-    
+
     private async Task<CompetitiveAnalysis> GetProjectCompetitiveAnalysis(string prompt)
     {
         var ChatCompletionOptions = new ChatCompletionsOptions()
@@ -103,7 +106,7 @@ public class ChatGptService : IChatGptService
             DeploymentName = GptClients._GPT4Deployment,
             Messages =
             {
-                new ChatRequestAssistantMessage(GptSystemMessage.GetProjectCompetitiveAnalysis),
+                new ChatRequestAssistantMessage(GptSystemMessages.GetProjectCompetitiveAnalysisPrompt()),
                 new ChatRequestUserMessage(prompt)
             },
             Temperature = (float)0.7,
@@ -122,14 +125,14 @@ public class ChatGptService : IChatGptService
         return competitiveAnalysis ?? new CompetitiveAnalysis();
     }
 
-    private async Task<GenerateBrandingDto> GetProjectBranding(string prompt)
+    private async Task<Branding> GetProjectBranding(string prompt)
     {
         var ChatCompletionOptions = new ChatCompletionsOptions()
         {
             DeploymentName = GptClients._GPT3TurboDeployment,
             Messages =
             {
-                new ChatRequestAssistantMessage(GptSystemMessage.GetBranding),
+                new ChatRequestAssistantMessage(GptSystemMessages.GetBrandingPrompt()),
                 new ChatRequestUserMessage(prompt)
             },
             Temperature = (float)0.8,
@@ -143,9 +146,45 @@ public class ChatGptService : IChatGptService
 
         var response = responseWithoutStream.Value;
 
-        var brandingResponse = JsonSerializer.Deserialize<GenerateBrandingDto>(response.Choices[0].Message.Content);
+        var brandingResponse = JsonSerializer.Deserialize<Branding>(response.Choices[0].Message.Content);
 
-        return brandingResponse;
+        List<string> imagePrompts =
+        [
+            brandingResponse.Icon.Description,
+            brandingResponse.Wireframe.Image.Description,
+            brandingResponse.MoodBoard.Description,
+        ];
+
+        var images = await GenerateImages(imagePrompts);
+
+        var branding = new Branding()
+        {
+            Icon = brandingResponse.Icon,
+            Slogan = brandingResponse.Slogan,
+            Wireframe = brandingResponse.Wireframe,
+            MoodBoard = brandingResponse.MoodBoard,
+            Palette = brandingResponse.Palette,
+            Typography = brandingResponse.Typography
+        };
+
+        branding.Icon.ImgUrl = images[0];
+        branding.Wireframe.Image.ImgUrl = images[1];
+        branding.MoodBoard.ImgUrl = images[2];
+
+        return branding;
     }
 
+
+    private async Task<List<string>> GenerateImages(List<string> imagePrompts)
+    {
+        var images = new List<string>();
+
+        foreach (var prompt in imagePrompts)
+        {
+            var image = await _dalleService.GenerateImage(prompt);
+            images.Add(image);
+        }
+
+        return images;
+    }
 }

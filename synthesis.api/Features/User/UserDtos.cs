@@ -27,4 +27,4 @@ public record PostUserDetailsDto
 
 }
 
-public record UpdateUserDto(string FirstName, string LastName, string Username, string Email);
+public record UpdateUserDto(string FullName, string Username, string Email, string Profession);

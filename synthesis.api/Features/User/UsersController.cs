@@ -79,5 +79,13 @@ public class UsersController : ControllerBase
 
     }
 
+    [HttpPut("{id:guid}/change-avatar")]
+    public async Task<IActionResult> ChangeAvatar(Guid id, [FromForm] IFormFile avatar)
+    {
+        if (avatar == null) return BadRequest("required body param is null");
+        var response = await _service.ChangeAvatar(id, avatar);
+        if (!response.IsSuccess) return BadRequest(response);
 
+        return Ok(response);
+    }
 }

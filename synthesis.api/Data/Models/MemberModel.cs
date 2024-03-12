@@ -10,8 +10,9 @@ public class MemberModel
     [ForeignKey(nameof(UserModel))]
     public Guid UserId { get; set; }
     public UserModel? User { get; set; }
+    
     public DateTime? JoinedOn { get; set; }
-    public List<string>? Roles { get; set; }
+    public List<MemberRole>? Roles { get; set; }
 
     [ForeignKey(nameof(TeamModel))]
     public Guid TeamId { get; set; }
@@ -19,4 +20,11 @@ public class MemberModel
 
     public List<TaskToDoModel>? Tasks { get; set; }
 
+}
+
+
+public enum MemberRole
+{
+    Manager,
+    Owner
 }

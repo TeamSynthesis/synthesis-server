@@ -24,9 +24,9 @@ public static class GptClients
         return new OpenAIClient(new Uri(_OpenAiGPT3Endpoint), new AzureKeyCredential(_OpenAiGPT3Key));
     }
 
-    private static readonly string _OpenAiDalleEndpoint = "https://synthesis-gpt4.openai.azure.com/";
-    private static readonly string _OpenAiDalleKey = "fb499762f958431e85c2f12c3c871e17";
-    public static readonly string _DalleDeployment = "synthesis-gpt4";
+    private static readonly string _OpenAiDalleEndpoint = "https://synthesis-gpt.openai.azure.com/";
+    private static readonly string _OpenAiDalleKey = "49d211e2c9f9429a84d4a5ba82096e6c";
+    public static readonly string _DalleDeployment = "Dalle3";
 
     public static OpenAIClient Dalle()
     {

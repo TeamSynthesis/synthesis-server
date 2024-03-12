@@ -15,6 +15,8 @@ public interface IProjectService
 
     Task<GlobalResponse<GptProjectDto>> GenerateProject(string prompt);
 
+    Task<GlobalResponse<ProjectDto>> UpdateProject(Guid id, UpdateProjectDto updateCommand);
+
     Task<GlobalResponse<ProjectDto>> GetProjectById(Guid id);
 
     Task<GlobalResponse<ProjectDto>> DeleteProject(Guid id);
@@ -78,6 +80,28 @@ public class ProjectService : IProjectService
             return new GlobalResponse<GptProjectDto>(false, "project generation failed", errors: [$"something went wrong"]);
 
         return new GlobalResponse<GptProjectDto>(true, "success", value: projectDto);
+    }
+
+    public async Task<GlobalResponse<ProjectDto>> UpdateProject(Guid id, UpdateProjectDto updateCommand)
+    {
+        var project = await _repository.Projects.FindAsync(id);
+        if (project == null)
+            return new GlobalResponse<ProjectDto>(false, "update project failed", errors: [$"project with id: {id} not found"]);
+
+        project.Name = updateCommand.Name;
+        project.Description = updateCommand.Description;
+
+        var validationResult = await new ProjectValidator().ValidateAsync(project);
+        if (!validationResult.IsValid)
+        {
+            return new GlobalResponse<ProjectDto>(false, "update project failed", errors: validationResult.Errors.Select(e => e.ErrorMessage).ToList());
+        }
+
+        await _repository.SaveChangesAsync();
+
+
+
+        return new GlobalResponse<ProjectDto>(true, "update project success");
     }
 
     public async Task<GlobalResponse<ProjectDto>> GetProjectById(Guid id)

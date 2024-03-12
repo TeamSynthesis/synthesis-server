@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using synthesis.api.Data.Models;
 using synthesis.api.Mappings;
 
 namespace synthesis.api.Features.Member;
@@ -27,9 +28,9 @@ public class MembersController : ControllerBase
     }
 
     [HttpPost("{id:guid}/assign-role")]
-    public async Task<IActionResult> AssignMemberRole(Guid id, [FromBody] string role)
+    public async Task<IActionResult> AssignMemberRole(Guid id, [FromBody] MemberRole role)
     {
-        var response = await _service.AssignMemberRole(id, role.ToLower());
+        var response = await _service.AssignMemberRole(id, role);
 
         if (!response.IsSuccess)
         {
@@ -40,9 +41,9 @@ public class MembersController : ControllerBase
     }
 
     [HttpPost("{id:guid}/resign-role")]
-    public async Task<IActionResult> ResignMemberRole(Guid id, [FromBody] string role)
+    public async Task<IActionResult> ResignMemberRole(Guid id, [FromBody] MemberRole role)
     {
-        var response = await _service.ResignMemberRole(id, role.ToLower());
+        var response = await _service.ResignMemberRole(id, role);
 
         if (!response.IsSuccess)
         {

@@ -21,4 +21,3 @@ public record GeneratedProjectDto
 
 public record CreateProjectDto(string? Name, string? Description);
 public record UpdateProjectDto(string Name, string Description);
-
