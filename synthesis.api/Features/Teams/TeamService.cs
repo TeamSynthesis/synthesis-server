@@ -80,7 +80,7 @@ public class TeamService : ITeamService
         var member = new MemberModel()
         {
             User = user,
-            Roles = [MemberRole.Owner],
+            Roles = [MemberRole.Owner.GetDisplayName()],
             JoinedOn = DateTime.UtcNow
         };
 
@@ -150,7 +150,7 @@ public class TeamService : ITeamService
                 Skills = user.Skills,
                 AvatarUrl = user.AvatarUrl,
             },
-            Roles = member.Roles.Select(r => r.GetDisplayName()).ToList(),
+            Roles = member.Roles,
             JoinedOn = member.JoinedOn
         };
 
@@ -230,7 +230,7 @@ public class TeamService : ITeamService
                     Skills = m.User.Skills,
                     Email = m.User.AvatarUrl
                 },
-                Roles = m.Roles.Select(r => r.GetDisplayName()).ToList(),
+                Roles = m.Roles,
                 JoinedOn = m.JoinedOn
             }).ToList(),
             Projects = t.Projects.Select(p => new ProjectDto
@@ -275,7 +275,7 @@ public class TeamService : ITeamService
                 Skills = m.User.Skills,
                 AvatarUrl = m.User.AvatarUrl
             },
-            Roles = m.Roles.Select(r => r.GetDisplayName()).ToList(),
+            Roles = m.Roles,
             JoinedOn = m.JoinedOn
         }).ToListAsync();
 
