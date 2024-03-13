@@ -138,7 +138,7 @@ public class ChatGptService : IChatGptService
     {
         var ChatCompletionOptions = new ChatCompletionsOptions()
         {
-            DeploymentName = GptClients._GPT4Deployment,
+            DeploymentName = GptClients._GPT3TurboDeployment,
             Messages =
             {
                 new ChatRequestAssistantMessage(GptSystemMessages.GetBrandingPrompt()),
@@ -151,7 +151,7 @@ public class ChatGptService : IChatGptService
             PresencePenalty = 0,
         };
 
-        var responseWithoutStream = await _gpt4Client.GetChatCompletionsAsync(ChatCompletionOptions);
+        var responseWithoutStream = await _gpt3TurboClient.GetChatCompletionsAsync(ChatCompletionOptions);
 
         var response = responseWithoutStream.Value;
 
