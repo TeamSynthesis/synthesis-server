@@ -45,7 +45,7 @@ public class MemberService : IMemberService
                 Profession = m.User.Profession,
                 Skills = m.User.Skills
             },
-            Roles = m.Roles.Select(r => r.GetDisplayName()).ToList(),
+            Roles = m.Roles,
             JoinedOn = m.JoinedOn
         }).FirstOrDefaultAsync();
 
@@ -62,7 +62,7 @@ public class MemberService : IMemberService
             return new GlobalResponse<MemberDto>(false, "get member profile failed", errors: [$"member with id: {id} not found"]);
         }
 
-        if (member.Roles != null && member.Roles.Contains(role))
+        if (member.Roles != null && member.Roles.Contains(role.GetDisplayName()))
         {
             return new GlobalResponse<MemberDto>(false, "assign member role failed", errors: ["duplicate role assignment"]);
         }
@@ -72,7 +72,7 @@ public class MemberService : IMemberService
             return new GlobalResponse<MemberDto>(false, "assign role failed", errors: ["member role invalid"]);
         }
 
-        member.Roles = [role];
+        member.Roles = [role.GetDisplayName()];
 
         await _repository.SaveChangesAsync();
 
@@ -88,13 +88,13 @@ public class MemberService : IMemberService
             return new GlobalResponse<MemberDto>(false, "get member profile failed", errors: [$"member with id: {id} not found"]);
         }
 
-        if (member.Roles == null || !member.Roles.Contains(role))
+        if (member.Roles == null || !member.Roles.Contains(role.GetDisplayName()))
         {
             return new GlobalResponse<MemberDto>(false, "resign member role failed", errors: [$"member does not possess the role: {role}"]);
         }
         else
         {
-            member.Roles.Remove(role);
+            member.Roles.Remove(role.GetDisplayName());
         }
 
         await _repository.SaveChangesAsync();

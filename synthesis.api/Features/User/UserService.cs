@@ -69,7 +69,7 @@ public class UserService : IUserService
                     AvatarUrl = m.Team.AvatarUrl
                 },
                 JoinedOn = m.JoinedOn,
-                Roles = m.Roles.Select(r => r.GetDisplayName()).ToList()
+                Roles = m.Roles
 
             }).ToList()
 

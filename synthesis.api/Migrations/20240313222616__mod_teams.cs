@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace synthesis.api.Migrations
 {
     /// <inheritdoc />
-    public partial class init : Migration
+    public partial class _mod_teams : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -21,7 +21,12 @@ namespace synthesis.api.Migrations
                 {
                     TeamId = table.Column<Guid>(type: "uuid", nullable: false),
                     Name = table.Column<string>(type: "text", nullable: true),
-                    LogoUrl = table.Column<string>(type: "text", nullable: true)
+                    Description = table.Column<string>(type: "text", nullable: true),
+                    Slug = table.Column<string>(type: "text", nullable: true),
+                    CreatedOn = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    SeatsAvailable = table.Column<int>(type: "integer", nullable: false),
+                    Invites = table.Column<List<string>>(type: "text[]", nullable: true),
+                    AvatarUrl = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -33,6 +38,7 @@ namespace synthesis.api.Migrations
                 columns: table => new
                 {
                     UserId = table.Column<Guid>(type: "uuid", nullable: false),
+                    CreatedOn = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     FullName = table.Column<string>(type: "text", nullable: true),
                     Profession = table.Column<string>(type: "text", nullable: true),
                     AvatarUrl = table.Column<string>(type: "text", nullable: true),
@@ -41,7 +47,7 @@ namespace synthesis.api.Migrations
                     PasswordHash = table.Column<string>(type: "text", nullable: true),
                     GitHubId = table.Column<int>(type: "integer", nullable: true),
                     EmailConfirmed = table.Column<bool>(type: "boolean", nullable: false),
-                    OnBoarding = table.Column<int>(type: "integer", nullable: false),
+                    OnBoardingProgress = table.Column<int>(type: "integer", nullable: false),
                     Skills = table.Column<List<string>>(type: "text[]", nullable: true)
                 },
                 constraints: table =>
@@ -54,9 +60,11 @@ namespace synthesis.api.Migrations
                 columns: table => new
                 {
                     ProjectId = table.Column<Guid>(type: "uuid", nullable: false),
-                    TeamId = table.Column<Guid>(type: "uuid", nullable: false),
                     Name = table.Column<string>(type: "text", nullable: true),
-                    IconUrl = table.Column<string>(type: "text", nullable: true),
+                    Description = table.Column<string>(type: "text", nullable: true),
+                    AvatarUrl = table.Column<string>(type: "text", nullable: true),
+                    CreatedOn = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    TeamId = table.Column<Guid>(type: "uuid", nullable: false),
                     ProjectMetadata = table.Column<string>(type: "jsonb", nullable: true)
                 },
                 constraints: table =>
@@ -76,6 +84,7 @@ namespace synthesis.api.Migrations
                 {
                     MemberId = table.Column<Guid>(type: "uuid", nullable: false),
                     UserId = table.Column<Guid>(type: "uuid", nullable: false),
+                    JoinedOn = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     Roles = table.Column<List<string>>(type: "text[]", nullable: true),
                     TeamId = table.Column<Guid>(type: "uuid", nullable: false)
                 },
@@ -90,30 +99,6 @@ namespace synthesis.api.Migrations
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_Members_Users_UserId",
-                        column: x => x.UserId,
-                        principalTable: "Users",
-                        principalColumn: "UserId",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "RefreshTokens",
-                columns: table => new
-                {
-                    RefreshTokenId = table.Column<Guid>(type: "uuid", nullable: false),
-                    UserId = table.Column<Guid>(type: "uuid", nullable: false),
-                    Token = table.Column<string>(type: "text", nullable: true),
-                    JwtId = table.Column<string>(type: "text", nullable: true),
-                    ExpiresAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    IsRevoked = table.Column<bool>(type: "boolean", nullable: false),
-                    IsUsed = table.Column<bool>(type: "boolean", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_RefreshTokens", x => x.RefreshTokenId);
-                    table.ForeignKey(
-                        name: "FK_RefreshTokens_Users_UserId",
                         column: x => x.UserId,
                         principalTable: "Users",
                         principalColumn: "UserId",
@@ -151,8 +136,8 @@ namespace synthesis.api.Migrations
                     Priority = table.Column<int>(type: "integer", nullable: false),
                     IsComplete = table.Column<bool>(type: "boolean", nullable: false),
                     CreatedOn = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    AssignedOn = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    DueDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    AssignedOn = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    DueDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     ProjectId = table.Column<Guid>(type: "uuid", nullable: false),
                     FeatureId = table.Column<Guid>(type: "uuid", nullable: true),
                     MemberId = table.Column<Guid>(type: "uuid", nullable: true)
@@ -199,11 +184,6 @@ namespace synthesis.api.Migrations
                 column: "TeamId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_RefreshTokens_UserId",
-                table: "RefreshTokens",
-                column: "UserId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_Tasks_FeatureId",
                 table: "Tasks",
                 column: "FeatureId");
@@ -237,9 +217,6 @@ namespace synthesis.api.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropTable(
-                name: "RefreshTokens");
-
             migrationBuilder.DropTable(
                 name: "Tasks");
 

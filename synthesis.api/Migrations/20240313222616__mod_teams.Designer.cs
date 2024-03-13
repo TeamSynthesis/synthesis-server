@@ -13,8 +13,8 @@ using synthesis.api.Data.Repository;
 namespace synthesis.api.Migrations
 {
     [DbContext(typeof(RepositoryContext))]
-    [Migration("20240304213633_cloud_init")]
-    partial class cloud_init
+    [Migration("20240313222616__mod_teams")]
+    partial class _mod_teams
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -60,6 +60,9 @@ namespace synthesis.api.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("MemberId");
 
+                    b.Property<DateTime?>("JoinedOn")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<List<string>>("Roles")
                         .HasColumnType("text[]");
 
@@ -85,7 +88,13 @@ namespace synthesis.api.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("ProjectId");
 
-                    b.Property<string>("IconUrl")
+                    b.Property<string>("AvatarUrl")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("CreatedOn")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Description")
                         .HasColumnType("text");
 
                     b.Property<string>("Name")
@@ -99,41 +108,6 @@ namespace synthesis.api.Migrations
                     b.HasIndex("TeamId");
 
                     b.ToTable("Projects");
-                });
-
-            modelBuilder.Entity("synthesis.api.Data.Models.RefreshTokenModel", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("RefreshTokenId");
-
-                    b.Property<DateTime?>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime?>("ExpiresAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<bool>("IsRevoked")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("IsUsed")
-                        .HasColumnType("boolean");
-
-                    b.Property<string>("JwtId")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Token")
-                        .HasColumnType("text");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("RefreshTokens");
                 });
 
             modelBuilder.Entity("synthesis.api.Data.Models.TaskToDoModel", b =>
@@ -194,6 +168,12 @@ namespace synthesis.api.Migrations
                     b.Property<string>("AvatarUrl")
                         .HasColumnType("text");
 
+                    b.Property<DateTime?>("CreatedOn")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text");
+
                     b.Property<List<string>>("Invites")
                         .HasColumnType("text[]");
 
@@ -220,6 +200,9 @@ namespace synthesis.api.Migrations
 
                     b.Property<string>("AvatarUrl")
                         .HasColumnType("text");
+
+                    b.Property<DateTime?>("CreatedOn")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Email")
                         .HasColumnType("text");
@@ -345,14 +328,10 @@ namespace synthesis.api.Migrations
                                                 .HasForeignKey("BrandingProjectMetadataProjectModelId");
                                         });
 
-                                    b2.OwnsMany("synthesis.api.Data.Models.Image", "MoodBoards", b3 =>
+                                    b2.OwnsOne("synthesis.api.Data.Models.Image", "MoodBoard", b3 =>
                                         {
                                             b3.Property<Guid>("BrandingProjectMetadataProjectModelId")
                                                 .HasColumnType("uuid");
-
-                                            b3.Property<int>("Id")
-                                                .ValueGeneratedOnAdd()
-                                                .HasColumnType("integer");
 
                                             b3.Property<string>("Description")
                                                 .HasColumnType("text");
@@ -360,7 +339,7 @@ namespace synthesis.api.Migrations
                                             b3.Property<string>("ImgUrl")
                                                 .HasColumnType("text");
 
-                                            b3.HasKey("BrandingProjectMetadataProjectModelId", "Id");
+                                            b3.HasKey("BrandingProjectMetadataProjectModelId");
 
                                             b3.ToTable("Projects");
 
@@ -373,7 +352,7 @@ namespace synthesis.api.Migrations
                                             b3.Property<Guid>("BrandingProjectMetadataProjectModelId")
                                                 .HasColumnType("uuid");
 
-                                            b3.Property<Dictionary<string, string>>("Neutral")
+                                            b3.Property<Dictionary<string, string>>("Accent")
                                                 .HasColumnType("hstore");
 
                                             b3.Property<string>("PreviewUrl")
@@ -415,19 +394,15 @@ namespace synthesis.api.Migrations
                                                 .HasForeignKey("BrandingProjectMetadataProjectModelId");
                                         });
 
-                                    b2.OwnsMany("synthesis.api.Data.Models.Wireframe", "Wireframes", b3 =>
+                                    b2.OwnsOne("synthesis.api.Data.Models.Wireframe", "Wireframe", b3 =>
                                         {
                                             b3.Property<Guid>("BrandingProjectMetadataProjectModelId")
                                                 .HasColumnType("uuid");
 
-                                            b3.Property<int>("Id")
-                                                .ValueGeneratedOnAdd()
-                                                .HasColumnType("integer");
-
                                             b3.Property<string>("Screen")
                                                 .HasColumnType("text");
 
-                                            b3.HasKey("BrandingProjectMetadataProjectModelId", "Id");
+                                            b3.HasKey("BrandingProjectMetadataProjectModelId");
 
                                             b3.ToTable("Projects");
 
@@ -439,21 +414,18 @@ namespace synthesis.api.Migrations
                                                     b4.Property<Guid>("WireframeBrandingProjectMetadataProjectModelId")
                                                         .HasColumnType("uuid");
 
-                                                    b4.Property<int>("WireframeId")
-                                                        .HasColumnType("integer");
-
                                                     b4.Property<string>("Description")
                                                         .HasColumnType("text");
 
                                                     b4.Property<string>("ImgUrl")
                                                         .HasColumnType("text");
 
-                                                    b4.HasKey("WireframeBrandingProjectMetadataProjectModelId", "WireframeId");
+                                                    b4.HasKey("WireframeBrandingProjectMetadataProjectModelId");
 
                                                     b4.ToTable("Projects");
 
                                                     b4.WithOwner()
-                                                        .HasForeignKey("WireframeBrandingProjectMetadataProjectModelId", "WireframeId");
+                                                        .HasForeignKey("WireframeBrandingProjectMetadataProjectModelId");
                                                 });
 
                                             b3.Navigation("Image");
@@ -461,13 +433,13 @@ namespace synthesis.api.Migrations
 
                                     b2.Navigation("Icon");
 
-                                    b2.Navigation("MoodBoards");
+                                    b2.Navigation("MoodBoard");
 
                                     b2.Navigation("Palette");
 
                                     b2.Navigation("Typography");
 
-                                    b2.Navigation("Wireframes");
+                                    b2.Navigation("Wireframe");
                                 });
 
                             b1.OwnsOne("synthesis.api.Data.Models.CompetitiveAnalysis", "CompetitiveAnalysis", b2 =>
@@ -710,17 +682,6 @@ namespace synthesis.api.Migrations
                     b.Navigation("Team");
                 });
 
-            modelBuilder.Entity("synthesis.api.Data.Models.RefreshTokenModel", b =>
-                {
-                    b.HasOne("synthesis.api.Data.Models.UserModel", "User")
-                        .WithMany("RefreshTokens")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("synthesis.api.Data.Models.TaskToDoModel", b =>
                 {
                     b.HasOne("synthesis.api.Data.Models.FeatureModel", "Feature")
@@ -771,8 +732,6 @@ namespace synthesis.api.Migrations
             modelBuilder.Entity("synthesis.api.Data.Models.UserModel", b =>
                 {
                     b.Navigation("MemberProfiles");
-
-                    b.Navigation("RefreshTokens");
                 });
 #pragma warning restore 612, 618
         }
