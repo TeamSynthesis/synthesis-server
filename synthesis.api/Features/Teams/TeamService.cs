@@ -69,13 +69,12 @@ public class TeamService : ITeamService
             var uploadResponse = await _r2Cloud.UploadFileAsync(createCommand.Avatar, $"t_img_{team.Slug}");
             if (uploadResponse.IsSuccess)
             {
-
                 team.AvatarUrl = uploadResponse.Data.Url;
             }
         }
         else
         {
-            team.AvatarUrl = $"https://eu.ui-avatars.com/api/?name={team.Name}&size=250";
+            team.AvatarUrl = $"https://ui-avatars.com/api/?name={team.Name}&background=random&size=250"; ;
         }
 
         var member = new MemberModel()

@@ -1,5 +1,3 @@
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using synthesis.api.Data.Repository;
@@ -74,7 +72,7 @@ namespace synthesis.api.Features.Auth
             if (!response.IsSuccess)
                 return BadRequest(response);
 
-            return Redirect("https://www.google.com");
+            return Redirect("https://www.google.com"); 
         }
 
 

@@ -1,9 +1,9 @@
-
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using synthesis.api.Data.Models;
 using synthesis.api.Data.Repository;
 using synthesis.api.Mappings;
+using synthesis.api.Services.Cache;
 using synthesis.api.Services.OpenAi;
 using synthesis.api.Services.OpenAi.Dtos;
 
@@ -13,11 +13,12 @@ public interface IProjectService
 {
     Task<GlobalResponse<ProjectDto>> CreateProject(Guid teamId, CreateProjectDto createCommand);
 
-    Task<GlobalResponse<GptProjectDto>> GenerateProject(string prompt);
+    Task<GlobalResponse<string>> GenerateProject(string prompt);
 
     Task<GlobalResponse<ProjectDto>> UpdateProject(Guid id, UpdateProjectDto updateCommand);
 
     Task<GlobalResponse<ProjectDto>> GetProjectById(Guid id);
+    GlobalResponse<GptProjectDto> GetGeneratedProject(string processId);
 
     Task<GlobalResponse<ProjectDto>> DeleteProject(Guid id);
 }
@@ -27,12 +28,14 @@ public class ProjectService : IProjectService
     private readonly RepositoryContext _repository;
     private readonly IMapper _mapper;
     private readonly IChatGptService _gptService;
+    private readonly ICacheService _cache;
 
-    public ProjectService(RepositoryContext repository, IMapper mapper, IChatGptService gptService)
+    public ProjectService(RepositoryContext repository, IMapper mapper, IChatGptService gptService, ICacheService cache)
     {
         _repository = repository;
         _mapper = mapper;
         _gptService = gptService;
+        _cache = cache;
     }
 
     public async Task<GlobalResponse<ProjectDto>> CreateProject(Guid teamId, CreateProjectDto createCommand)
@@ -56,7 +59,7 @@ public class ProjectService : IProjectService
             return new GlobalResponse<ProjectDto>(false, "create project failed", errors: validationResult.Errors.Select(e => e.ErrorMessage).ToList());
         }
 
-        project.AvatarUrl = $"https://eu.ui-avatars.com/api/?name={project.Name}&size=250";
+        project.AvatarUrl = $"https://ui-avatars.com/api/?name={project.Name}&background=random&size=250"; ;
 
         await _repository.Projects.AddAsync(project);
         await _repository.SaveChangesAsync();
@@ -72,14 +75,17 @@ public class ProjectService : IProjectService
         return new GlobalResponse<ProjectDto>(true, "create project success", projectToReturn);
     }
 
-    public async Task<GlobalResponse<GptProjectDto>> GenerateProject(string prompt)
+    public async Task<GlobalResponse<string>> GenerateProject(string prompt)
     {
+        var processId = Guid.NewGuid().ToString();
+        var pendingResponse = new GlobalResponse<GptProjectDto>(true, "pending");
 
-        var projectDto = await _gptService.GenerateProject(prompt);
-        if (projectDto == null)
-            return new GlobalResponse<GptProjectDto>(false, "project generation failed", errors: [$"something went wrong"]);
+        _cache.SetData(processId, pendingResponse, DateTimeOffset.UtcNow.AddMinutes(10));
 
-        return new GlobalResponse<GptProjectDto>(true, "success", value: projectDto);
+        _ = Task.Run(async () => await HandleProjectGeneration(processId, prompt));
+
+        return new GlobalResponse<string>(true, "accepted", value: processId);
+
     }
 
     public async Task<GlobalResponse<ProjectDto>> UpdateProject(Guid id, UpdateProjectDto updateCommand)
@@ -135,6 +141,20 @@ public class ProjectService : IProjectService
         return new GlobalResponse<ProjectDto>(true, "delete project success");
     }
 
+    public GlobalResponse<GptProjectDto> GetGeneratedProject(string processId)
+    {
+        var response = _cache.GetData<GlobalResponse<GptProjectDto>>(processId);
+        if (response.Message == null) return new GlobalResponse<GptProjectDto>(false, "get generated project failed", errors: [$"process with id: {processId} not found"]);
 
+        return response;
+    }
+
+    private async Task HandleProjectGeneration(string processId, string prompt)
+    {
+
+        var response = await _gptService.GenerateProject(prompt);
+
+        _cache.SetData(processId, response, DateTimeOffset.UtcNow.AddMinutes(10));
+    }
 
 }

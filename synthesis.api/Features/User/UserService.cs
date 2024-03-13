@@ -122,8 +122,7 @@ public class UserService : IUserService
 
         if (postDetailsCommand.Avatar != null)
         {
-            var fileExtension = Path.GetExtension(postDetailsCommand.Avatar.FileName);
-            var uploadResponse = await _r2Cloud.UploadFileAsync(postDetailsCommand.Avatar, $"img_u_{user.UserName}.{fileExtension}");
+            var uploadResponse = await _r2Cloud.UploadFileAsync(postDetailsCommand.Avatar, $"img_u_{user.UserName}");
             if (uploadResponse.IsSuccess)
             {
                 user.AvatarUrl = uploadResponse.Data.Url;
@@ -131,7 +130,8 @@ public class UserService : IUserService
         }
         else
         {
-            user.AvatarUrl = $"https://eu.ui-avatars.com/api/?name={user.UserName}&size=250";
+
+            user.AvatarUrl = $"https://ui-avatars.com/api/?name={user.UserName}&background=random&size=250"; ;
         }
 
         user.OnBoardingProgress = OnBoardingProgress.Details;
@@ -191,7 +191,7 @@ public class UserService : IUserService
         var user = await _repository.Users.FindAsync(id);
         if (user == null) return new GlobalResponse<UserDto>(false, "reset password failed", errors: [$"user with id {id} not found"]);
 
-        // Reset the user's password logic here
+
 
         await _repository.SaveChangesAsync();
 

@@ -105,6 +105,7 @@ public class AuthService : IAuthService
         {
             Email = FindPrimaryEmail(emails),
             GitHubId = githubUser.id,
+            AvatarUrl = githubUser.avatar_url,
             EmailConfirmed = true,
             OnBoardingProgress = OnBoardingProgress.CreateAccount
         };
@@ -235,4 +236,6 @@ public class AuthService : IAuthService
 
         return new GlobalResponse<string>(true, "confirm email success", value: "email confirmed");
     }
+
+
 }

@@ -2,12 +2,13 @@ namespace synthesis.api.Services.OpenAi;
 
 using Azure.AI.OpenAI;
 using synthesis.api.Data.Models;
+using synthesis.api.Mappings;
 using synthesis.api.Services.OpenAi.Dtos;
 using System.Text.Json;
 
 public interface IChatGptService
 {
-    Task<GptProjectDto> GenerateProject(string prompt);
+    Task<GlobalResponse<GptProjectDto>> GenerateProject(string prompt);
 
 }
 public class ChatGptService : IChatGptService
@@ -25,23 +26,31 @@ public class ChatGptService : IChatGptService
         _dalleService = new DalleService();
     }
 
-    public async Task<GptProjectDto> GenerateProject(string prompt)
+    public async Task<GlobalResponse<GptProjectDto>> GenerateProject(string prompt)
     {
-        //var overview = GetProjectOverview(prompt);
-        //var competitiveAnalysis = GetProjectCompetitiveAnalysis(prompt);
-        //var features = GetProjectFeatures(prompt);
-
+        var overview = GetProjectOverview(prompt);
+        var competitiveAnalysis = GetProjectCompetitiveAnalysis(prompt);
+        var features = GetProjectFeatures(prompt);
         var branding = GetProjectBranding(prompt);
 
-        await Task.WhenAll(branding);
+        await Task.WhenAll(overview, competitiveAnalysis, features, branding);
 
 
         var projectMetadata = new GptProjectDto()
         {
+            Overview = overview.Result,
+            CompetitiveAnalysis = competitiveAnalysis.Result,
+            Features = features.Result,
             Branding = branding.Result
+
         };
 
-        return projectMetadata;
+        if (projectMetadata == null)
+        {
+            return new GlobalResponse<GptProjectDto>(false, "generate project failed", errors: ["something went wrong"]);
+        }
+
+        return new GlobalResponse<GptProjectDto>(true, "project generated successfully", projectMetadata);
     }
 
     private async Task<Overview> GetProjectOverview(string prompt)
@@ -95,7 +104,7 @@ public class ChatGptService : IChatGptService
 
         var features = JsonSerializer.Deserialize<List<GptFeatureDto>>(response.Choices[0].Message.Content);
 
-        return features;
+        return features ?? new List<GptFeatureDto>();
 
     }
 
@@ -129,7 +138,7 @@ public class ChatGptService : IChatGptService
     {
         var ChatCompletionOptions = new ChatCompletionsOptions()
         {
-            DeploymentName = GptClients._GPT3TurboDeployment,
+            DeploymentName = GptClients._GPT4Deployment,
             Messages =
             {
                 new ChatRequestAssistantMessage(GptSystemMessages.GetBrandingPrompt()),
@@ -142,7 +151,7 @@ public class ChatGptService : IChatGptService
             PresencePenalty = 0,
         };
 
-        var responseWithoutStream = await _gpt3TurboClient.GetChatCompletionsAsync(ChatCompletionOptions);
+        var responseWithoutStream = await _gpt4Client.GetChatCompletionsAsync(ChatCompletionOptions);
 
         var response = responseWithoutStream.Value;
 
@@ -184,7 +193,6 @@ public class ChatGptService : IChatGptService
             var image = await _dalleService.GenerateImage(prompt);
             images.Add(image);
         }
-
         return images;
     }
 }

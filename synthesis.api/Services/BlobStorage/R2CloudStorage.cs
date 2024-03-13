@@ -38,6 +38,7 @@ public class R2CloudStorage
         {
             BucketName = _bucketName,
             Key = fileName,
+            ContentType = Path.GetExtension(file.FileName),
             InputStream = file.OpenReadStream(),
             DisablePayloadSigning = true
         };

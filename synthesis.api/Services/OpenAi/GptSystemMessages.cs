@@ -13,7 +13,8 @@ public static class GptSystemMessages
     @"[{""Name"":"""",""Description"":"""",""Type"":null,""Tasks"":[{""Activity"":"""",""Priority"":null}]}]";
 
     private static readonly string BrandingResponseFormat =
-    @"{""Palette"":{""Primary"":{""Name"":"""",""Color"":""""},""Secondary"":{""Name"":"""",""Color"":""""},""Accent"":{""Name"":"""",""Color"":""""}},""Icon"":{""ImgUrl"":null,""Description"":null},""Slogan"":null,""Wireframe"":{""Screen"":null,""Image"":{""ImgUrl"":null,""Description"":null}},""MoodBoard"":{""ImgUrl"":null,""Description"":null},""PreviewUrl"":null,""Reason"":null},""Typography"":{""Font"":null,""Reason"":null}}";
+   @"{""Palette"":{""Primary"":{""Name"":"""",""Color"":""""},""Secondary"":{""Name"":"""",""Color"":""""},""Accent"":{""Name"":"""",""Color"":""""},""PreviewUrl"":"""",""Reason"":""""},""Icon"":{""ImgUrl"":"""",""Description"":""""},""Slogan"":"""",""Wireframe"":{""Screen"":"""",""Image"":{""ImgUrl"":"""",""Description"":""""}},""MoodBoard"":{""ImgUrl"":"""",""Description"":""""},""Typography"":{""Font"":"""",""Reason"":""""}}";
+
 
     public static string GetOverviewPrompt()
     {
