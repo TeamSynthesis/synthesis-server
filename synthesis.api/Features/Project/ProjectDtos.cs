@@ -1,4 +1,5 @@
 using synthesis.api.Data.Models;
+using synthesis.api.Features.Feature;
 
 namespace synthesis.api.Features.Project;
 
@@ -19,6 +20,5 @@ public record GeneratedProjectDto
     public ProjectMetadata? Metadata { get; set; }
 }
 
-public record CreateProjectDto(string? Name, string? Description);
+public record CreateProjectDto(string? Name, string? Description, List<FeatureDto>? Features, ProjectMetadata? Metadata);
 public record UpdateProjectDto(string Name, string Description);
-

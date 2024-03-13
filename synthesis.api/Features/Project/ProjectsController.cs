@@ -33,9 +33,19 @@ public class ProjectsController : ControllerBase
 
         return Ok(response.Data);
     }
+    [HttpGet("generated-project")]
+    public async Task<IActionResult> GetGeneratedProject(Guid processId)
+    {
+        var response = _service.GetGeneratedProject(processId.ToString());
 
+        if (response.Message.Contains("pending")) return Accepted(response);
+
+        if (!response.IsSuccess) return BadRequest(response);
+
+        return Ok(response);
+    }
     [HttpPost("generate")]
-    public async Task<IActionResult> GenerateProject([FromBody] string prompt)
+    public async Task<IActionResult> GenerateProject([FromForm] string prompt)
     {
         var response = await _service.GenerateProject(prompt);
         if (!response.IsSuccess) return BadRequest(response);
@@ -43,24 +53,6 @@ public class ProjectsController : ControllerBase
         return Ok(response);
     }
 
-
-    // [HttpPut("{id:guid}")]
-    // public async Task<IActionResult> UpdateProject(Guid id, [FromBody] UpdateProjectDto project)
-    // {
-    //     var response = await _service.UpdateProject(id, project);
-    //     if (!response.IsSuccess) return BadRequest(response);
-
-    //     return Ok(response);
-    // }
-
-    // [HttpPatch("{id:guid}")]
-    // public async Task<IActionResult> PatchProject(Guid id, [FromBody] UpdateProjectDto project)
-    // {
-    //     var response = await _service.PatchProject(id, project);
-    //     if (!response.IsSuccess) return BadRequest(response);
-
-    //     return Ok(response);
-    // }
 
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> DeleteProject(Guid id)

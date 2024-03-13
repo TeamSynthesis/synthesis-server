@@ -1,6 +1,7 @@
 using AutoMapper;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi.Extensions;
 using Microsoft.VisualBasic;
 using synthesis.api.Data.Models;
 using synthesis.api.Data.Repository;
@@ -68,19 +69,19 @@ public class TeamService : ITeamService
             var uploadResponse = await _r2Cloud.UploadFileAsync(createCommand.Avatar, $"t_img_{team.Slug}");
             if (uploadResponse.IsSuccess)
             {
-
                 team.AvatarUrl = uploadResponse.Data.Url;
             }
         }
         else
         {
-            team.AvatarUrl = $"https://eu.ui-avatars.com/api/?name={team.Name}&size=250";
+            team.AvatarUrl = $"https://ui-avatars.com/api/?name={team.Name}&background=random&size=250"; ;
         }
 
         var member = new MemberModel()
         {
             User = user,
-            Roles = [MemberRoles.Owner]
+            Roles = [MemberRole.Owner],
+            JoinedOn = DateTime.UtcNow
         };
 
         team.Members = [member];
@@ -93,6 +94,7 @@ public class TeamService : ITeamService
         {
             Id = team.Id,
             Name = team.Name,
+            Description = team.Description,
             Slug = team.Slug,
             AvatarUrl = team.AvatarUrl
         };
@@ -127,7 +129,8 @@ public class TeamService : ITeamService
         var member = new MemberModel()
         {
             User = user,
-            Team = team
+            Team = team,
+            JoinedOn = DateTime.UtcNow
         };
 
         await _repository.Members.AddAsync(member);
@@ -145,9 +148,10 @@ public class TeamService : ITeamService
                 Email = user.Email,
                 Profession = user.Profession,
                 Skills = user.Skills,
-                AvatarUrl = user.AvatarUrl
+                AvatarUrl = user.AvatarUrl,
             },
-            Roles = member.Roles
+            Roles = member.Roles.Select(r => r.GetDisplayName()).ToList(),
+            JoinedOn = member.JoinedOn
         };
 
         return new GlobalResponse<MemberDto>(true, "add member to team success", value: memberToReturn);
@@ -226,7 +230,8 @@ public class TeamService : ITeamService
                     Skills = m.User.Skills,
                     Email = m.User.AvatarUrl
                 },
-                Roles = m.Roles
+                Roles = m.Roles.Select(r => r.GetDisplayName()).ToList(),
+                JoinedOn = m.JoinedOn
             }).ToList(),
             Projects = t.Projects.Select(p => new ProjectDto
             {
@@ -257,20 +262,21 @@ public class TeamService : ITeamService
 
         var members = await _repository.Members
         .Where(m => m.TeamId == id)
-        .Select(x => new MemberDto()
+        .Select(m => new MemberDto()
         {
-            Id = x.Id,
+            Id = m.Id,
             User = new UserDto()
             {
-                Id = x.User.Id,
-                FullName = x.User.FullName,
-                UserName = x.User.UserName,
-                Email = x.User.Email,
-                Profession = x.User.Profession,
-                Skills = x.User.Skills,
-                AvatarUrl = x.User.AvatarUrl
+                Id = m.User.Id,
+                FullName = m.User.FullName,
+                UserName = m.User.UserName,
+                Email = m.User.Email,
+                Profession = m.User.Profession,
+                Skills = m.User.Skills,
+                AvatarUrl = m.User.AvatarUrl
             },
-            Roles = x.Roles
+            Roles = m.Roles.Select(r => r.GetDisplayName()).ToList(),
+            JoinedOn = m.JoinedOn
         }).ToListAsync();
 
 

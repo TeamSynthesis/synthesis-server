@@ -15,9 +15,10 @@ public interface IUserService
 
     Task<GlobalResponse<UserDto>> GetUserById(Guid id);
 
-    Task<GlobalResponse<UserDto>> UpdateUser(Guid id, UpdateUserDto updateRequest);
+    Task<GlobalResponse<UserDto>> ChangeAvatar(Guid id, IFormFile avatar);
 
     Task<GlobalResponse<UserDto>> PatchUser(Guid id, UpdateUserDto patchRequest);
+    Task<GlobalResponse<UserDto>> UpdateUser(Guid id, UpdateUserDto updateCommand);
 
     Task<GlobalResponse<UserDto>> PostUserDetails(Guid id, PostUserDetailsDto postCommand);
 
@@ -42,7 +43,6 @@ public class UserService : IUserService
 
 
     public async Task<GlobalResponse<UserDto>> GetUserById(Guid id)
-
     {
         var user = await _repository.Users
         .Where(u => u.Id == id)
@@ -69,7 +69,7 @@ public class UserService : IUserService
                     AvatarUrl = m.Team.AvatarUrl
                 },
                 JoinedOn = m.JoinedOn,
-                Roles = m.Roles
+                Roles = m.Roles.Select(r => r.GetDisplayName()).ToList()
 
             }).ToList()
 
@@ -78,25 +78,6 @@ public class UserService : IUserService
         if (user == null) return new GlobalResponse<UserDto>(false, "get user failed", errors: [$"user with id:{id} not found"]);
 
         return new GlobalResponse<UserDto>(true, "get user success", value: user);
-    }
-
-    public async Task<GlobalResponse<UserDto>> UpdateUser(Guid id, UpdateUserDto updateRequest)
-    {
-        var user = await _repository.Users.FindAsync(id);
-        if (user == null) return new GlobalResponse<UserDto>(false, "update user failed", errors: [$"user with id{id} not found"]);
-
-        var updatedUser = _mapper.Map(updateRequest, user);
-
-        var validationResult = await new UserValidator().ValidateAsync(updatedUser);
-        if (!validationResult.IsValid)
-        {
-            return new GlobalResponse<UserDto>(false, "update user failed", errors: validationResult.Errors.Select(e => e.ErrorMessage).ToList());
-        }
-
-        await _repository.SaveChangesAsync();
-
-        return new GlobalResponse<UserDto>(true, "user update success");
-
     }
 
     public async Task<GlobalResponse<UserDto>> PatchUser(Guid id, UpdateUserDto patchRequest)
@@ -131,6 +112,7 @@ public class UserService : IUserService
         user.Profession = postDetailsCommand.Profession;
         user.FullName = postDetailsCommand.FullName;
         user.UserName = postDetailsCommand.UserName;
+        user.CreatedOn = DateTime.UtcNow;
 
         var validationResult = await new UserValidator().ValidateAsync(user);
         if (!validationResult.IsValid)
@@ -140,7 +122,7 @@ public class UserService : IUserService
 
         if (postDetailsCommand.Avatar != null)
         {
-            var uploadResponse = await _r2Cloud.UploadFileAsync(postDetailsCommand.Avatar, $"u_img_{user.UserName}");
+            var uploadResponse = await _r2Cloud.UploadFileAsync(postDetailsCommand.Avatar, $"img_u_{user.UserName}");
             if (uploadResponse.IsSuccess)
             {
                 user.AvatarUrl = uploadResponse.Data.Url;
@@ -148,7 +130,8 @@ public class UserService : IUserService
         }
         else
         {
-            user.AvatarUrl = $"https://eu.ui-avatars.com/api/?name={user.UserName}&size=250";
+
+            user.AvatarUrl = $"https://ui-avatars.com/api/?name={user.UserName}&background=random&size=250"; ;
         }
 
         user.OnBoardingProgress = OnBoardingProgress.Details;
@@ -171,6 +154,27 @@ public class UserService : IUserService
 
     }
 
+    public async Task<GlobalResponse<UserDto>> UpdateUser(Guid id, UpdateUserDto updateCommand)
+    {
+        var user = await _repository.Users.FindAsync(id);
+        if (user == null) return new GlobalResponse<UserDto>(false, "update user failed", errors: [$"user with id {id} not found"]);
+
+        user.UserName = updateCommand.Username;
+        user.Email = updateCommand.Email;
+        user.FullName = updateCommand.FullName;
+        user.Profession = updateCommand.Profession;
+
+        var validationResult = await new UserValidator().ValidateAsync(user);
+        if (!validationResult.IsValid)
+        {
+            return new GlobalResponse<UserDto>(false, "update user failed", errors: validationResult.Errors.Select(e => e.ErrorMessage).ToList());
+        }
+
+        await _repository.SaveChangesAsync();
+
+        return new GlobalResponse<UserDto>(true, "update user success");
+    }
+
     public async Task<GlobalResponse<UserDto>> DeleteUser(Guid id)
     {
         var user = await _repository.Users.FindAsync(id);
@@ -182,5 +186,38 @@ public class UserService : IUserService
         return new GlobalResponse<UserDto>(true, "delete user success");
     }
 
+    public async Task<GlobalResponse<UserDto>> ResetPassword(Guid id, string newPassword)
+    {
+        var user = await _repository.Users.FindAsync(id);
+        if (user == null) return new GlobalResponse<UserDto>(false, "reset password failed", errors: [$"user with id {id} not found"]);
+
+
+
+        await _repository.SaveChangesAsync();
+
+        return new GlobalResponse<UserDto>(true, "reset password success");
+
+    }
+
+    public async Task<GlobalResponse<UserDto>> ChangeAvatar(Guid id, IFormFile avatar)
+    {
+        var user = await _repository.Users.FindAsync(id);
+        if (user == null) return new GlobalResponse<UserDto>(false, "update user failed", errors: [$"user with id {id} not found"]);
+
+
+        var uploadResponse = await _r2Cloud.UploadFileAsync(avatar, $"u_img_{user.UserName}");
+        if (!uploadResponse.IsSuccess)
+        {
+            return new GlobalResponse<UserDto>(false, "change avatar failed", errors: uploadResponse.Errors);
+        }
+
+        user.AvatarUrl = uploadResponse.Data.Url;
+
+
+        await _repository.SaveChangesAsync();
+
+        return new GlobalResponse<UserDto>(true, "update user success");
+
+    }
 
 }

@@ -28,9 +28,9 @@ public class Branding
     public Image? Icon { get; set; }
     public string? Slogan { get; set; }
 
-    public List<Wireframe>? Wireframes { get; set; }
+    public Wireframe? Wireframe { get; set; }
 
-    public List<Image>? MoodBoards { get; set; }
+    public Image? MoodBoard { get; set; }
 
     public ColorPalette? Palette { get; set; }
 
@@ -81,7 +81,7 @@ public class ColorPalette
 
     public Dictionary<string, string>? Primary { get; set; }
     public Dictionary<string, string>? Secondary { get; set; }
-    public Dictionary<string, string>? Neutral { get; set; }
+    public Dictionary<string, string>? Accent { get; set; }
     public string? PreviewUrl { get; set; }
     public string? Reason { get; set; }
 }

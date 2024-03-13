@@ -33,11 +33,11 @@ public class RepositoryContext : DbContext
             OwnedNavigationBuilder.OwnsOne(branding => branding.Branding, OwnedNavigationBuilder =>
             {
                 OwnedNavigationBuilder.OwnsOne(branding => branding.Icon);
-                OwnedNavigationBuilder.OwnsMany(branding => branding.Wireframes, OwnedNavigationBuilder =>
+                OwnedNavigationBuilder.OwnsOne(branding => branding.Wireframe, OwnedNavigationBuilder =>
                 {
                     OwnedNavigationBuilder.OwnsOne(wireframe => wireframe.Image);
                 });
-                OwnedNavigationBuilder.OwnsMany(branding => branding.MoodBoards);
+                OwnedNavigationBuilder.OwnsOne(branding => branding.MoodBoard);
                 OwnedNavigationBuilder.OwnsOne(branding => branding.Palette);
                 OwnedNavigationBuilder.OwnsOne(branding => branding.Typography);
 
