@@ -21,6 +21,7 @@ public interface IAuthService
     Task<GlobalResponse<LoginResponseDto>> Login(LoginUserDto loginCommand);
     Task<GlobalResponse<LoginResponseDto>> GitHubLogin(string access_token);
     Task<GlobalResponse<string>> ConfirmEmail(Guid userId, string token);
+
 }
 
 [AllowAnonymous]
@@ -236,6 +237,5 @@ public class AuthService : IAuthService
 
         return new GlobalResponse<string>(true, "confirm email success", value: "email confirmed");
     }
-
 
 }

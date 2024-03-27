@@ -49,6 +49,13 @@ public class TeamService : ITeamService
             return new GlobalResponse<TeamDto>(false, "create team failed", errors: [$"user with id: {userId} not found"]);
         }
 
+        var slugExists = await _repository.Teams.AnyAsync(t => t.Slug.ToLower() == t.Slug.ToLower());
+
+        if (slugExists)
+        {
+            return new GlobalResponse<TeamDto>(false, "create team failed", errors: ["the team slug is already taken"]);
+        }
+
         var team = new TeamModel()
         {
             CreatedOn = DateTime.UtcNow,
@@ -80,7 +87,7 @@ public class TeamService : ITeamService
         var member = new MemberModel()
         {
             User = user,
-            Roles = [MemberRole.Owner.GetDisplayName()],
+            Roles = [MemberRole.owner.GetDisplayName()],
             JoinedOn = DateTime.UtcNow
         };
 

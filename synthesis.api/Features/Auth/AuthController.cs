@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using synthesis.api.Data.Repository;
+using synthesis.api.Services.Email;
 
 namespace synthesis.api.Features.Auth
 {
@@ -10,9 +11,13 @@ namespace synthesis.api.Features.Auth
     public class AuthController : ControllerBase
     {
         private readonly IAuthService _service;
+        private readonly IEmailService _emailService;
         private readonly RepositoryContext _repository;
-        public AuthController(IAuthService service, RepositoryContext repository)
+
+
+        public AuthController(IAuthService service, RepositoryContext repository, IEmailService emailService)
         {
+            _emailService = emailService;
             _service = service;
             _repository = repository;
         }
@@ -72,7 +77,7 @@ namespace synthesis.api.Features.Auth
             if (!response.IsSuccess)
                 return BadRequest(response);
 
-            return Redirect("https://www.google.com"); 
+            return Redirect("https://www.google.com");
         }
 
 
@@ -80,6 +85,20 @@ namespace synthesis.api.Features.Auth
         public async Task<IActionResult> Logout()
         {
             return Ok("remove the token from your locals");
+        }
+
+        [HttpPost("email-text")]
+        public async Task<IActionResult> SendEmail()
+        {
+            var emails = new List<string>()
+            {
+                "manassehtchanga@gmail.com",
+                "dev.manasseh@gmail.com"
+            };
+
+            var response = await _emailService.SendTeamInvitationEmail("test", "synthesis.hq", emails);
+
+            return Ok(response);
         }
     }
 }

@@ -67,7 +67,7 @@ public class MemberService : IMemberService
             return new GlobalResponse<MemberDto>(false, "assign member role failed", errors: ["duplicate role assignment"]);
         }
 
-        if (role != MemberRole.Owner || role != MemberRole.Manager)
+        if (role != MemberRole.owner || role != MemberRole.manager)
         {
             return new GlobalResponse<MemberDto>(false, "assign role failed", errors: ["member role invalid"]);
         }

@@ -14,6 +14,5 @@ public class TeamModel
     public List<string>? Invites { get; set; }
     public string? AvatarUrl { get; set; }
     public List<MemberModel>? Members { get; set; }
-    public List<ProjectModel>? Projects { get; set; }
-
+    public List<ProjectModel>? Projects { get; set; } 
 }

@@ -25,6 +25,6 @@ public class MemberModel
 
 public enum MemberRole
 {
-    Manager,
-    Owner
+    manager,
+    owner
 }
