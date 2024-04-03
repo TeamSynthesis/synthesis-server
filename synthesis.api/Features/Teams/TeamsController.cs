@@ -1,6 +1,4 @@
-using System.ComponentModel.Design.Serialization;
 using Microsoft.AspNetCore.Mvc;
-using Scrutor;
 
 namespace synthesis.api.Features.Teams;
 

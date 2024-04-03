@@ -78,7 +78,10 @@ public class EmailService : IEmailService
         request.AddParameter("domain", "manasseh.me", ParameterType.UrlSegment);
         request.Resource = "{domain}/messages";
         request.AddParameter("from", "Team Synthesis <postmaster@manasseh.me>");
-        request.AddParameter("to", emails);
+        foreach (var receipient in recepientEmails)
+        {
+            request.AddParameter("to", $"You <{receipient}>");
+        }
         request.AddParameter("subject", "Team Invitation");
         request.AddParameter("template", "invitation_email");
         request.AddParameter("h:X-Mailgun-Variables", paramJson);

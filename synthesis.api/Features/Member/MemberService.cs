@@ -1,11 +1,8 @@
-using System.Collections.Immutable;
-using System.Security.Cryptography.X509Certificates;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Extensions;
 using synthesis.api.Data.Models;
 using synthesis.api.Data.Repository;
-using synthesis.api.Features.Member;
 using synthesis.api.Features.User;
 using synthesis.api.Mappings;
 

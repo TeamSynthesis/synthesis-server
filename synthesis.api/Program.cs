@@ -1,6 +1,5 @@
 using FluentValidation;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
 using Scrutor;
 using synthesis.api.Data.Models;

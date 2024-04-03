@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
 using synthesis.api.Data.Models;
-using synthesis.api.Mappings;
 
 namespace synthesis.api.Features.Member;
 

@@ -1,5 +1,3 @@
-using synthesis.api.Features.User;
-
 namespace synthesis.api.Features.Auth;
 
 public record RegisterUserDto

@@ -1,5 +1,3 @@
-using synthesis.api.Data.Models;
-
 namespace synthesis.api.Features.User;
 
 public record UserDto

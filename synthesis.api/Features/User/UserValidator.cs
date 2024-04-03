@@ -1,7 +1,6 @@
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using synthesis.api.Data.Models;
-using synthesis.api.Data.Repository;
 
 namespace synthesis.api.Features.User;
 

@@ -1,13 +1,10 @@
-using System.Collections.Immutable;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Extensions;
-using Octokit;
 using synthesis.api.Data.Models;
 using synthesis.api.Data.Repository;
 using synthesis.api.Features.User;
 using synthesis.api.Mappings;
-using synthesis.api.Services.BlobStorage;
 using Synthesis.Api.Services.BlobStorage;
 
 public interface IUserService

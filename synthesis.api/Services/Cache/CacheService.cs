@@ -1,6 +1,5 @@
 
 using System.Runtime.Caching;
-using Newtonsoft.Json;
 
 namespace synthesis.api.Services.Cache;
 

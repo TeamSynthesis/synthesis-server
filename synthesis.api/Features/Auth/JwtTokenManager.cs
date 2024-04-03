@@ -1,10 +1,8 @@
-using System;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
 using synthesis.api.Data.Models;
-using synthesis.api.Data.Repository;
 
 namespace synthesis.api.Features.Auth
 {

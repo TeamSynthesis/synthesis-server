@@ -1,4 +1,3 @@
-using Azure.AI.OpenAI;
 using Microsoft.AspNetCore.Mvc;
 using Synthesis.Api.Services.BlobStorage;
 

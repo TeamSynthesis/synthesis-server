@@ -1,4 +1,3 @@
-using Azure;
 using Azure.AI.OpenAI;
 
 namespace synthesis.api.Services.OpenAi;
