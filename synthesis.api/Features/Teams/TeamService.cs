@@ -1,12 +1,15 @@
+using System.Security.Permissions;
 using AutoMapper;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Extensions;
 using synthesis.api.Data.Models;
 using synthesis.api.Data.Repository;
+using synthesis.api.Features.Auth;
 using synthesis.api.Features.Project;
 using synthesis.api.Features.User;
 using synthesis.api.Mappings;
+using synthesis.api.Services.Email;
 using Synthesis.Api.Services.BlobStorage;
 
 namespace synthesis.api.Features.Teams;
@@ -23,6 +26,8 @@ public interface ITeamService
     Task<GlobalResponse<TeamDto>> UpdateTeam(Guid id, UpdateTeamDto updateCommand);
     Task<GlobalResponse<TeamDto>> PatchTeam(Guid id, UpdateTeamDto patchCommand);
     Task<GlobalResponse<TeamDto>> DeleteTeam(Guid id);
+    Task<GlobalResponse<TeamDto>> InviteTeamMembers(Guid id, HttpRequest request, List<string> emails);
+
 
 }
 
@@ -31,11 +36,16 @@ public class TeamService : ITeamService
     private readonly RepositoryContext _repository;
     private readonly IMapper _mapper;
     private readonly R2CloudStorage _r2Cloud;
-    public TeamService(RepositoryContext repository, IMapper mapper, R2CloudStorage r2Cloud)
+    private readonly IJwtTokenManager _jwtManager;
+    private readonly IEmailService _emailService;
+
+    public TeamService(RepositoryContext repository, IMapper mapper, R2CloudStorage r2Cloud, IJwtTokenManager jwtManager, IEmailService emailService)
     {
         _repository = repository;
         _mapper = mapper;
         _r2Cloud = r2Cloud;
+        _jwtManager = jwtManager;
+        _emailService = emailService;
     }
 
     public async Task<GlobalResponse<TeamDto>> CreateTeam(Guid userId, CreateTeamDto createCommand)
@@ -372,5 +382,32 @@ public class TeamService : ITeamService
         return new GlobalResponse<TeamDto>(true, "delete team success");
     }
 
+    public async Task<GlobalResponse<TeamDto>> InviteTeamMembers(Guid id, HttpRequest request, List<string> emails)
+    {
 
+        var teamToJoin = await _repository.Teams.Where(t => t.Id == id).Select(x => x.Name).FirstOrDefaultAsync();
+
+        if (teamToJoin == null) return new GlobalResponse<TeamDto>(false, "invite members failed", errors: [$"team with id: {id} not found"]);
+
+        var path = request.Scheme + "://" + request.Host + $"/api/team/{id}/invitation";
+
+        var recepients = emails.Select(email => new RecepientDto
+        {
+            Email = email,
+            Link = $"{path}?code={_jwtManager.GenerateTeamInvitationToken(email)}"
+        }).ToList();
+
+        var response = new GlobalResponse<string>();
+        foreach (var recepient in recepients)
+        {
+            response = await _emailService.SendTeamInvitationEmail(recepient, teamToJoin);
+        }
+
+        if (response.IsSuccess)
+        {
+            return new GlobalResponse<TeamDto>(true, "invitations sent");
+        }
+
+        else return new GlobalResponse<TeamDto>(false, "invite memebers failed", errors: response.Errors);
+    }
 }

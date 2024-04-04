@@ -201,7 +201,8 @@ public class AuthService : IAuthService
         var path = request.Scheme + "://" + request.Host + "/api/auth/confirm-email";
         var link = $"{path}?userId={user.Id}&code={code}";
 
-        var response = await _emailService.SendConfirmationEmail(link, user.Email);
+
+        var response = await _emailService.SendConfirmationEmail(new RecepientDto { Link = link, Email = user.Email });
 
         if (!response.IsSuccess)
         {

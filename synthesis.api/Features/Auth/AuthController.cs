@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using synthesis.api.Data.Repository;
+using synthesis.api.Features.User;
 using synthesis.api.Services.Email;
 
 namespace synthesis.api.Features.Auth
@@ -88,15 +89,16 @@ namespace synthesis.api.Features.Auth
         }
 
         [HttpPost("email-text")]
-        public async Task<IActionResult> SendEmail()
+        public async Task<IActionResult> SendEmail(List<string> emails)
         {
-            var emails = new List<string>()
-            {
-                "manassehtchanga@gmail.com",
-                "dev.manasseh@gmail.com"
-            };
+            var receipients = new List<RecepientDto>();
 
-            var response = await _emailService.SendTeamInvitationEmail("test", "synthesis.hq", emails);
+            foreach (var email in emails)
+            {
+                receipients.Add(email, )
+            }
+
+            var response = await _emailService.SendTeamInvitationEmail("test", "synthesis.hq", );
 
             return Ok(response);
         }

@@ -2,14 +2,15 @@
 using Newtonsoft.Json;
 using RestSharp;
 using RestSharp.Authenticators;
+using synthesis.api.Data.Models;
 using synthesis.api.Mappings;
 
 namespace synthesis.api.Services.Email;
 
 public interface IEmailService
 {
-    Task<GlobalResponse<string>> SendConfirmationEmail(string body, string recepientEmail);
-    Task<GlobalResponse<string>> SendTeamInvitationEmail(string link, string teamToJoin, List<string> recepientEmails);
+    Task<GlobalResponse<string>> SendConfirmationEmail(RecepientDto recepient);
+    Task<GlobalResponse<string>> SendTeamInvitationEmail(RecepientDto recepient, string teamToJoin);
     Task SendOnBoardingEmail();
 }
 public class EmailService : IEmailService
@@ -25,7 +26,7 @@ public class EmailService : IEmailService
     }
 
 
-    public async Task<GlobalResponse<string>> SendConfirmationEmail(string link, string recepientEmail)
+    public async Task<GlobalResponse<string>> SendConfirmationEmail(RecepientDto recepient)
     {
 
         var options = new RestClientOptions
@@ -36,13 +37,13 @@ public class EmailService : IEmailService
 
         var client = new RestClient(options);
 
-        var linkParams = new { confirmation_link = link };
+        var linkParams = new { confirmation_link = recepient.Link };
         var paramJson = JsonConvert.SerializeObject(linkParams);
         RestRequest request = new RestRequest();
         request.AddParameter("domain", "manasseh.me", ParameterType.UrlSegment);
         request.Resource = "{domain}/messages";
         request.AddParameter("from", "Team Synthesis <postmaster@manasseh.me>");
-        request.AddParameter("to", $"You <{recepientEmail}>");
+        request.AddParameter("to", $"You <{recepient.Email}>");
         request.AddParameter("subject", "Email Confirmation");
         request.AddParameter("template", "confirm-email");
         request.AddParameter("h:X-Mailgun-Variables", paramJson);
@@ -60,7 +61,7 @@ public class EmailService : IEmailService
 
     }
 
-    public async Task<GlobalResponse<string>> SendTeamInvitationEmail(string link, string teamToJoin, List<string> recepientEmails)
+    public async Task<GlobalResponse<string>> SendTeamInvitationEmail(RecepientDto recepient, string teamToJoin)
     {
 
         var options = new RestClientOptions
@@ -69,19 +70,16 @@ public class EmailService : IEmailService
             BaseUrl = new Uri("https://api.mailgun.net/v3")
         };
 
+
         var client = new RestClient(options);
 
-        var linkParams = new { invitation_link = link, team = teamToJoin };
+        var linkParams = new { invitation_link = recepient.Link, team = teamToJoin };
         var paramJson = JsonConvert.SerializeObject(linkParams);
-        var emails = JsonConvert.SerializeObject(recepientEmails);
         RestRequest request = new RestRequest();
         request.AddParameter("domain", "manasseh.me", ParameterType.UrlSegment);
         request.Resource = "{domain}/messages";
         request.AddParameter("from", "Team Synthesis <postmaster@manasseh.me>");
-        foreach (var receipient in recepientEmails)
-        {
-            request.AddParameter("to", $"You <{receipient}>");
-        }
+        request.AddParameter("to", $"You <{recepient.Email}>");
         request.AddParameter("subject", "Team Invitation");
         request.AddParameter("template", "invitation_email");
         request.AddParameter("h:X-Mailgun-Variables", paramJson);
