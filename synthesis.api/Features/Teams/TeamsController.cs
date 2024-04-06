@@ -46,6 +46,26 @@ public class TeamsController : ControllerBase
         return Ok(response);
     }
 
+    [HttpPost("{id:guid}/invite-members")]
+    public async Task<IActionResult> InviteMembers(Guid id, [FromForm] List<MemberInviteDto> invites)
+    {
+        var response = await _service.InviteTeamMembers(id, invites);
+
+        if (!response.IsSuccess) return BadRequest(response);
+
+        return Ok(response);
+    }
+
+    [HttpPost("join")]
+    public async Task<IActionResult> JoinTeam([FromForm] Guid userId, [FromForm] string code)
+    {
+        var response = await _service.JoinTeam(userId, code);
+
+        if (!response.IsSuccess) return BadRequest(response);
+
+        return Ok(response);
+    }
+
 
     [HttpGet("{id:guid}")]
     public async Task<IActionResult> GetTeamById(Guid id)

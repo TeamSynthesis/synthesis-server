@@ -1,7 +1,14 @@
 namespace synthesis.api.Services.Email;
 
-public class RecepientDto
+public record ConfirmEmailRecepientDto
 {
     public string? Email { get; set; }
     public string? Link { get; set; }
+}
+
+public record InviteRecepientDto
+{
+    public string? Email { get; set; }
+    public string? Code { get; set; }
+
 }

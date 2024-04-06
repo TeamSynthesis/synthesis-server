@@ -16,7 +16,7 @@ public class BlobStorageController : ControllerBase
 
 
     [HttpPost]
-    public async Task<IActionResult> Upload(IFormFile file, string fileName)
+    public async Task<IActionResult> Upload(string fileName, [FromForm] IFormFile file)
     {
         var fileExtension = Path.GetExtension(file.FileName);
         var response = await _blobService.UploadFileAsync(file, $"img_u_{fileName}{fileExtension}");

@@ -202,7 +202,7 @@ public class AuthService : IAuthService
         var link = $"{path}?userId={user.Id}&code={code}";
 
 
-        var response = await _emailService.SendConfirmationEmail(new RecepientDto { Link = link, Email = user.Email });
+        var response = await _emailService.SendConfirmationEmail(new ConfirmEmailRecepientDto { Link = link, Email = user.Email });
 
         if (!response.IsSuccess)
         {

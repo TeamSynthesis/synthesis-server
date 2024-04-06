@@ -20,6 +20,8 @@ public class RepositoryContext : DbContext
         modelBuilder.Entity<UserModel>().HasIndex(u => u.Email);
         modelBuilder.Entity<UserModel>().HasIndex(u => u.GitHubId);
 
+        modelBuilder.Entity<InviteModel>().HasIndex(i => i.Code);
+
         modelBuilder.Entity<ProjectModel>().OwnsOne(project => project.ProjectMetadata, OwnedNavigationBuilder =>
         {
             OwnedNavigationBuilder.ToJson();
@@ -67,6 +69,7 @@ public class RepositoryContext : DbContext
 
     public DbSet<UserModel> Users { get; set; }
     public DbSet<TeamModel> Teams { get; set; }
+    public DbSet<InviteModel> Invites { get; set; }
     public DbSet<MemberModel> Members { get; set; }
     public DbSet<ProjectModel> Projects { get; set; }
     public DbSet<FeatureModel> Features { get; set; }

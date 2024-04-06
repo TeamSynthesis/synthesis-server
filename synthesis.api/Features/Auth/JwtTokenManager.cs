@@ -10,7 +10,7 @@ namespace synthesis.api.Features.Auth
     {
         string GenerateToken(UserModel user);
         string GenerateEmailConfirmationToken(UserModel user);
-        string GenerateTeamInvitationToken(string email);
+        string GenerateTeamInvitationToken(string email, string role);
     }
 
     public class JwtTokenManager : IJwtTokenManager
@@ -60,11 +60,12 @@ namespace synthesis.api.Features.Auth
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
 
-        public string GenerateTeamInvitationToken(string email)
+        public string GenerateTeamInvitationToken(string email, string role)
         {
             var claims = new[]
             {
-                new Claim(ClaimTypes.Email, email)
+                new Claim(ClaimTypes.Email, email),
+                new Claim(ClaimTypes.Role, role)
             };
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config.GetSection("JwtConfig:Secret").Value));

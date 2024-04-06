@@ -14,8 +14,8 @@ public interface IProjectService
     Task<GlobalResponse<ProjectDto>> CreateProject(Guid teamId, CreateProjectDto createCommand);
 
     Task<GlobalResponse<string>> GenerateProject(string prompt);
-
-    Task<GlobalResponse<ProjectDto>> UpdateProject(Guid id, UpdateProjectDto updateCommand);
+    Task<GlobalResponse<ProjectDto>> CreateAiGeneratedProject(Guid teamId, GptProjectDto gptProjectDto);
+     Task<GlobalResponse<ProjectDto>> UpdateProject(Guid id, UpdateProjectDto updateCommand);
 
     Task<GlobalResponse<ProjectDto>> GetProjectById(Guid id);
     GlobalResponse<GptProjectDto> GetGeneratedProject(string processId);
@@ -74,6 +74,63 @@ public class ProjectService : IProjectService
 
         return new GlobalResponse<ProjectDto>(true, "create project success", projectToReturn);
     }
+
+    public async Task<GlobalResponse<ProjectDto>> CreateAiGeneratedProject(Guid teamId, GptProjectDto gptProjectDto)
+    {
+        var teamExists = await _repository.Teams.AnyAsync(t => t.Id == teamId);
+        if (!teamExists) return new GlobalResponse<ProjectDto>(false, "create project failed", errors: [$"team with id: {teamId} not found"]);
+
+
+        var project = new ProjectModel()
+        {
+            TeamId = teamId,
+
+            Name = gptProjectDto.Overview.SuggestedNames.FirstOrDefault().Name,
+            Description = gptProjectDto.Overview.Description,
+            ProjectMetadata = new ProjectMetadata()
+            {
+                Overview = gptProjectDto.Overview,
+                CompetitiveAnalysis = gptProjectDto.CompetitiveAnalysis,
+                Branding = gptProjectDto.Branding
+            },
+
+            Features = gptProjectDto.Features.Select(f => new FeatureModel()
+            {
+                Name = f.Name,
+                Description = f.Description,
+                Type = (FeatureType)f.Type,
+                Tasks = f.Tasks.Select(t => new TaskToDoModel()
+                {
+                    Activity = t.Activity,
+                    Priority = (TaskPriority)t.Priority,
+
+                }).ToList(),
+            }).ToList(),
+
+            CreatedOn = DateTime.UtcNow
+        };
+
+
+
+        project.AvatarUrl = $"https://ui-avatars.com/api/?name={project.Name}&background=random&size=250"; ;
+
+        await _repository.Projects.AddAsync(project);
+        await _repository.SaveChangesAsync();
+
+        var projectToReturn = new ProjectDto()
+        {
+            Id = project.Id,
+            Name = project.Name,
+            Description = project.Description,
+            AvatarUrl = project.AvatarUrl,
+            Metadata = project.ProjectMetadata
+        };
+
+        return new GlobalResponse<ProjectDto>(true, "create project success", projectToReturn);
+    }
+
+
+
 
     public async Task<GlobalResponse<string>> GenerateProject(string prompt)
     {

@@ -24,5 +24,9 @@ public record PostUserDetailsDto
     public string? Profession { get; set; }
 
 }
+public record ChangeAvatarDto
+{
+    public IFormFile? File { get; set; }
+}
 
 public record UpdateUserDto(string FullName, string Username, string Email, string Profession);

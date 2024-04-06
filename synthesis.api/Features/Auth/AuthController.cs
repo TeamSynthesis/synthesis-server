@@ -88,19 +88,5 @@ namespace synthesis.api.Features.Auth
             return Ok("remove the token from your locals");
         }
 
-        [HttpPost("email-text")]
-        public async Task<IActionResult> SendEmail(List<string> emails)
-        {
-            var receipients = new List<RecepientDto>();
-
-            foreach (var email in emails)
-            {
-                receipients.Add(email, )
-            }
-
-            var response = await _emailService.SendTeamInvitationEmail("test", "synthesis.hq", );
-
-            return Ok(response);
-        }
     }
 }

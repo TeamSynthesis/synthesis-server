@@ -1,4 +1,5 @@
 
+using Azure.Core;
 using Newtonsoft.Json;
 using RestSharp;
 using RestSharp.Authenticators;
@@ -9,8 +10,8 @@ namespace synthesis.api.Services.Email;
 
 public interface IEmailService
 {
-    Task<GlobalResponse<string>> SendConfirmationEmail(RecepientDto recepient);
-    Task<GlobalResponse<string>> SendTeamInvitationEmail(RecepientDto recepient, string teamToJoin);
+    Task<GlobalResponse<string>> SendConfirmationEmail(ConfirmEmailRecepientDto recepient);
+    Task<GlobalResponse<string>> SendTeamInvitationEmail(string teamToJoin, InviteRecepientDto recepient);
     Task SendOnBoardingEmail();
 }
 public class EmailService : IEmailService
@@ -26,7 +27,7 @@ public class EmailService : IEmailService
     }
 
 
-    public async Task<GlobalResponse<string>> SendConfirmationEmail(RecepientDto recepient)
+    public async Task<GlobalResponse<string>> SendConfirmationEmail(ConfirmEmailRecepientDto recepient)
     {
 
         var options = new RestClientOptions
@@ -40,6 +41,7 @@ public class EmailService : IEmailService
         var linkParams = new { confirmation_link = recepient.Link };
         var paramJson = JsonConvert.SerializeObject(linkParams);
         RestRequest request = new RestRequest();
+
         request.AddParameter("domain", "manasseh.me", ParameterType.UrlSegment);
         request.Resource = "{domain}/messages";
         request.AddParameter("from", "Team Synthesis <postmaster@manasseh.me>");
@@ -61,7 +63,7 @@ public class EmailService : IEmailService
 
     }
 
-    public async Task<GlobalResponse<string>> SendTeamInvitationEmail(RecepientDto recepient, string teamToJoin)
+    public async Task<GlobalResponse<string>> SendTeamInvitationEmail(string teamToJoin, InviteRecepientDto recepient)
     {
 
         var options = new RestClientOptions
@@ -70,30 +72,29 @@ public class EmailService : IEmailService
             BaseUrl = new Uri("https://api.mailgun.net/v3")
         };
 
-
         var client = new RestClient(options);
-
-        var linkParams = new { invitation_link = recepient.Link, team = teamToJoin };
-        var paramJson = JsonConvert.SerializeObject(linkParams);
         RestRequest request = new RestRequest();
+
+        var templateParams = new { invitation_code = recepient.Code, team = teamToJoin };
+        var paramsJson = JsonConvert.SerializeObject(templateParams);
+
         request.AddParameter("domain", "manasseh.me", ParameterType.UrlSegment);
         request.Resource = "{domain}/messages";
-        request.AddParameter("from", "Team Synthesis <postmaster@manasseh.me>");
         request.AddParameter("to", $"You <{recepient.Email}>");
+        request.AddParameter("from", "Team Synthesis <postmaster@manasseh.me>");
         request.AddParameter("subject", "Team Invitation");
         request.AddParameter("template", "invitation_email");
-        request.AddParameter("h:X-Mailgun-Variables", paramJson);
+        request.AddParameter("h:X-Mailgun-Variables", paramsJson);
+
         request.Method = Method.Post;
 
         var response = await client.ExecuteAsync(request);
-        if (response.IsSuccessStatusCode)
+
+        if (!response.IsSuccessStatusCode)
         {
-            return new GlobalResponse<string>(true, "email sent");
+            return new GlobalResponse<string>(false, $"failed to send email to {recepient.Email}", errors: [$"{response.ErrorMessage}"]);
         }
-        else
-        {
-            return new GlobalResponse<string>(false, "an error occured", errors: [response.ErrorMessage]);
-        }
+        return new GlobalResponse<string>(true, "email sent");
 
     }
 
