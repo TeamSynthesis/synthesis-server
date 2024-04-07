@@ -1,5 +1,6 @@
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Extensions;
 using synthesis.api.Data.Models;
 using synthesis.api.Data.Repository;
@@ -106,31 +107,18 @@ public class UserService : IUserService
         var user = await _repository.Users.FindAsync(id);
         if (user == null) return new GlobalResponse<UserDto>(false, "delete user failed", errors: [$"user with id{id} not found"]);
 
+        user.AvatarUrl = postDetailsCommand.AvatarUrl ?? $"https://ui-avatars.com/api/?name={postDetailsCommand.UserName}&background=random&size=250";
         user.Profession = postDetailsCommand.Profession;
         user.FullName = postDetailsCommand.FullName;
         user.UserName = postDetailsCommand.UserName;
         user.CreatedOn = DateTime.UtcNow;
 
         var validationResult = await new UserValidator().ValidateAsync(user);
+
         if (!validationResult.IsValid)
         {
             return new GlobalResponse<UserDto>(false, "update user failed", errors: validationResult.Errors.Select(e => e.ErrorMessage).ToList());
         }
-
-        if (postDetailsCommand.Avatar != null)
-        {
-            var uploadResponse = await _r2Cloud.UploadFileAsync(postDetailsCommand.Avatar, $"img_u_{user.UserName}");
-            if (uploadResponse.IsSuccess)
-            {
-                user.AvatarUrl = uploadResponse.Data.Url;
-            }
-        }
-        else
-        {
-
-            user.AvatarUrl = $"https://ui-avatars.com/api/?name={user.UserName}&background=random&size=250"; ;
-        }
-
         user.OnBoardingProgress = OnBoardingProgress.Details;
 
         await _repository.SaveChangesAsync();
@@ -202,7 +190,7 @@ public class UserService : IUserService
         if (user == null) return new GlobalResponse<UserDto>(false, "update user failed", errors: [$"user with id {id} not found"]);
 
 
-        var uploadResponse = await _r2Cloud.UploadFileAsync(avatar, $"u_img_{user.UserName}");
+        var uploadResponse = await _r2Cloud.UploadFileAsync(avatar, $"img_{Guid.NewGuid()}");
         if (!uploadResponse.IsSuccess)
         {
             return new GlobalResponse<UserDto>(false, "change avatar failed", errors: uploadResponse.Errors);
@@ -210,13 +198,12 @@ public class UserService : IUserService
 
         user.AvatarUrl = uploadResponse.Data.Url;
 
-
         await _repository.SaveChangesAsync();
 
         return new GlobalResponse<UserDto>(true, "update user success");
 
     }
 
-    
+
 
 }

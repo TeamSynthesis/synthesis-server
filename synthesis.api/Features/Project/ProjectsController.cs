@@ -25,6 +25,19 @@ public class ProjectsController : ControllerBase
         return Ok(response);
     }
 
+    [HttpPost("ai-project")]
+    public async Task<IActionResult> CreateAiProject(Guid planId)
+    {
+        var response = await _service.CreateAiGeneratedProject(planId);
+
+        if (!response.IsSuccess)
+        {
+            return BadRequest(response);
+        }
+
+        return Ok(response);
+    }
+
     [HttpGet("{id:guid}", Name = "ProjectById")]
     public async Task<IActionResult> GetProjectById(Guid id)
     {
@@ -34,20 +47,21 @@ public class ProjectsController : ControllerBase
         return Ok(response.Data);
     }
     [HttpGet("generated-project")]
-    public async Task<IActionResult> GetGeneratedProject(Guid processId)
+    public async Task<IActionResult> GetGeneratedProject(Guid planId)
     {
-        var response = _service.GetGeneratedProject(processId.ToString());
+        var response = await _service.GetGeneratedProject(planId);
 
-        if (response.Message.Contains("pending")) return Accepted(response);
+        if (response.IsSuccess) return Accepted(response);
 
         if (!response.IsSuccess) return BadRequest(response);
 
         return Ok(response);
     }
+
     [HttpPost("generate")]
-    public async Task<IActionResult> GenerateProject([FromForm] string prompt)
+    public async Task<IActionResult> GenerateProject([FromForm] Guid teamId, [FromForm] string prompt)
     {
-        var response = await _service.GenerateProject(prompt);
+        var response = await _service.GenerateProject(teamId, prompt);
         if (!response.IsSuccess) return BadRequest(response);
 
         return Ok(response);

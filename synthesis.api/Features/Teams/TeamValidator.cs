@@ -16,7 +16,7 @@ public class TeamValidator : AbstractValidator<TeamModel>
 
         RuleFor(t => t.Slug)
         .NotNull().NotEmpty().WithMessage("slug is a required field")
-        .MaximumLength(64).WithMessage("slug cannot exceed 64 characters")
+        .Length(3, 64).WithMessage("slug must be between 3-64 chars")
         .Matches(pattern).WithMessage("name must start and end with letters, with optional special characters ( _- ) inbetween");
 
 

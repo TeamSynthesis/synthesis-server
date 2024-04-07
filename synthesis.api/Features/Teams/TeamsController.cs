@@ -47,8 +47,9 @@ public class TeamsController : ControllerBase
     }
 
     [HttpPost("{id:guid}/invite-members")]
-    public async Task<IActionResult> InviteMembers(Guid id, [FromForm] List<MemberInviteDto> invites)
+    public async Task<IActionResult> InviteMembers(Guid id, [FromBody] List<MemberInviteDto> invites)
     {
+        if (invites == null) return BadRequest("required body param is null");
         var response = await _service.InviteTeamMembers(id, invites);
 
         if (!response.IsSuccess) return BadRequest(response);

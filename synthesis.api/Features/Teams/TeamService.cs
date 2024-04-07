@@ -28,7 +28,7 @@ public interface ITeamService
     Task<GlobalResponse<TeamDto>> PatchTeam(Guid id, UpdateTeamDto patchCommand);
     Task<GlobalResponse<TeamDto>> DeleteTeam(Guid id);
     Task<GlobalResponse<MemberDto>> JoinTeam(Guid userId, string code);
-    Task<GlobalResponse<string>> InviteTeamMembers(Guid id, List<MemberInviteDto> invites);
+    Task<GlobalResponse<List<InviteRecepientDto>>> InviteTeamMembers(Guid id, List<MemberInviteDto> invites);
 
 
 }
@@ -71,6 +71,7 @@ public class TeamService : ITeamService
             CreatedOn = DateTime.UtcNow,
             Name = createCommand.Name,
             Slug = createCommand.Slug,
+            AvatarUrl = createCommand.AvatarUrl ?? $"https://ui-avatars.com/api/?name={createCommand.Name}&background=random&size=250",
             SeatsAvailable = 3,
         };
 
@@ -79,19 +80,6 @@ public class TeamService : ITeamService
         if (!validationResult.IsValid)
         {
             return new GlobalResponse<TeamDto>(false, "create team failed", errors: validationResult.Errors.Select(e => e.ErrorMessage).ToList());
-        }
-
-        if (createCommand.Avatar != null)
-        {
-            var uploadResponse = await _r2Cloud.UploadFileAsync(createCommand.Avatar, $"t_img_{team.Slug}");
-            if (uploadResponse.IsSuccess)
-            {
-                team.AvatarUrl = uploadResponse.Data.Url;
-            }
-        }
-        else
-        {
-            team.AvatarUrl = $"https://ui-avatars.com/api/?name={team.Name}&background=random&size=250"; ;
         }
 
         var member = new MemberModel()
@@ -384,14 +372,17 @@ public class TeamService : ITeamService
         return new GlobalResponse<TeamDto>(true, "delete team success");
     }
 
-    public async Task<GlobalResponse<string>> InviteTeamMembers(Guid id, List<MemberInviteDto> invites)
+    public async Task<GlobalResponse<List<InviteRecepientDto>>> InviteTeamMembers(Guid id, List<MemberInviteDto> invites)
     {
 
         var team = await _repository.Teams.Where(t => t.Id == id)
-        .Select(x => new TeamModel { Id = x.Id, Name = x.Name }).FirstOrDefaultAsync();
+        .Select(x => new { x.Id, x.Name, MemberCount = x.Members.Count(), Seats = x.SeatsAvailable }).FirstOrDefaultAsync();
 
-        if (team == null) return new GlobalResponse<string>(false, "invite members failed", errors: [$"team with id: {id} not found"]);
+        if (team == null) return new GlobalResponse<List<InviteRecepientDto>>(false, "invite members failed", errors: [$"team with id: {id} not found"]);
 
+        var isMemberLimitExceeded = (team.MemberCount + invites.Count()) > team.Seats;
+
+        if (isMemberLimitExceeded) return new GlobalResponse<List<InviteRecepientDto>>(false, "invite members failed", errors: [$"member count exceeded you have {team.Seats - team.MemberCount} seats left"]);
 
         var invitations = invites.Select(x => new InviteModel
         {
@@ -419,21 +410,24 @@ public class TeamService : ITeamService
 
         if (sendEmailResponses.Any(r => r.IsSuccess == false))
         {
-            return new GlobalResponse<string>(true, "invites were sent but some were unsuccessful", recepients[0].Code);
+
+            return new GlobalResponse<List<InviteRecepientDto>>(true, "invites were sent but some were unsuccessful", recepients);
         }
 
-        return new GlobalResponse<string>(true, "member invites success");
+        return new GlobalResponse<List<InviteRecepientDto>>(true, "member invites success", recepients);
 
 
     }
 
     public async Task<GlobalResponse<MemberDto>> JoinTeam(Guid userId, string code)
     {
-        
+
         var invite = await _repository.Invites.Include(i => i.Team).FirstOrDefaultAsync(i => i.Code == code);
 
         if (invite == null) return new GlobalResponse<MemberDto>(false, "join team failed", errors: [$"invalide invite code"]);
 
+        var codeIsValid = await _repository.Users.AnyAsync(u => u.Email == invite.Email);
+        if (!codeIsValid) return new GlobalResponse<MemberDto>(false, "join team failed", errors: [$"invalid invite code"]);
 
         var memberExists = await _repository.Members.AnyAsync(m => m.UserId == userId && m.TeamId == invite.TeamId);
         if (memberExists)
@@ -450,6 +444,8 @@ public class TeamService : ITeamService
         };
 
         await _repository.Members.AddAsync(member);
+        invite.Accepted = true;
+
         await _repository.SaveChangesAsync();
 
         var memberToReturn = new MemberDto()

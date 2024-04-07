@@ -15,7 +15,7 @@ public class UserValidator : AbstractValidator<UserModel>
         .NotNull().NotEmpty().WithMessage("Username is a required field")
         .Length(2, 20).WithMessage("Username must be between 2 - 20 characters")
         .Matches(pattern).WithMessage("Username must start and end with alphanumeric characters, with optional special characters ( _.- )");
-        
+
         RuleFor(u => u.Profession)
         .NotNull().NotEmpty().WithMessage("Profession is a required field")
         .Length(2, 20).WithMessage("Profession must be between 2 - 20 characters");

@@ -21,6 +21,15 @@ public record GeneratedProjectDto
     public ProjectMetadata? Metadata { get; set; }
 }
 
-public record CreateProjectDto(string? Name, string? Description, List<FeatureDto>? Features, ProjectMetadata? Metadata);
+public record CreateProjectDto(string? Name, string? Description);
 
 public record UpdateProjectDto(string Name, string Description);
+
+public record PlanDto
+{
+    public Guid Id { get; set; }
+
+    public GptProjectDto? Plan { get; set; }
+
+    public bool IsSuccess { get; set; }
+}

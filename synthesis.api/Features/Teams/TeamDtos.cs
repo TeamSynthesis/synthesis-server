@@ -13,7 +13,7 @@ public record TeamDto
     public List<ProjectDto>? Projects { get; set; }
 }
 
-public record CreateTeamDto(string Name, string Description, string Slug, IFormFile? Avatar);
+public record CreateTeamDto(string Name, string Description, string Slug, string? AvatarUrl);
 public record UpdateTeamDto(string Name, string Description);
 
 public record MemberInviteDto

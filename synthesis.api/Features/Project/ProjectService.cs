@@ -1,5 +1,6 @@
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using Npgsql.Replication.PgOutput.Messages;
 using synthesis.api.Data.Models;
 using synthesis.api.Data.Repository;
 using synthesis.api.Mappings;
@@ -13,12 +14,12 @@ public interface IProjectService
 {
     Task<GlobalResponse<ProjectDto>> CreateProject(Guid teamId, CreateProjectDto createCommand);
 
-    Task<GlobalResponse<string>> GenerateProject(string prompt);
-    Task<GlobalResponse<ProjectDto>> CreateAiGeneratedProject(Guid teamId, GptProjectDto gptProjectDto);
-     Task<GlobalResponse<ProjectDto>> UpdateProject(Guid id, UpdateProjectDto updateCommand);
+    Task<GlobalResponse<string>> GenerateProject(Guid teamId, string prompt);
+    Task<GlobalResponse<ProjectDto>> CreateAiGeneratedProject(Guid planId);
+    Task<GlobalResponse<ProjectDto>> UpdateProject(Guid id, UpdateProjectDto updateCommand);
 
     Task<GlobalResponse<ProjectDto>> GetProjectById(Guid id);
-    GlobalResponse<GptProjectDto> GetGeneratedProject(string processId);
+    Task<GlobalResponse<PlanDto>> GetGeneratedProject(Guid planId);
 
     Task<GlobalResponse<ProjectDto>> DeleteProject(Guid id);
 }
@@ -47,7 +48,7 @@ public class ProjectService : IProjectService
         var project = new ProjectModel()
         {
             TeamId = teamId,
-
+            AvatarUrl = $"https://ui-avatars.com/api/?name={createCommand.Name}&background=random&size=250",
             Name = createCommand.Name,
             Description = createCommand.Description,
             CreatedOn = DateTime.UtcNow
@@ -59,7 +60,6 @@ public class ProjectService : IProjectService
             return new GlobalResponse<ProjectDto>(false, "create project failed", errors: validationResult.Errors.Select(e => e.ErrorMessage).ToList());
         }
 
-        project.AvatarUrl = $"https://ui-avatars.com/api/?name={project.Name}&background=random&size=250"; ;
 
         await _repository.Projects.AddAsync(project);
         await _repository.SaveChangesAsync();
@@ -75,26 +75,29 @@ public class ProjectService : IProjectService
         return new GlobalResponse<ProjectDto>(true, "create project success", projectToReturn);
     }
 
-    public async Task<GlobalResponse<ProjectDto>> CreateAiGeneratedProject(Guid teamId, GptProjectDto gptProjectDto)
+    public async Task<GlobalResponse<ProjectDto>> CreateAiGeneratedProject(Guid planId)
     {
-        var teamExists = await _repository.Teams.AnyAsync(t => t.Id == teamId);
-        if (!teamExists) return new GlobalResponse<ProjectDto>(false, "create project failed", errors: [$"team with id: {teamId} not found"]);
+        var plan = await _repository.Plans.FindAsync(planId);
+        var gptProject = plan.Project;
+
+
+        if (plan == null) return new GlobalResponse<ProjectDto>(false, "create project failed", errors: [$"plan with id: {plan} not found"]);
 
 
         var project = new ProjectModel()
         {
-            TeamId = teamId,
+            TeamId = plan.TeamId,
 
-            Name = gptProjectDto.Overview.SuggestedNames.FirstOrDefault().Name,
-            Description = gptProjectDto.Overview.Description,
+            Name = gptProject.Overview.SuggestedNames.FirstOrDefault().Name,
+            Description = gptProject.Overview.Description,
             ProjectMetadata = new ProjectMetadata()
             {
-                Overview = gptProjectDto.Overview,
-                CompetitiveAnalysis = gptProjectDto.CompetitiveAnalysis,
-                Branding = gptProjectDto.Branding
+                Overview = gptProject.Overview,
+                CompetitiveAnalysis = gptProject.CompetitiveAnalysis,
+                Branding = gptProject.Branding
             },
 
-            Features = gptProjectDto.Features.Select(f => new FeatureModel()
+            Features = gptProject.Features.Select(f => new FeatureModel()
             {
                 Name = f.Name,
                 Description = f.Description,
@@ -129,19 +132,13 @@ public class ProjectService : IProjectService
         return new GlobalResponse<ProjectDto>(true, "create project success", projectToReturn);
     }
 
-
-
-
-    public async Task<GlobalResponse<string>> GenerateProject(string prompt)
+    public async Task<GlobalResponse<string>> GenerateProject(Guid teamId, string prompt)
     {
-        var processId = Guid.NewGuid().ToString();
-        var pendingResponse = new GlobalResponse<GptProjectDto>(true, "pending");
+        var planId = Guid.NewGuid();
 
-        _cache.SetData(processId, pendingResponse, DateTimeOffset.UtcNow.AddMinutes(10));
+        _ = Task.Run(async () => await HandleProjectGeneration(teamId, planId, prompt));
 
-        _ = Task.Run(async () => await HandleProjectGeneration(processId, prompt));
-
-        return new GlobalResponse<string>(true, "accepted", value: processId);
+        return new GlobalResponse<string>(true, "accepted", value: planId.ToString());
 
     }
 
@@ -198,20 +195,28 @@ public class ProjectService : IProjectService
         return new GlobalResponse<ProjectDto>(true, "delete project success");
     }
 
-    public GlobalResponse<GptProjectDto> GetGeneratedProject(string processId)
+    public async Task<GlobalResponse<PlanDto>> GetGeneratedProject(Guid planId)
     {
-        var response = _cache.GetData<GlobalResponse<GptProjectDto>>(processId);
-        if (response.Message == null) return new GlobalResponse<GptProjectDto>(false, "get generated project failed", errors: [$"process with id: {processId} not found"]);
+        var plan = await _repository.Plans.AsNoTracking().Where(p => p.Id == planId).Select(x => new PlanDto
+        {
+            Id = x.Id,
+            Plan = x.Project,
+            IsSuccess = x.IsSuccess
+        }).FirstOrDefaultAsync();
 
-        return response;
+        if (plan == null) return new GlobalResponse<PlanDto>(false, "get generated project failed", errors: [$"plan with id: {planId} not found"]);
+
+        if (!plan.IsSuccess) return new GlobalResponse<PlanDto>(false, "get generated project failed", errors: [$"an error occured whilst we were making your pre-plan"]);
+
+        return new GlobalResponse<PlanDto>(true, "get generated project success", plan);
     }
 
-    private async Task HandleProjectGeneration(string processId, string prompt)
+    private async Task HandleProjectGeneration(Guid teamId, Guid planId, string prompt)
     {
 
         var response = await _gptService.GenerateProject(prompt);
 
-        _cache.SetData(processId, response, DateTimeOffset.UtcNow.AddMinutes(10));
+        await _repository.Plans.AddAsync(new PlanModel() { Id = planId, TeamId = teamId, Project = response.Data, IsSuccess = response.IsSuccess });
     }
 
 }

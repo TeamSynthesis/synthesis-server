@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Octokit;
 using synthesis.api.Data.Models;
 
 namespace synthesis.api.Data.Repository;
@@ -62,6 +63,11 @@ public class RepositoryContext : DbContext
 
         });
 
+        modelBuilder.Entity<PlanModel>().OwnsOne(plan => plan.Project, OwnedNavigationBuilder =>
+        {
+            OwnedNavigationBuilder.ToJson();
+        });
+
         modelBuilder.Entity<FeatureModel>().HasMany(ft => ft.Tasks).WithOne(t => t.Feature).IsRequired(false);
         modelBuilder.Entity<MemberModel>().HasMany(m => m.Tasks).WithOne(t => t.Member).IsRequired(false);
 
@@ -72,6 +78,7 @@ public class RepositoryContext : DbContext
     public DbSet<InviteModel> Invites { get; set; }
     public DbSet<MemberModel> Members { get; set; }
     public DbSet<ProjectModel> Projects { get; set; }
+    public DbSet<PlanModel> Plans { get; set; }
     public DbSet<FeatureModel> Features { get; set; }
     public DbSet<TaskToDoModel> Tasks { get; set; }
 

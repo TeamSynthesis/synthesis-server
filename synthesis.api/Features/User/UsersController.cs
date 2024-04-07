@@ -76,10 +76,10 @@ public class UsersController : ControllerBase
     }
 
     [HttpPost("{id:guid}/change-avatar")]
-    public async Task<IActionResult> ChangeAvatar(Guid id, [FromForm] ChangeAvatarDto avatar)
+    public async Task<IActionResult> ChangeAvatar(Guid id, IFormFile avatar)
     {
         if (avatar == null) return BadRequest("required body param is null");
-        var response = await _service.ChangeAvatar(id, avatar.File);
+        var response = await _service.ChangeAvatar(id, avatar);
         if (!response.IsSuccess) return BadRequest(response);
 
         return Ok(response);
