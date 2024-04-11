@@ -13,7 +13,16 @@ public record TaskDto
     public DateTime? DueDate { get; set; }
 }
 
-public record CreateTaskDto(string Activity, TaskPriority Priority = TaskPriority.Normal);
+public record CreateTaskDto
+{
+    public string Activity { get; set; }
+    public TaskPriority Priority { get; set; }
+
+
+    public DateTime DueDate { get; set; }
+    
+}
+
 public record UpdateTaskDto
 {
     public string? Activity { get; set; }

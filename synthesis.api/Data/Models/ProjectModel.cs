@@ -23,7 +23,7 @@ public class ProjectModel
     public List<TaskToDoModel>? Tasks { get; set; }
 
     [ForeignKey(nameof(PrePlanModel))]
-    public Guid PrePlanId { get; set; } 
+    public Guid? PrePlanId { get; set; } 
     public PrePlanModel? PrePlan { get; set; }
 
     

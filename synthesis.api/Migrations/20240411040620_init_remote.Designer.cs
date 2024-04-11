@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using synthesis.api.Data.Repository;
@@ -12,9 +13,11 @@ using synthesis.api.Data.Repository;
 namespace synthesis.api.Migrations
 {
     [DbContext(typeof(RepositoryContext))]
-    partial class RepositoryContextModelSnapshot : ModelSnapshot
+    [Migration("20240411040620_init_remote")]
+    partial class init_remote
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -154,7 +157,7 @@ namespace synthesis.api.Migrations
                     b.Property<string>("Name")
                         .HasColumnType("text");
 
-                    b.Property<Guid?>("PrePlanId")
+                    b.Property<Guid>("PrePlanId")
                         .HasColumnType("uuid");
 
                     b.Property<Guid>("TeamId")
@@ -354,7 +357,9 @@ namespace synthesis.api.Migrations
                 {
                     b.HasOne("synthesis.api.Data.Models.PrePlanModel", "PrePlan")
                         .WithMany()
-                        .HasForeignKey("PrePlanId");
+                        .HasForeignKey("PrePlanId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("synthesis.api.Data.Models.TeamModel", "Team")
                         .WithMany("Projects")
