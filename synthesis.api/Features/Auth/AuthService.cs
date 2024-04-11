@@ -2,10 +2,8 @@ using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.OpenApi.Extensions;
 using synthesis.api.Data.Models;
 using synthesis.api.Data.Repository;
-using synthesis.api.Features.User;
 using synthesis.api.Mappings;
 using synthesis.api.Services.Email;
 using Synthesis.Api.Services.BlobStorage;
@@ -21,6 +19,7 @@ public interface IAuthService
     Task<GlobalResponse<LoginResponseDto>> Login(LoginUserDto loginCommand);
     Task<GlobalResponse<LoginResponseDto>> GitHubLogin(string access_token);
     Task<GlobalResponse<string>> ConfirmEmail(Guid userId, string token);
+
 }
 
 [AllowAnonymous]
@@ -202,7 +201,8 @@ public class AuthService : IAuthService
         var path = request.Scheme + "://" + request.Host + "/api/auth/confirm-email";
         var link = $"{path}?userId={user.Id}&code={code}";
 
-        var response = await _emailService.SendConfirmationEmail(link, user.Email);
+
+        var response = await _emailService.SendConfirmationEmail(new ConfirmEmailRecepientDto { Link = link, Email = user.Email });
 
         if (!response.IsSuccess)
         {
@@ -236,6 +236,5 @@ public class AuthService : IAuthService
 
         return new GlobalResponse<string>(true, "confirm email success", value: "email confirmed");
     }
-
 
 }

@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using synthesis.api.Data.Repository;
+using synthesis.api.Features.User;
+using synthesis.api.Services.Email;
 
 namespace synthesis.api.Features.Auth
 {
@@ -10,9 +12,13 @@ namespace synthesis.api.Features.Auth
     public class AuthController : ControllerBase
     {
         private readonly IAuthService _service;
+        private readonly IEmailService _emailService;
         private readonly RepositoryContext _repository;
-        public AuthController(IAuthService service, RepositoryContext repository)
+
+
+        public AuthController(IAuthService service, RepositoryContext repository, IEmailService emailService)
         {
+            _emailService = emailService;
             _service = service;
             _repository = repository;
         }
@@ -72,7 +78,7 @@ namespace synthesis.api.Features.Auth
             if (!response.IsSuccess)
                 return BadRequest(response);
 
-            return Redirect("https://www.google.com"); 
+            return Redirect("https://www.google.com");
         }
 
 
@@ -81,5 +87,6 @@ namespace synthesis.api.Features.Auth
         {
             return Ok("remove the token from your locals");
         }
+
     }
 }

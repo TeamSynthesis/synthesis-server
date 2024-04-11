@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Octokit;
 using synthesis.api.Data.Models;
 
 namespace synthesis.api.Data.Repository;
@@ -20,56 +21,108 @@ public class RepositoryContext : DbContext
         modelBuilder.Entity<UserModel>().HasIndex(u => u.Email);
         modelBuilder.Entity<UserModel>().HasIndex(u => u.GitHubId);
 
-        modelBuilder.Entity<ProjectModel>().OwnsOne(project => project.ProjectMetadata, OwnedNavigationBuilder =>
-        {
-            OwnedNavigationBuilder.ToJson();
+        modelBuilder.Entity<InviteModel>().HasIndex(i => i.Code);
 
-            OwnedNavigationBuilder.OwnsOne(project => project.Overview, OwnedNavigationBuilder =>
-            {
-                OwnedNavigationBuilder.OwnsMany(overview => overview.SuggestedNames);
-                OwnedNavigationBuilder.OwnsMany(overview => overview.SuggestedDomains);
-            });
+        // modelBuilder.Entity<ProjectModel>().OwnsOne(project => project.PrePlan, ownedNavigationBuilder =>
+        // {
+        //     ownedNavigationBuilder.ToJson();
+        //
+        //     ownedNavigationBuilder.OwnsOne(project => project.Overview, ownedNavigationBuilder =>
+        //     {
+        //         ownedNavigationBuilder.OwnsMany(overview => overview.SuggestedNames);
+        //         ownedNavigationBuilder.OwnsMany(overview => overview.SuggestedDomains);
+        //     });
+        //
+        //     ownedNavigationBuilder.OwnsOne(branding => branding.Branding, ownedNavigationBuilder =>
+        //     {
+        //         ownedNavigationBuilder.OwnsOne(branding => branding.Icon);
+        //         ownedNavigationBuilder.OwnsOne(branding => branding.Wireframe, ownedNavigationBuilder =>
+        //         {
+        //             ownedNavigationBuilder.OwnsOne(wireframe => wireframe.Image);
+        //         });
+        //         ownedNavigationBuilder.OwnsOne(branding => branding.MoodBoard);
+        //         ownedNavigationBuilder.OwnsOne(branding => branding.Palette);
+        //         ownedNavigationBuilder.OwnsOne(branding => branding.Typography);
+        //
+        //     });
+        //
+        //     ownedNavigationBuilder.OwnsOne(competitiveAnalysis => competitiveAnalysis.CompetitiveAnalysis, ownedNavigationBuilder =>
+        //     {
+        //         ownedNavigationBuilder.OwnsMany(competitiveAnalysis => competitiveAnalysis.Competitors);
+        //         ownedNavigationBuilder.OwnsOne(competitiveAnalysis => competitiveAnalysis.Swot);
+        //         ownedNavigationBuilder.OwnsOne(competitiveAnalysis => competitiveAnalysis.TargetAudience, ownedNavigationBuilder =>
+        //         {
+        //             ownedNavigationBuilder.OwnsOne(targetAudience => targetAudience.Demographics);
+        //         });
+        //     });
+        //
+        //     ownedNavigationBuilder.OwnsOne(technology => technology.Technology, ownedNavigationBuilder =>
+        //     {
+        //         ownedNavigationBuilder.OwnsMany(technology => technology.TechStacks);
+        //     });
+        //
+        // });
+        
+        // modelBuilder.Entity<PrePlanModel>().OwnsOne(prePlan => prePlan.Plan, ownedNavigationBuilder =>
+        // {
+        //     ownedNavigationBuilder.ToJson();
+        //     
+        //     ownedNavigationBuilder.OwnsOne(project => project.Overview, ownedNavigationBuilder =>
+        //     {
+        //         ownedNavigationBuilder.OwnsMany(overview => overview.SuggestedNames);
+        //         ownedNavigationBuilder.OwnsMany(overview => overview.SuggestedDomains);
+        //     });
+        //
+        //     ownedNavigationBuilder.OwnsOne(branding => branding.Branding, ownedNavigationBuilder =>
+        //     {
+        //         ownedNavigationBuilder.OwnsOne(branding => branding.Icon);
+        //         ownedNavigationBuilder.OwnsOne(branding => branding.Wireframe, ownedNavigationBuilder =>
+        //         {
+        //             ownedNavigationBuilder.OwnsOne(wireframe => wireframe.Image);
+        //         });
+        //         ownedNavigationBuilder.OwnsOne(branding => branding.MoodBoard);
+        //         ownedNavigationBuilder.OwnsOne(branding => branding.Palette);
+        //         ownedNavigationBuilder.OwnsOne(branding => branding.Typography);
+        //
+        //     });
+        //
+        //     ownedNavigationBuilder.OwnsOne(competitiveAnalysis => competitiveAnalysis.CompetitiveAnalysis, ownedNavigationBuilder =>
+        //     {
+        //         ownedNavigationBuilder.OwnsMany(competitiveAnalysis => competitiveAnalysis.Competitors);
+        //         ownedNavigationBuilder.OwnsOne(competitiveAnalysis => competitiveAnalysis.Swot);
+        //         ownedNavigationBuilder.OwnsOne(competitiveAnalysis => competitiveAnalysis.TargetAudience, ownedNavigationBuilder =>
+        //         {
+        //             ownedNavigationBuilder.OwnsOne(targetAudience => targetAudience.Demographics);
+        //         });
+        //     });
+        //
+        //     ownedNavigationBuilder.OwnsMany(features => features.Features, ownedNavigationBuilder =>
+        //     {
+        //         ownedNavigationBuilder.OwnsMany(feature => feature.Tasks);
+        //     });
+        //     
+        //     ownedNavigationBuilder.OwnsOne(technology => technology.Technology, ownedNavigationBuilder =>
+        //     {
+        //         ownedNavigationBuilder.OwnsMany(technology => technology.TechStacks);
+        //     });
+        //
+        //     
+        // });
 
-            OwnedNavigationBuilder.OwnsOne(branding => branding.Branding, OwnedNavigationBuilder =>
-            {
-                OwnedNavigationBuilder.OwnsOne(branding => branding.Icon);
-                OwnedNavigationBuilder.OwnsOne(branding => branding.Wireframe, OwnedNavigationBuilder =>
-                {
-                    OwnedNavigationBuilder.OwnsOne(wireframe => wireframe.Image);
-                });
-                OwnedNavigationBuilder.OwnsOne(branding => branding.MoodBoard);
-                OwnedNavigationBuilder.OwnsOne(branding => branding.Palette);
-                OwnedNavigationBuilder.OwnsOne(branding => branding.Typography);
-
-            });
-
-            OwnedNavigationBuilder.OwnsOne(competitiveAnalysis => competitiveAnalysis.CompetitiveAnalysis, OwnedNavigationBuilder =>
-            {
-                OwnedNavigationBuilder.OwnsMany(competitiveAnalysis => competitiveAnalysis.Competitors);
-                OwnedNavigationBuilder.OwnsOne(competitiveAnalysis => competitiveAnalysis.Swot);
-                OwnedNavigationBuilder.OwnsOne(competitiveAnalysis => competitiveAnalysis.TargetAudience, OwnedNavigationBuilder =>
-                {
-                    OwnedNavigationBuilder.OwnsOne(targetAudience => targetAudience.Demographics);
-                });
-            });
-
-            OwnedNavigationBuilder.OwnsOne(technology => technology.Technology, OwnedNavigationBuilder =>
-            {
-                OwnedNavigationBuilder.OwnsMany(technology => technology.TechStacks);
-            });
-
-        });
-
+        
         modelBuilder.Entity<FeatureModel>().HasMany(ft => ft.Tasks).WithOne(t => t.Feature).IsRequired(false);
         modelBuilder.Entity<MemberModel>().HasMany(m => m.Tasks).WithOne(t => t.Member).IsRequired(false);
 
+
     }
 
-    public DbSet<UserModel> Users { get; set; }
-    public DbSet<TeamModel> Teams { get; set; }
-    public DbSet<MemberModel> Members { get; set; }
-    public DbSet<ProjectModel> Projects { get; set; }
-    public DbSet<FeatureModel> Features { get; set; }
-    public DbSet<TaskToDoModel> Tasks { get; set; }
+    public DbSet<UserModel> Users { get; init; }
+    public DbSet<TeamModel> Teams { get; init; }
+    public DbSet<InviteModel> Invites { get; init; }
+    public DbSet<MemberModel> Members { get; init; }
+    public DbSet<ProjectModel> Projects { get; init; }
+    public DbSet<PrePlanModel> PrePlans { get; init; }
+    public DbSet<FeatureModel> Features { get; init; }
+    public DbSet<TaskToDoModel> Tasks { get; init; }
 
 }

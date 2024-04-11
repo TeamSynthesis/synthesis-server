@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace synthesis.api.Data.Models;
 
@@ -11,9 +12,10 @@ public class TeamModel
     public string? Slug { get; set; }
     public DateTime? CreatedOn { get; set; }
     public int SeatsAvailable { get; set; }
-    public List<string>? Invites { get; set; }
     public string? AvatarUrl { get; set; }
     public List<MemberModel>? Members { get; set; }
-    public List<ProjectModel>? Projects { get; set; }
 
+    public List<PrePlanModel>? PrePlans { get; set; }
+    public List<ProjectModel>? Projects { get; set; }
+    public List<InviteModel>? Invites { get; set; }
 }

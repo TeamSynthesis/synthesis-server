@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace synthesis.api.Migrations
 {
     /// <inheritdoc />
-    public partial class _mod_teams : Migration
+    public partial class init : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -25,7 +25,6 @@ namespace synthesis.api.Migrations
                     Slug = table.Column<string>(type: "text", nullable: true),
                     CreatedOn = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     SeatsAvailable = table.Column<int>(type: "integer", nullable: false),
-                    Invites = table.Column<List<string>>(type: "text[]", nullable: true),
                     AvatarUrl = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
@@ -56,6 +55,50 @@ namespace synthesis.api.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Invites",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Code = table.Column<string>(type: "text", nullable: true),
+                    Email = table.Column<string>(type: "text", nullable: true),
+                    InvitedOn = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    Role = table.Column<string>(type: "text", nullable: true),
+                    Accepted = table.Column<bool>(type: "boolean", nullable: false),
+                    TeamId = table.Column<Guid>(type: "uuid", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Invites", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Invites_Teams_TeamId",
+                        column: x => x.TeamId,
+                        principalTable: "Teams",
+                        principalColumn: "TeamId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "PrePlans",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    TeamId = table.Column<Guid>(type: "uuid", nullable: false),
+                    Status = table.Column<int>(type: "integer", nullable: false),
+                    IsSuccess = table.Column<bool>(type: "boolean", nullable: false),
+                    Plan = table.Column<string>(type: "jsonb", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PrePlans", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_PrePlans_Teams_TeamId",
+                        column: x => x.TeamId,
+                        principalTable: "Teams",
+                        principalColumn: "TeamId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Projects",
                 columns: table => new
                 {
@@ -65,7 +108,7 @@ namespace synthesis.api.Migrations
                     AvatarUrl = table.Column<string>(type: "text", nullable: true),
                     CreatedOn = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     TeamId = table.Column<Guid>(type: "uuid", nullable: false),
-                    ProjectMetadata = table.Column<string>(type: "jsonb", nullable: true)
+                    PrePlan = table.Column<string>(type: "jsonb", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -169,6 +212,16 @@ namespace synthesis.api.Migrations
                 column: "ProjectId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Invites_Code",
+                table: "Invites",
+                column: "Code");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Invites_TeamId",
+                table: "Invites",
+                column: "TeamId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Members_TeamId",
                 table: "Members",
                 column: "TeamId");
@@ -177,6 +230,11 @@ namespace synthesis.api.Migrations
                 name: "IX_Members_UserId",
                 table: "Members",
                 column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PrePlans_TeamId",
+                table: "PrePlans",
+                column: "TeamId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Projects_TeamId",
@@ -217,6 +275,12 @@ namespace synthesis.api.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropTable(
+                name: "Invites");
+
+            migrationBuilder.DropTable(
+                name: "PrePlans");
+
             migrationBuilder.DropTable(
                 name: "Tasks");
 

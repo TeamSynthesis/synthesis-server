@@ -1,9 +1,5 @@
-using System.Reflection.Metadata.Ecma335;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
-using Npgsql.Internal;
 
 namespace synthesis.api.Features.User;
 
@@ -79,8 +75,8 @@ public class UsersController : ControllerBase
 
     }
 
-    [HttpPut("{id:guid}/change-avatar")]
-    public async Task<IActionResult> ChangeAvatar(Guid id, [FromForm] IFormFile avatar)
+    [HttpPost("{id:guid}/change-avatar")]
+    public async Task<IActionResult> ChangeAvatar(Guid id, IFormFile avatar)
     {
         if (avatar == null) return BadRequest("required body param is null");
         var response = await _service.ChangeAvatar(id, avatar);

@@ -1,5 +1,3 @@
-using synthesis.api.Data.Models;
-
 namespace synthesis.api.Features.User;
 
 public record UserDto
@@ -20,11 +18,15 @@ public record UserDto
 
 public record PostUserDetailsDto
 {
-    public IFormFile? Avatar { get; set; }
+    public string? AvatarUrl { get; set; }
     public string? UserName { get; set; }
     public string? FullName { get; set; }
     public string? Profession { get; set; }
 
+}
+public record ChangeAvatarDto
+{
+    public IFormFile? File { get; set; }
 }
 
 public record UpdateUserDto(string FullName, string Username, string Email, string Profession);

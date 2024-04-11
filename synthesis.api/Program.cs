@@ -1,6 +1,5 @@
 using FluentValidation;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
 using Scrutor;
 using synthesis.api.Data.Models;
@@ -34,7 +33,6 @@ builder.Services.Scan(x =>
     .WithScopedLifetime()
 );
 
-builder.Services.AddFluentEmail("").AddMailGunSender("", "");
 builder.Services.AddHttpClient();
 builder.Services.AddControllers()
 .AddJsonOptions(opt => opt.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull);

@@ -21,7 +21,6 @@ namespace synthesis.api.Migrations
                 .HasAnnotation("ProductVersion", "8.0.0")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
-            NpgsqlModelBuilderExtensions.HasPostgresExtension(modelBuilder, "hstore");
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
             modelBuilder.Entity("synthesis.api.Data.Models.FeatureModel", b =>
@@ -48,6 +47,39 @@ namespace synthesis.api.Migrations
                     b.HasIndex("ProjectId");
 
                     b.ToTable("Features");
+                });
+
+            modelBuilder.Entity("synthesis.api.Data.Models.InviteModel", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("Accepted")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Code")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Email")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("InvitedOn")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Role")
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("TeamId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Code");
+
+                    b.HasIndex("TeamId");
+
+                    b.ToTable("Invites");
                 });
 
             modelBuilder.Entity("synthesis.api.Data.Models.MemberModel", b =>
@@ -78,6 +110,31 @@ namespace synthesis.api.Migrations
                     b.ToTable("Members");
                 });
 
+            modelBuilder.Entity("synthesis.api.Data.Models.PrePlanModel", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("IsSuccess")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Plan")
+                        .HasColumnType("text");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("TeamId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TeamId");
+
+                    b.ToTable("PrePlans");
+                });
+
             modelBuilder.Entity("synthesis.api.Data.Models.ProjectModel", b =>
                 {
                     b.Property<Guid>("Id")
@@ -97,10 +154,15 @@ namespace synthesis.api.Migrations
                     b.Property<string>("Name")
                         .HasColumnType("text");
 
+                    b.Property<Guid>("PrePlanId")
+                        .HasColumnType("uuid");
+
                     b.Property<Guid>("TeamId")
                         .HasColumnType("uuid");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("PrePlanId");
 
                     b.HasIndex("TeamId");
 
@@ -170,9 +232,6 @@ namespace synthesis.api.Migrations
 
                     b.Property<string>("Description")
                         .HasColumnType("text");
-
-                    b.Property<List<string>>("Invites")
-                        .HasColumnType("text[]");
 
                     b.Property<string>("Name")
                         .HasColumnType("text");
@@ -250,6 +309,17 @@ namespace synthesis.api.Migrations
                     b.Navigation("Project");
                 });
 
+            modelBuilder.Entity("synthesis.api.Data.Models.InviteModel", b =>
+                {
+                    b.HasOne("synthesis.api.Data.Models.TeamModel", "Team")
+                        .WithMany("Invites")
+                        .HasForeignKey("TeamId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Team");
+                });
+
             modelBuilder.Entity("synthesis.api.Data.Models.MemberModel", b =>
                 {
                     b.HasOne("synthesis.api.Data.Models.TeamModel", "Team")
@@ -269,412 +339,32 @@ namespace synthesis.api.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("synthesis.api.Data.Models.PrePlanModel", b =>
+                {
+                    b.HasOne("synthesis.api.Data.Models.TeamModel", "Team")
+                        .WithMany("PrePlans")
+                        .HasForeignKey("TeamId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Team");
+                });
+
             modelBuilder.Entity("synthesis.api.Data.Models.ProjectModel", b =>
                 {
+                    b.HasOne("synthesis.api.Data.Models.PrePlanModel", "PrePlan")
+                        .WithMany()
+                        .HasForeignKey("PrePlanId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("synthesis.api.Data.Models.TeamModel", "Team")
                         .WithMany("Projects")
                         .HasForeignKey("TeamId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.OwnsOne("synthesis.api.Data.Models.ProjectMetadata", "ProjectMetadata", b1 =>
-                        {
-                            b1.Property<Guid>("ProjectModelId")
-                                .HasColumnType("uuid");
-
-                            b1.HasKey("ProjectModelId");
-
-                            b1.ToTable("Projects");
-
-                            b1.ToJson("ProjectMetadata");
-
-                            b1.WithOwner()
-                                .HasForeignKey("ProjectModelId");
-
-                            b1.OwnsOne("synthesis.api.Data.Models.Branding", "Branding", b2 =>
-                                {
-                                    b2.Property<Guid>("ProjectMetadataProjectModelId")
-                                        .HasColumnType("uuid");
-
-                                    b2.Property<string>("Slogan")
-                                        .HasColumnType("text");
-
-                                    b2.HasKey("ProjectMetadataProjectModelId");
-
-                                    b2.ToTable("Projects");
-
-                                    b2.WithOwner()
-                                        .HasForeignKey("ProjectMetadataProjectModelId");
-
-                                    b2.OwnsOne("synthesis.api.Data.Models.Image", "Icon", b3 =>
-                                        {
-                                            b3.Property<Guid>("BrandingProjectMetadataProjectModelId")
-                                                .HasColumnType("uuid");
-
-                                            b3.Property<string>("Description")
-                                                .HasColumnType("text");
-
-                                            b3.Property<string>("ImgUrl")
-                                                .HasColumnType("text");
-
-                                            b3.HasKey("BrandingProjectMetadataProjectModelId");
-
-                                            b3.ToTable("Projects");
-
-                                            b3.WithOwner()
-                                                .HasForeignKey("BrandingProjectMetadataProjectModelId");
-                                        });
-
-                                    b2.OwnsOne("synthesis.api.Data.Models.Image", "MoodBoard", b3 =>
-                                        {
-                                            b3.Property<Guid>("BrandingProjectMetadataProjectModelId")
-                                                .HasColumnType("uuid");
-
-                                            b3.Property<string>("Description")
-                                                .HasColumnType("text");
-
-                                            b3.Property<string>("ImgUrl")
-                                                .HasColumnType("text");
-
-                                            b3.HasKey("BrandingProjectMetadataProjectModelId");
-
-                                            b3.ToTable("Projects");
-
-                                            b3.WithOwner()
-                                                .HasForeignKey("BrandingProjectMetadataProjectModelId");
-                                        });
-
-                                    b2.OwnsOne("synthesis.api.Data.Models.ColorPalette", "Palette", b3 =>
-                                        {
-                                            b3.Property<Guid>("BrandingProjectMetadataProjectModelId")
-                                                .HasColumnType("uuid");
-
-                                            b3.Property<Dictionary<string, string>>("Accent")
-                                                .HasColumnType("hstore");
-
-                                            b3.Property<string>("PreviewUrl")
-                                                .HasColumnType("text");
-
-                                            b3.Property<Dictionary<string, string>>("Primary")
-                                                .HasColumnType("hstore");
-
-                                            b3.Property<string>("Reason")
-                                                .HasColumnType("text");
-
-                                            b3.Property<Dictionary<string, string>>("Secondary")
-                                                .HasColumnType("hstore");
-
-                                            b3.HasKey("BrandingProjectMetadataProjectModelId");
-
-                                            b3.ToTable("Projects");
-
-                                            b3.WithOwner()
-                                                .HasForeignKey("BrandingProjectMetadataProjectModelId");
-                                        });
-
-                                    b2.OwnsOne("synthesis.api.Data.Models.Typography", "Typography", b3 =>
-                                        {
-                                            b3.Property<Guid>("BrandingProjectMetadataProjectModelId")
-                                                .HasColumnType("uuid");
-
-                                            b3.Property<string>("Font")
-                                                .HasColumnType("text");
-
-                                            b3.Property<string>("Reason")
-                                                .HasColumnType("text");
-
-                                            b3.HasKey("BrandingProjectMetadataProjectModelId");
-
-                                            b3.ToTable("Projects");
-
-                                            b3.WithOwner()
-                                                .HasForeignKey("BrandingProjectMetadataProjectModelId");
-                                        });
-
-                                    b2.OwnsOne("synthesis.api.Data.Models.Wireframe", "Wireframe", b3 =>
-                                        {
-                                            b3.Property<Guid>("BrandingProjectMetadataProjectModelId")
-                                                .HasColumnType("uuid");
-
-                                            b3.Property<string>("Screen")
-                                                .HasColumnType("text");
-
-                                            b3.HasKey("BrandingProjectMetadataProjectModelId");
-
-                                            b3.ToTable("Projects");
-
-                                            b3.WithOwner()
-                                                .HasForeignKey("BrandingProjectMetadataProjectModelId");
-
-                                            b3.OwnsOne("synthesis.api.Data.Models.Image", "Image", b4 =>
-                                                {
-                                                    b4.Property<Guid>("WireframeBrandingProjectMetadataProjectModelId")
-                                                        .HasColumnType("uuid");
-
-                                                    b4.Property<string>("Description")
-                                                        .HasColumnType("text");
-
-                                                    b4.Property<string>("ImgUrl")
-                                                        .HasColumnType("text");
-
-                                                    b4.HasKey("WireframeBrandingProjectMetadataProjectModelId");
-
-                                                    b4.ToTable("Projects");
-
-                                                    b4.WithOwner()
-                                                        .HasForeignKey("WireframeBrandingProjectMetadataProjectModelId");
-                                                });
-
-                                            b3.Navigation("Image");
-                                        });
-
-                                    b2.Navigation("Icon");
-
-                                    b2.Navigation("MoodBoard");
-
-                                    b2.Navigation("Palette");
-
-                                    b2.Navigation("Typography");
-
-                                    b2.Navigation("Wireframe");
-                                });
-
-                            b1.OwnsOne("synthesis.api.Data.Models.CompetitiveAnalysis", "CompetitiveAnalysis", b2 =>
-                                {
-                                    b2.Property<Guid>("ProjectMetadataProjectModelId")
-                                        .HasColumnType("uuid");
-
-                                    b2.HasKey("ProjectMetadataProjectModelId");
-
-                                    b2.ToTable("Projects");
-
-                                    b2.WithOwner()
-                                        .HasForeignKey("ProjectMetadataProjectModelId");
-
-                                    b2.OwnsMany("synthesis.api.Data.Models.Competitor", "Competitors", b3 =>
-                                        {
-                                            b3.Property<Guid>("CompetitiveAnalysisProjectMetadataProjectModelId")
-                                                .HasColumnType("uuid");
-
-                                            b3.Property<int>("Id")
-                                                .ValueGeneratedOnAdd()
-                                                .HasColumnType("integer");
-
-                                            b3.Property<string>("Description")
-                                                .HasColumnType("text");
-
-                                            b3.Property<List<string>>("Features")
-                                                .HasColumnType("text[]");
-
-                                            b3.Property<string>("LogoUrl")
-                                                .HasColumnType("text");
-
-                                            b3.Property<string>("Name")
-                                                .HasColumnType("text");
-
-                                            b3.Property<string>("PricingModel")
-                                                .HasColumnType("text");
-
-                                            b3.Property<double>("ReviewSentiment")
-                                                .HasColumnType("double precision");
-
-                                            b3.Property<string>("Size")
-                                                .HasColumnType("text");
-
-                                            b3.Property<string>("Url")
-                                                .HasColumnType("text");
-
-                                            b3.HasKey("CompetitiveAnalysisProjectMetadataProjectModelId", "Id");
-
-                                            b3.ToTable("Projects");
-
-                                            b3.WithOwner()
-                                                .HasForeignKey("CompetitiveAnalysisProjectMetadataProjectModelId");
-                                        });
-
-                                    b2.OwnsOne("synthesis.api.Data.Models.Swot", "Swot", b3 =>
-                                        {
-                                            b3.Property<Guid>("CompetitiveAnalysisProjectMetadataProjectModelId")
-                                                .HasColumnType("uuid");
-
-                                            b3.Property<List<string>>("Opportunities")
-                                                .HasColumnType("text[]");
-
-                                            b3.Property<List<string>>("Strengths")
-                                                .HasColumnType("text[]");
-
-                                            b3.Property<List<string>>("Threats")
-                                                .HasColumnType("text[]");
-
-                                            b3.Property<List<string>>("Weaknesses")
-                                                .HasColumnType("text[]");
-
-                                            b3.HasKey("CompetitiveAnalysisProjectMetadataProjectModelId");
-
-                                            b3.ToTable("Projects");
-
-                                            b3.WithOwner()
-                                                .HasForeignKey("CompetitiveAnalysisProjectMetadataProjectModelId");
-                                        });
-
-                                    b2.OwnsOne("synthesis.api.Data.Models.TargetAudience", "TargetAudience", b3 =>
-                                        {
-                                            b3.Property<Guid>("CompetitiveAnalysisProjectMetadataProjectModelId")
-                                                .HasColumnType("uuid");
-
-                                            b3.HasKey("CompetitiveAnalysisProjectMetadataProjectModelId");
-
-                                            b3.ToTable("Projects");
-
-                                            b3.WithOwner()
-                                                .HasForeignKey("CompetitiveAnalysisProjectMetadataProjectModelId");
-
-                                            b3.OwnsOne("synthesis.api.Data.Models.Demographics", "Demographics", b4 =>
-                                                {
-                                                    b4.Property<Guid>("TargetAudienceCompetitiveAnalysisProjectMetadataProjectModelId")
-                                                        .HasColumnType("uuid");
-
-                                                    b4.Property<string>("Age")
-                                                        .HasColumnType("text");
-
-                                                    b4.HasKey("TargetAudienceCompetitiveAnalysisProjectMetadataProjectModelId");
-
-                                                    b4.ToTable("Projects");
-
-                                                    b4.WithOwner()
-                                                        .HasForeignKey("TargetAudienceCompetitiveAnalysisProjectMetadataProjectModelId");
-                                                });
-
-                                            b3.Navigation("Demographics");
-                                        });
-
-                                    b2.Navigation("Competitors");
-
-                                    b2.Navigation("Swot");
-
-                                    b2.Navigation("TargetAudience");
-                                });
-
-                            b1.OwnsOne("synthesis.api.Data.Models.Overview", "Overview", b2 =>
-                                {
-                                    b2.Property<Guid>("ProjectMetadataProjectModelId")
-                                        .HasColumnType("uuid");
-
-                                    b2.Property<string>("Description")
-                                        .HasColumnType("text");
-
-                                    b2.HasKey("ProjectMetadataProjectModelId");
-
-                                    b2.ToTable("Projects");
-
-                                    b2.WithOwner()
-                                        .HasForeignKey("ProjectMetadataProjectModelId");
-
-                                    b2.OwnsMany("synthesis.api.Data.Models.SuggestedDomain", "SuggestedDomains", b3 =>
-                                        {
-                                            b3.Property<Guid>("OverviewProjectMetadataProjectModelId")
-                                                .HasColumnType("uuid");
-
-                                            b3.Property<int>("Id")
-                                                .ValueGeneratedOnAdd()
-                                                .HasColumnType("integer");
-
-                                            b3.Property<string>("Name")
-                                                .HasColumnType("text");
-
-                                            b3.Property<string>("Reason")
-                                                .HasColumnType("text");
-
-                                            b3.HasKey("OverviewProjectMetadataProjectModelId", "Id");
-
-                                            b3.ToTable("Projects");
-
-                                            b3.WithOwner()
-                                                .HasForeignKey("OverviewProjectMetadataProjectModelId");
-                                        });
-
-                                    b2.OwnsMany("synthesis.api.Data.Models.SuggestedName", "SuggestedNames", b3 =>
-                                        {
-                                            b3.Property<Guid>("OverviewProjectMetadataProjectModelId")
-                                                .HasColumnType("uuid");
-
-                                            b3.Property<int>("Id")
-                                                .ValueGeneratedOnAdd()
-                                                .HasColumnType("integer");
-
-                                            b3.Property<string>("Name")
-                                                .HasColumnType("text");
-
-                                            b3.Property<string>("Reason")
-                                                .HasColumnType("text");
-
-                                            b3.HasKey("OverviewProjectMetadataProjectModelId", "Id");
-
-                                            b3.ToTable("Projects");
-
-                                            b3.WithOwner()
-                                                .HasForeignKey("OverviewProjectMetadataProjectModelId");
-                                        });
-
-                                    b2.Navigation("SuggestedDomains");
-
-                                    b2.Navigation("SuggestedNames");
-                                });
-
-                            b1.OwnsOne("synthesis.api.Data.Models.Technology", "Technology", b2 =>
-                                {
-                                    b2.Property<Guid>("ProjectMetadataProjectModelId")
-                                        .HasColumnType("uuid");
-
-                                    b2.HasKey("ProjectMetadataProjectModelId");
-
-                                    b2.ToTable("Projects");
-
-                                    b2.WithOwner()
-                                        .HasForeignKey("ProjectMetadataProjectModelId");
-
-                                    b2.OwnsMany("synthesis.api.Data.Models.TechStack", "TechStacks", b3 =>
-                                        {
-                                            b3.Property<Guid>("TechnologyProjectMetadataProjectModelId")
-                                                .HasColumnType("uuid");
-
-                                            b3.Property<int>("Id")
-                                                .ValueGeneratedOnAdd()
-                                                .HasColumnType("integer");
-
-                                            b3.Property<string>("Description")
-                                                .HasColumnType("text");
-
-                                            b3.Property<string>("LogoUrl")
-                                                .HasColumnType("text");
-
-                                            b3.Property<string>("Name")
-                                                .HasColumnType("text");
-
-                                            b3.Property<string>("Reason")
-                                                .HasColumnType("text");
-
-                                            b3.HasKey("TechnologyProjectMetadataProjectModelId", "Id");
-
-                                            b3.ToTable("Projects");
-
-                                            b3.WithOwner()
-                                                .HasForeignKey("TechnologyProjectMetadataProjectModelId");
-                                        });
-
-                                    b2.Navigation("TechStacks");
-                                });
-
-                            b1.Navigation("Branding");
-
-                            b1.Navigation("CompetitiveAnalysis");
-
-                            b1.Navigation("Overview");
-
-                            b1.Navigation("Technology");
-                        });
-
-                    b.Navigation("ProjectMetadata");
+                    b.Navigation("PrePlan");
 
                     b.Navigation("Team");
                 });
@@ -691,9 +381,7 @@ namespace synthesis.api.Migrations
 
                     b.HasOne("synthesis.api.Data.Models.ProjectModel", "Project")
                         .WithMany("Tasks")
-                        .HasForeignKey("ProjectId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("ProjectId");
 
                     b.Navigation("Feature");
 
@@ -721,7 +409,11 @@ namespace synthesis.api.Migrations
 
             modelBuilder.Entity("synthesis.api.Data.Models.TeamModel", b =>
                 {
+                    b.Navigation("Invites");
+
                     b.Navigation("Members");
+
+                    b.Navigation("PrePlans");
 
                     b.Navigation("Projects");
                 });

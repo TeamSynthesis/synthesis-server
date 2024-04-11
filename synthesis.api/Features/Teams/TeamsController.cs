@@ -1,6 +1,4 @@
-using System.ComponentModel.Design.Serialization;
 using Microsoft.AspNetCore.Mvc;
-using Scrutor;
 
 namespace synthesis.api.Features.Teams;
 
@@ -48,6 +46,27 @@ public class TeamsController : ControllerBase
         return Ok(response);
     }
 
+    [HttpPost("{id:guid}/invite-members")]
+    public async Task<IActionResult> InviteMembers(Guid id, [FromBody] List<MemberInviteDto> invites)
+    {
+        if (invites == null) return BadRequest("required body param is null");
+        var response = await _service.InviteTeamMembers(id, invites);
+
+        if (!response.IsSuccess) return BadRequest(response);
+
+        return Ok(response);
+    }
+
+    [HttpPost("join")]
+    public async Task<IActionResult> JoinTeam([FromForm] Guid userId, [FromForm] string code)
+    {
+        var response = await _service.JoinTeam(userId, code);
+
+        if (!response.IsSuccess) return BadRequest(response);
+
+        return Ok(response);
+    }
+
 
     [HttpGet("{id:guid}")]
     public async Task<IActionResult> GetTeamById(Guid id)
@@ -69,6 +88,17 @@ public class TeamsController : ControllerBase
 
         return Ok(response);
     }
+
+    [HttpGet("{id:guid}/pre-plans")]
+    public async Task<IActionResult> GetTeamPrePlansById(Guid id)
+    {
+        var response = await _service.GetTeamPrePlans(id);
+
+        if (!response.IsSuccess) return BadRequest(response);
+
+        return Ok(response);
+    }
+
 
     [HttpGet("{id:guid}/members")]
     public async Task<IActionResult> GetTeamMembers(Guid id)

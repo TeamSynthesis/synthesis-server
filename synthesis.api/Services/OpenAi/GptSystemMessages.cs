@@ -2,18 +2,13 @@
 
 public static class GptSystemMessages
 {
+    private const string OverviewResponseFormat = @"{""Title"":"""",""UserPrompt"":"""",""Description"":"""",""SuggestedNames"":[{""Name"":"""",""Reason"":""""}],""SuggestedDomains"":[{""Name"":"""",""Reason"":""""}]}";
 
-    private static readonly string OverviewResponseFormat =
-    @"{""Title"":"""",""UserPrompt"":"""",""Description"":"""",""SuggestedNames"":[{""Name"":"""",""Reason"":""""}],""SuggestedDomains"":[{""Name"":"""",""Reason"":""""}]}";
+    private const string CompetitiveAnalysisResponseFormat = @"{""Competitors"":[{""Name"":"""",""Size"":"""",""ReviewSentiment"":0,""Features"":[],""PricingModel"":"""",""Url"":"""",""Description"":"""",""LogoUrl"":""""}],""Swot"":{""Strengths"":[],""Weaknesses"":[],""Opportunities"":[],""Threats"":[]},""TargetAudience"":{""Demographics"":{""Age"":""""}}}";
 
-    private static readonly string CompetitiveAnalysisResponseFormat =
-    @"{""Competitors"":[{""Name"":"""",""Size"":"""",""ReviewSentiment"":0,""Features"":[],""PricingModel"":"""",""Url"":"""",""Description"":"""",""LogoUrl"":""""}],""Swot"":{""Strengths"":[],""Weaknesses"":[],""Opportunities"":[],""Threats"":[]},""TargetAudience"":{""Demographics"":{""Age"":""""}}}";
+    private const string FeaturesResponseFormat = @"[{""Name"":"""",""Description"":"""",""Type"":null,""Tasks"":[{""Activity"":"""",""Priority"":null}]}]";
 
-    private static readonly string FeaturesResponseFormat =
-    @"[{""Name"":"""",""Description"":"""",""Type"":null,""Tasks"":[{""Activity"":"""",""Priority"":null}]}]";
-
-    private static readonly string BrandingResponseFormat =
-   @"{""Palette"":{""Primary"":{""Name"":"""",""Color"":""""},""Secondary"":{""Name"":"""",""Color"":""""},""Accent"":{""Name"":"""",""Color"":""""},""PreviewUrl"":"""",""Reason"":""""},""Icon"":{""ImgUrl"":"""",""Description"":""""},""Slogan"":"""",""Wireframe"":{""Screen"":"""",""Image"":{""ImgUrl"":"""",""Description"":""""}},""MoodBoard"":{""ImgUrl"":"""",""Description"":""""},""Typography"":{""Font"":"""",""Reason"":""""}}";
+    private const string BrandingResponseFormat = @"{""Palette"":{""Primary"":{""Name"":"""",""Color"":""""},""Secondary"":{""Name"":"""",""Color"":""""},""Accent"":{""Name"":"""",""Color"":""""},""PreviewUrl"":"""",""Reason"":""""},""Icon"":{""ImgUrl"":"""",""Description"":""""},""Slogan"":"""",""Wireframe"":{""Screen"":"""",""Image"":{""ImgUrl"":"""",""Description"":""""}},""MoodBoard"":{""ImgUrl"":"""",""Description"":""""},""Typography"":{""Font"":"""",""Reason"":""""}}";
 
 
     public static string GetOverviewPrompt()

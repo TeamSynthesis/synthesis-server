@@ -1,5 +1,3 @@
-using synthesis.api.Features.Project;
-
 public static class Patcher
 {
     public static T Patch<T>(T source, T destination)

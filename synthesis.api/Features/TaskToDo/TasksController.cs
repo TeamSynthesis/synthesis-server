@@ -1,6 +1,4 @@
-using System.Security.Cryptography.X509Certificates;
 using Microsoft.AspNetCore.Mvc;
-using Scrutor;
 using synthesis.api.Features.TaskToDo;
 
 

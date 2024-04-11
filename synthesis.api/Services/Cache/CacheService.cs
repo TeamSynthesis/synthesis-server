@@ -1,7 +1,5 @@
 
 using System.Runtime.Caching;
-using Newtonsoft.Json;
-using StackExchange.Redis;
 
 namespace synthesis.api.Services.Cache;
 

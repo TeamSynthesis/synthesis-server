@@ -1,6 +1,6 @@
 namespace synthesis.api.Data.Models;
 
-public class ProjectMetadata
+public class PrePlanMetaData
 {
     public Overview? Overview { get; set; }
     public CompetitiveAnalysis? CompetitiveAnalysis { get; set; }

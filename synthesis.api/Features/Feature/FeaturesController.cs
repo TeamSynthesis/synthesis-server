@@ -1,6 +1,4 @@
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
-using synthesis.api.Features.Project;
 
 namespace synthesis.api.Features.Feature;
 

@@ -1,11 +1,8 @@
-using System.Collections.Immutable;
-using System.Security.Cryptography.X509Certificates;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Extensions;
 using synthesis.api.Data.Models;
 using synthesis.api.Data.Repository;
-using synthesis.api.Features.Member;
 using synthesis.api.Features.User;
 using synthesis.api.Mappings;
 
@@ -67,7 +64,7 @@ public class MemberService : IMemberService
             return new GlobalResponse<MemberDto>(false, "assign member role failed", errors: ["duplicate role assignment"]);
         }
 
-        if (role != MemberRole.Owner || role != MemberRole.Manager)
+        if (role != MemberRole.owner || role != MemberRole.manager)
         {
             return new GlobalResponse<MemberDto>(false, "assign role failed", errors: ["member role invalid"]);
         }

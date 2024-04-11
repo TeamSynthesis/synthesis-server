@@ -1,5 +1,4 @@
 using FluentValidation;
-using Microsoft.VisualBasic;
 using synthesis.api.Data.Models;
 
 namespace synthesis.api.Features.Project;

@@ -1,10 +1,8 @@
-using System;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
 using synthesis.api.Data.Models;
-using synthesis.api.Data.Repository;
 
 namespace synthesis.api.Features.Auth
 {
@@ -12,6 +10,7 @@ namespace synthesis.api.Features.Auth
     {
         string GenerateToken(UserModel user);
         string GenerateEmailConfirmationToken(UserModel user);
+        string GenerateTeamInvitationToken(string email, string role);
     }
 
     public class JwtTokenManager : IJwtTokenManager
@@ -60,6 +59,26 @@ namespace synthesis.api.Features.Auth
 
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
+
+        public string GenerateTeamInvitationToken(string email, string role)
+        {
+            var claims = new[]
+            {
+                new Claim(ClaimTypes.Email, email),
+                new Claim(ClaimTypes.Role, role)
+            };
+
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config.GetSection("JwtConfig:Secret").Value));
+            var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+            var token = new JwtSecurityToken(
+                claims: claims,
+                expires: DateTime.UtcNow.AddDays(1),
+                signingCredentials: credentials
+            );
+
+            return new JwtSecurityTokenHandler().WriteToken(token);
+        }
+
 
 
     }

@@ -1,3 +1,5 @@
+using synthesis.api.Services.Tinify;
+
 namespace synthesis.api.Services.OpenAi;
 
 using Azure.AI.OpenAI;
@@ -8,25 +10,33 @@ using System.Text.Json;
 
 public interface IChatGptService
 {
-    Task<GlobalResponse<GptProjectDto>> GenerateProject(string prompt);
+    Task<GlobalResponse<GeneratedPrePlanDto>> GenerateProject(string prompt);
 
 }
 public class ChatGptService : IChatGptService
 {
 
-    private OpenAIClient _gpt4Client;
-    private OpenAIClient _gpt3TurboClient;
-
-    private IDalleService _dalleService;
-
-    public ChatGptService()
+    private readonly OpenAIClient _gpt4Client;
+    private readonly OpenAIClient _gpt3TurboClient;
+    private readonly OpenAIClient _gpt3FCClient;
+    private readonly OpenAIClient _gpt4FCClient;
+    private readonly IDalleService _dalleService;
+    private readonly IImageOptimizerService _optimizerService;
+    
+    public ChatGptService(IImageOptimizerService optimizerService)
     {
-        _gpt3TurboClient = GptClients.GPT3Turbo();
+        _optimizerService = optimizerService;
+
+        _gpt3TurboClient = GptClients.GPT3Turbo();  
+        _gpt3FCClient = GptClients.GPT3FC();
+
         _gpt4Client = GptClients.GPT4();
-        _dalleService = new DalleService();
+        _gpt4FCClient = GptClients.GPT4FC();        
+        
+        _dalleService = new DalleService(_optimizerService);
     }
 
-    public async Task<GlobalResponse<GptProjectDto>> GenerateProject(string prompt)
+    public async Task<GlobalResponse<GeneratedPrePlanDto>> GenerateProject(string prompt)
     {
         var overview = GetProjectOverview(prompt);
         var competitiveAnalysis = GetProjectCompetitiveAnalysis(prompt);
@@ -36,7 +46,7 @@ public class ChatGptService : IChatGptService
         await Task.WhenAll(overview, competitiveAnalysis, features, branding);
 
 
-        var projectMetadata = new GptProjectDto()
+        var projectMetadata = new GeneratedPrePlanDto()
         {
             Overview = overview.Result,
             CompetitiveAnalysis = competitiveAnalysis.Result,
@@ -47,10 +57,10 @@ public class ChatGptService : IChatGptService
 
         if (projectMetadata == null)
         {
-            return new GlobalResponse<GptProjectDto>(false, "generate project failed", errors: ["something went wrong"]);
+            return new GlobalResponse<GeneratedPrePlanDto>(false, "generate project failed", errors: ["something went wrong"]);
         }
 
-        return new GlobalResponse<GptProjectDto>(true, "project generated successfully", projectMetadata);
+        return new GlobalResponse<GeneratedPrePlanDto>(true, "project generated successfully", projectMetadata);
     }
 
     private async Task<Overview> GetProjectOverview(string prompt)
@@ -112,7 +122,7 @@ public class ChatGptService : IChatGptService
     {
         var ChatCompletionOptions = new ChatCompletionsOptions()
         {
-            DeploymentName = GptClients._GPT4Deployment,
+            DeploymentName = GptClients._GPT4FCDeployment,
             Messages =
             {
                 new ChatRequestAssistantMessage(GptSystemMessages.GetProjectCompetitiveAnalysisPrompt()),
@@ -125,7 +135,7 @@ public class ChatGptService : IChatGptService
             PresencePenalty = 0,
         };
 
-        var responseWithoutStream = await _gpt4Client.GetChatCompletionsAsync(ChatCompletionOptions);
+        var responseWithoutStream = await _gpt4FCClient.GetChatCompletionsAsync(ChatCompletionOptions);
 
         var response = responseWithoutStream.Value;
 
@@ -138,7 +148,7 @@ public class ChatGptService : IChatGptService
     {
         var ChatCompletionOptions = new ChatCompletionsOptions()
         {
-            DeploymentName = GptClients._GPT3TurboDeployment,
+            DeploymentName = GptClients._GPT4FCDeployment,
             Messages =
             {
                 new ChatRequestAssistantMessage(GptSystemMessages.GetBrandingPrompt()),
@@ -151,7 +161,7 @@ public class ChatGptService : IChatGptService
             PresencePenalty = 0,
         };
 
-        var responseWithoutStream = await _gpt3TurboClient.GetChatCompletionsAsync(ChatCompletionOptions);
+        var responseWithoutStream = await _gpt4FCClient.GetChatCompletionsAsync(ChatCompletionOptions);
 
         var response = responseWithoutStream.Value;
 
@@ -182,8 +192,8 @@ public class ChatGptService : IChatGptService
 
         return branding;
     }
-
-
+    
+    
     private async Task<List<string>> GenerateImages(List<string> imagePrompts)
     {
         var images = new List<string>();

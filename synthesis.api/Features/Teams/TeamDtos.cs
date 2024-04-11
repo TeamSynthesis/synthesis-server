@@ -1,4 +1,5 @@
 
+using Octokit;
 using synthesis.api.Features.Project;
 
 public record TeamDto
@@ -12,5 +13,28 @@ public record TeamDto
     public List<ProjectDto>? Projects { get; set; }
 }
 
-public record CreateTeamDto(string Name, string Description, string Slug, IFormFile? Avatar);
+public record CreateTeamDto(string Name, string Description, string Slug, string? AvatarUrl);
 public record UpdateTeamDto(string Name, string Description);
+
+public record MemberInviteDto
+{
+    public string? Email { get; set; }
+    public string? Role { get; set; }
+}
+public record InviteDto
+{
+    public Guid Id { get; set; }
+    public string? Code { get; set; }
+    public DateTime InvitedOn { get; set; }
+    public string? Email { get; set; }
+
+    public string? Role { get; set; }
+    public bool Accepted { get; set; }
+}
+
+public record CreateInviteDto
+{
+    public string? Code { get; set; }
+    public string? Email { get; set; }
+    public string? Role { get; set; }
+}

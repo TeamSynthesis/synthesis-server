@@ -1,4 +1,3 @@
-using Azure.AI.OpenAI;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -23,6 +22,11 @@ public class ProjectModel
 
     public List<TaskToDoModel>? Tasks { get; set; }
 
-    [Column(TypeName = "jsonb")]
-    public ProjectMetadata? ProjectMetadata { get; set; }
+    [ForeignKey(nameof(PrePlanModel))]
+    public Guid PrePlanId { get; set; } 
+    public PrePlanModel? PrePlan { get; set; }
+
+    
+    
+    
 }
