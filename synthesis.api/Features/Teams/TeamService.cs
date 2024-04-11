@@ -1,19 +1,15 @@
-using System.Security.Permissions;
-using System.Text.Json;
 using AutoMapper;
-using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Extensions;
-using Octokit;
 using synthesis.api.Data.Models;
 using synthesis.api.Data.Repository;
 using synthesis.api.Features.Auth;
+using synthesis.api.Features.Feature;
 using synthesis.api.Features.Project;
 using synthesis.api.Features.User;
 using synthesis.api.Helpers;
 using synthesis.api.Mappings;
 using synthesis.api.Services.Email;
-using synthesis.api.Services.OpenAi.Dtos;
 using Synthesis.Api.Services.BlobStorage;
 
 namespace synthesis.api.Features.Teams;
@@ -228,6 +224,7 @@ public class TeamService : ITeamService
             Name = t.Name,
             AvatarUrl = t.AvatarUrl,
             Slug = t.Slug,
+            
             Members = t.Members.Select(m => new MemberDto
             {
                 Id = m.Id,
@@ -244,14 +241,59 @@ public class TeamService : ITeamService
                 Roles = m.Roles,
                 JoinedOn = m.JoinedOn
             }).ToList(),
+            
             Projects = t.Projects.Select(p => new ProjectDto
             {
-                Id = p.Id
-
+                Id = p.Id,
+                AvatarUrl = p.AvatarUrl,
+                CreatedOn = p.CreatedOn,
+                Description = p.Description,
+                Features = p.Features.Select(f => new FeatureDto()
+                {
+                    Id = f.Id,
+                    Name = f.Name,
+                    Description = f.Description,
+                    Type = f.Type.GetDisplayName(),
+                    Tasks = f.Tasks.Select(t=>new TaskDto()
+                    {
+                        Id = t.Id,
+                        Activity = t.Activity,
+                        AssignedOn = t.AssignedOn,
+                        CreatedOn = t.CreatedOn,
+                        DueDate = t.DueDate,
+                        IsComplete = t.IsComplete,
+                        Priority = t.Priority.GetDisplayName(),
+                        State = t.State.GetDisplayName()
+                    }).ToList()
+                    
+                }).ToList(),
+                Tasks = p.Tasks.Where(t=>t.FeatureId == Guid.Empty).Select(t=>new TaskDto()
+                {
+                    Id = t.Id,
+                    Activity = t.Activity,
+                    AssignedOn = t.AssignedOn,
+                    CreatedOn = t.CreatedOn,
+                    DueDate = t.DueDate,
+                    IsComplete = t.IsComplete,
+                    Priority = t.Priority.GetDisplayName(),
+                    State = t.State.GetDisplayName()
+                }).ToList(),
+                PrePlan = PrePlanDeserializer.DeserializePrePlanToMetaData(p.PrePlan.Plan),
+                
+            }).ToList(),
+            
+            PrePlans = t.PrePlans.Select(p=> new PlanDto()
+            {
+                Id = p.Id,
+                Plan = PrePlanDeserializer.DeserializePrePlanToPlanDto(p.Plan),
+                IsSuccess = p.IsSuccess,
+                Status = p.Status,
             }).ToList()
+            
         }).
         FirstOrDefaultAsync();
 
+        
         if (team == null)
         {
             return new GlobalResponse<TeamDto>(true, "get team failed", errors: [$"team with id: {id} not found"]);
@@ -306,9 +348,44 @@ public class TeamService : ITeamService
 
         var projects = await _repository.Projects
             .Where(p => p.TeamId == id)
-            .Select(x => new ProjectDto
+            .Select(p => new ProjectDto
             {
-                Id = x.Id
+                Id = p.Id,
+                AvatarUrl = p.AvatarUrl,
+                CreatedOn = p.CreatedOn,
+                Description = p.Description,
+                Features = p.Features.Select(f => new FeatureDto()
+                {
+                    Id = f.Id,
+                    Name = f.Name,
+                    Description = f.Description,
+                    Type = f.Type.GetDisplayName(),
+                    Tasks = f.Tasks.Select(t=>new TaskDto()
+                    {
+                        Id = t.Id,
+                        Activity = t.Activity,
+                        AssignedOn = t.AssignedOn,
+                        CreatedOn = t.CreatedOn,
+                        DueDate = t.DueDate,
+                        IsComplete = t.IsComplete,
+                        Priority = t.Priority.GetDisplayName(),
+                        State = t.State.GetDisplayName()
+                    }).ToList()
+                    
+                }).ToList(),
+                Tasks = p.Tasks.Where(t=>t.FeatureId == Guid.Empty).Select(t=>new TaskDto()
+                {
+                    Id = t.Id,
+                    Activity = t.Activity,
+                    AssignedOn = t.AssignedOn,
+                    CreatedOn = t.CreatedOn,
+                    DueDate = t.DueDate,
+                    IsComplete = t.IsComplete,
+                    Priority = t.Priority.GetDisplayName(),
+                    State = t.State.GetDisplayName()
+                }).ToList(),
+                PrePlan = PrePlanDeserializer.DeserializePrePlanToMetaData(p.PrePlan.Plan),
+                
             }).ToListAsync();
 
 
@@ -428,7 +505,7 @@ public class TeamService : ITeamService
     public async Task<GlobalResponse<MemberDto>> JoinTeam(Guid userId, string code)
     {
         var userExists = await _repository.Users.AnyAsync(u => u.Id == userId);
-        if (userExists)
+        if (!userExists)
         {
             return new GlobalResponse<MemberDto>(false, "join team failed",
                 errors: [$"user with id: {userId} not found "]);
@@ -488,7 +565,6 @@ public class TeamService : ITeamService
             IsSuccess = x.IsSuccess,
             Plan = PrePlanDeserializer.DeserializePrePlanToPlanDto(x.Plan),
             Status = x.Status
-
         }).ToListAsync();
 
         return new GlobalResponse<List<PlanDto>>(true, "get preplans success", value: prePlans);

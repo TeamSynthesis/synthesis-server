@@ -1,5 +1,4 @@
 using FluentValidation;
-using Microsoft.EntityFrameworkCore;
 using synthesis.api.Data.Models;
 
 namespace synthesis.api.Features.User;

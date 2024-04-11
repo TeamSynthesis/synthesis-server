@@ -1,5 +1,4 @@
 using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace synthesis.api.Data.Models;
 

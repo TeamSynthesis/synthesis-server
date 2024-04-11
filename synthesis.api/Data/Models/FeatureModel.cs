@@ -1,5 +1,4 @@
 using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.OpenApi.Extensions;
 
 namespace synthesis.api.Data.Models;
 

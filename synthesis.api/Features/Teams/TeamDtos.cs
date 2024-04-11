@@ -1,6 +1,5 @@
-
-using Octokit;
 using synthesis.api.Features.Project;
+using synthesis.api.Services.OpenAi.Dtos;
 
 public record TeamDto
 {
@@ -9,6 +8,8 @@ public record TeamDto
     public string? Name { get; set; }
     public string? Description { get; set; }
     public string? AvatarUrl { get; set; }
+    
+    public List<PlanDto> PrePlans { get; set; }
     public List<MemberDto>? Members { get; set; }
     public List<ProjectDto>? Projects { get; set; }
 }
