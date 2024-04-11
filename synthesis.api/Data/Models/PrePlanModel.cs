@@ -1,7 +1,5 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Text.Json.Nodes;
-using synthesis.api.Services.OpenAi.Dtos;
 
 namespace synthesis.api.Data.Models;
 

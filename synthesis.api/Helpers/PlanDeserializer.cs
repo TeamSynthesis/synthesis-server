@@ -1,7 +1,6 @@
 
 using System.Text.Json;
 using synthesis.api.Data.Models;
-using synthesis.api.Features.Project;
 using synthesis.api.Services.OpenAi.Dtos;
 
 public static class PrePlanDeserializer

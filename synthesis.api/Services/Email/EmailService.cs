@@ -1,9 +1,6 @@
-
-using Azure.Core;
 using Newtonsoft.Json;
 using RestSharp;
 using RestSharp.Authenticators;
-using synthesis.api.Data.Models;
 using synthesis.api.Mappings;
 
 namespace synthesis.api.Services.Email;

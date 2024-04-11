@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using synthesis.api.Data.Repository;
-using synthesis.api.Features.User;
 using synthesis.api.Services.Email;
 
 namespace synthesis.api.Features.Auth

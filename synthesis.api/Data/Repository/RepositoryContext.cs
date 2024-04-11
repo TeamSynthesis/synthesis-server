@@ -1,6 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Octokit;
 using synthesis.api.Data.Models;
 
 namespace synthesis.api.Data.Repository;

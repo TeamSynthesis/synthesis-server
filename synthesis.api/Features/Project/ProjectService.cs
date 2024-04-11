@@ -48,8 +48,8 @@ public class ProjectService : IProjectService
     {
         var teamExists = await _repository.Teams.AnyAsync(t => t.Id == teamId);
         if (!teamExists) return new GlobalResponse<ProjectDto>(false, "create project failed", errors: [$"team with id: {teamId} not found"]);
-
-
+    
+    
         var project = new ProjectModel()
         {
             TeamId = teamId,
@@ -58,17 +58,17 @@ public class ProjectService : IProjectService
             Description = createCommand.Description,
             CreatedOn = DateTime.UtcNow
         };
-
+    
         var validationResult = await new ProjectValidator().ValidateAsync(project);
         if (!validationResult.IsValid)
         {
             return new GlobalResponse<ProjectDto>(false, "create project failed", errors: validationResult.Errors.Select(e => e.ErrorMessage).ToList());
         }
-
-
+    
+    
         await _repository.Projects.AddAsync(project);
         await _repository.SaveChangesAsync();
-
+    
         var projectToReturn = new ProjectDto()
         {
             Id = project.Id,
@@ -76,7 +76,7 @@ public class ProjectService : IProjectService
             Description = project.Description,
             AvatarUrl = project.AvatarUrl
         };
-
+    
         return new GlobalResponse<ProjectDto>(true, "create project success", projectToReturn);
     }
 
