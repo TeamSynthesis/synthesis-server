@@ -1,4 +1,5 @@
 using Azure.AI.OpenAI;
+using synthesis.api.Services.Tinify;
 
 namespace synthesis.api.Services.OpenAi;
 
@@ -11,10 +12,11 @@ public class DalleService : IDalleService
 {
 
     private OpenAIClient _client;
+    private readonly IImageOptimizerService _imageOptimizer;
 
-
-    public DalleService()
+    public DalleService(IImageOptimizerService imageOptimizer)
     {
+        _imageOptimizer = imageOptimizer;
         _client = GptClients.Dalle();
     }
 
@@ -29,7 +31,10 @@ public class DalleService : IDalleService
         };
 
         var response = await _client.GetImageGenerationsAsync(options);
+        var dalleUrl = response.Value.Data[0].Url.ToString();
 
-        return response.Value.Data[0].Url.ToString();
+        var optimizedUrl = await _imageOptimizer.OptimizeImage(dalleUrl);
+        
+        return optimizedUrl;
     }
 }

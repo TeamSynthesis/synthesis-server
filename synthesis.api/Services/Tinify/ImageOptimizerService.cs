@@ -1,4 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System.Text.Json;
+using System.Text.Json.Nodes;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using RestSharp;
 using RestSharp.Authenticators;
 
@@ -21,7 +24,7 @@ public class ImageOptimizerService:IImageOptimizerService
         var options = new RestClientOptions
         {
             Authenticator = new HttpBasicAuthenticator("api", _apiKey),
-            BaseUrl = new Uri("api.tinify.com")
+            BaseUrl = new Uri("https://api.tinify.com/shrink")
         };
 
         var client = new RestClient(options);
@@ -38,24 +41,8 @@ public class ImageOptimizerService:IImageOptimizerService
         request.Method =Method.Post;
 
         var result = await client.ExecuteAsync(request);
-
-        throw new NotImplementedException();
-    }
-}
-
-[ApiController]
-[Route("api/[controller]")]
-public class ImageOptimizeController : ControllerBase
-{
-    private readonly IImageOptimizerService _service;
-    public ImageOptimizeController(IImageOptimizerService service)
-    {
-        _service = service;
-    }
-
-    public async Task<IActionResult> OptimizeImage([FromBody] string url)
-    {
-        var result =await  _service.OptimizeImage(url);
-        return Ok(result);
+        var resultUrl =(string) JsonObject.Parse(result.Content)["output"]["url"];
+        
+        return resultUrl;
     }
 }

@@ -1,3 +1,5 @@
+using synthesis.api.Services.Tinify;
+
 namespace synthesis.api.Services.OpenAi;
 
 using Azure.AI.OpenAI;
@@ -19,16 +21,19 @@ public class ChatGptService : IChatGptService
     private readonly OpenAIClient _gpt3FCClient;
     private readonly OpenAIClient _gpt4FCClient;
     private readonly IDalleService _dalleService;
-
-    public ChatGptService()
+    private readonly IImageOptimizerService _optimizerService;
+    
+    public ChatGptService(IImageOptimizerService optimizerService)
     {
-        _gpt3TurboClient = GptClients.GPT3Turbo();
+        _optimizerService = optimizerService;
+
+        _gpt3TurboClient = GptClients.GPT3Turbo();  
         _gpt3FCClient = GptClients.GPT3FC();
 
         _gpt4Client = GptClients.GPT4();
         _gpt4FCClient = GptClients.GPT4FC();        
         
-        _dalleService = new DalleService();
+        _dalleService = new DalleService(_optimizerService);
     }
 
     public async Task<GlobalResponse<GeneratedPrePlanDto>> GenerateProject(string prompt)
