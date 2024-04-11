@@ -2,7 +2,7 @@ using synthesis.api.Data.Models;
 
 namespace synthesis.api.Services.OpenAi.Dtos;
 
-public class GptProjectDto
+public class GeneratedPrePlanDto
 {
     public Overview? Overview { get; set; }
     public CompetitiveAnalysis? CompetitiveAnalysis { get; set; }

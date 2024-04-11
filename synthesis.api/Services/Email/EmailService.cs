@@ -19,11 +19,10 @@ public class EmailService : IEmailService
     private readonly string _mailgunApiKey = "5d65ae6dc3d622c13f0768d8397a44e5-b7b36bc2-947be266";
     private readonly string _mailgunDomain = "sandboxebf1c09e8424413394a98a2ce8e2ae2c.mailgun.org";
 
-    private readonly IHttpClientFactory _httpClient;
 
     public EmailService(IHttpClientFactory httpClient)
     {
-        _httpClient = httpClient;
+       
     }
 
 

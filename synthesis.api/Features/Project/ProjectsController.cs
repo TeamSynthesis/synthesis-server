@@ -23,6 +23,7 @@ public class ProjectsController : ControllerBase
         }
 
         return Ok(response);
+
     }
 
     [HttpPost("ai-project")]
@@ -46,12 +47,23 @@ public class ProjectsController : ControllerBase
 
         return Ok(response.Data);
     }
+
+    [HttpGet("{id:guid}/all", Name = "ProjectWithResourcesById")]
+    public async Task<IActionResult> GetProjectWithResources(Guid id)
+    {
+        var response = await _service.GetProjectWithResourcesById(id);
+        if (!response.IsSuccess) return BadRequest(response);
+
+        return Ok(response.Data);
+    }
+
+
     [HttpGet("generated-project")]
     public async Task<IActionResult> GetGeneratedProject(Guid planId)
     {
-        var response = await _service.GetGeneratedProject(planId);
+        var response = await _service.GetGeneratedPrePlan(planId);
 
-        if (response.IsSuccess) return Accepted(response);
+        if (response.Message == "pending") return Accepted(response);
 
         if (!response.IsSuccess) return BadRequest(response);
 

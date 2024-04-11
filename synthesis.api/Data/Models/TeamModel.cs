@@ -14,6 +14,8 @@ public class TeamModel
     public int SeatsAvailable { get; set; }
     public string? AvatarUrl { get; set; }
     public List<MemberModel>? Members { get; set; }
+
+    public List<PrePlanModel>? PrePlans { get; set; }
     public List<ProjectModel>? Projects { get; set; }
     public List<InviteModel>? Invites { get; set; }
 }

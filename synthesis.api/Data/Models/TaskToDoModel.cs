@@ -6,6 +6,7 @@ public class TaskToDoModel
 {
     [Column("TaskId")]
     public Guid Id { get; set; }
+    
     public string? Activity { get; set; }
     public TaskState State { get; set; }
     public TaskPriority Priority { get; set; }

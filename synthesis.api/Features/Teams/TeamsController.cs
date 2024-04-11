@@ -89,6 +89,17 @@ public class TeamsController : ControllerBase
         return Ok(response);
     }
 
+    [HttpGet("{id:guid}/pre-plans")]
+    public async Task<IActionResult> GetTeamPrePlansById(Guid id)
+    {
+        var response = await _service.GetTeamPrePlans(id);
+
+        if (!response.IsSuccess) return BadRequest(response);
+
+        return Ok(response);
+    }
+
+
     [HttpGet("{id:guid}/members")]
     public async Task<IActionResult> GetTeamMembers(Guid id)
     {

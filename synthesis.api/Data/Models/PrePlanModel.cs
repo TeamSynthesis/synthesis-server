@@ -5,26 +5,26 @@ using synthesis.api.Services.OpenAi.Dtos;
 
 namespace synthesis.api.Data.Models;
 
-public class PlanModel
+public class PrePlanModel
 {
     [Key]
     public Guid Id { get; set; }
 
     [ForeignKey(nameof(TeamModel))]
+    public Guid TeamId { get; set; }
     public TeamModel? Team { get; set; }
     
-    public Guid TeamId { get; set; }
     public PlanStatus Status { get; set; }
-
-    public string? Project { get; set; }
-
+    
+    public string? Plan { get; set; }
+    
     public bool IsSuccess { get; set; }
 
 }
 
 public enum PlanStatus
 {
-    inprogress,
-    complete,
-    failed
+    Inprogress,
+    Complete,
+    Failed
 }

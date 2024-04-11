@@ -1,8 +1,10 @@
 using System.Security.Permissions;
+using System.Text.Json;
 using AutoMapper;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Extensions;
+using Octokit;
 using synthesis.api.Data.Models;
 using synthesis.api.Data.Repository;
 using synthesis.api.Features.Auth;
@@ -11,6 +13,7 @@ using synthesis.api.Features.User;
 using synthesis.api.Helpers;
 using synthesis.api.Mappings;
 using synthesis.api.Services.Email;
+using synthesis.api.Services.OpenAi.Dtos;
 using Synthesis.Api.Services.BlobStorage;
 
 namespace synthesis.api.Features.Teams;
@@ -20,10 +23,13 @@ public interface ITeamService
     Task<GlobalResponse<TeamDto>> CreateTeam(Guid userId, CreateTeamDto createCommand);
     Task<GlobalResponse<MemberDto>> AddMember(Guid id, Guid userId);
     Task<GlobalResponse<MemberDto>> RemoveMember(Guid id, Guid userId);
+
     Task<GlobalResponse<TeamDto>> GetTeamById(Guid id);
     Task<GlobalResponse<TeamDto>> GetTeamWithResourcesById(Guid id);
     Task<GlobalResponse<List<MemberDto>>> GetTeamMembers(Guid id);
     Task<GlobalResponse<List<ProjectDto>>> GetTeamProjects(Guid id);
+    Task<GlobalResponse<List<PlanDto>>> GetTeamPrePlans(Guid id);
+
     Task<GlobalResponse<TeamDto>> UpdateTeam(Guid id, UpdateTeamDto updateCommand);
     Task<GlobalResponse<TeamDto>> PatchTeam(Guid id, UpdateTeamDto patchCommand);
     Task<GlobalResponse<TeamDto>> DeleteTeam(Guid id);
@@ -59,7 +65,7 @@ public class TeamService : ITeamService
             return new GlobalResponse<TeamDto>(false, "create team failed", errors: [$"user with id: {userId} not found"]);
         }
 
-        var slugExists = await _repository.Teams.AnyAsync(t => t.Slug.ToLower() == t.Slug.ToLower());
+        var slugExists = await _repository.Teams.AnyAsync(t => t.Slug.ToLower() == createCommand.Slug.ToLower());
 
         if (slugExists)
         {
@@ -421,10 +427,16 @@ public class TeamService : ITeamService
 
     public async Task<GlobalResponse<MemberDto>> JoinTeam(Guid userId, string code)
     {
+        var userExists = await _repository.Users.AnyAsync(u => u.Id == userId);
+        if (userExists)
+        {
+            return new GlobalResponse<MemberDto>(false, "join team failed",
+                errors: [$"user with id: {userId} not found "]);
+        }
 
         var invite = await _repository.Invites.Include(i => i.Team).FirstOrDefaultAsync(i => i.Code == code);
 
-        if (invite == null) return new GlobalResponse<MemberDto>(false, "join team failed", errors: [$"invalide invite code"]);
+        if (invite == null) return new GlobalResponse<MemberDto>(false, "join team failed", errors: [$"invalid invite code"]);
 
         var codeIsValid = await _repository.Users.AnyAsync(u => u.Email == invite.Email);
         if (!codeIsValid) return new GlobalResponse<MemberDto>(false, "join team failed", errors: [$"invalid invite code"]);
@@ -466,5 +478,20 @@ public class TeamService : ITeamService
         return new GlobalResponse<MemberDto>(true, "add member to team success", value: memberToReturn);
 
 
+    }
+
+    public async Task<GlobalResponse<List<PlanDto>>> GetTeamPrePlans(Guid id)
+    {
+        var prePlans = await _repository.PrePlans.Select(x => new PlanDto()
+        {
+            Id = x.Id,
+            IsSuccess = x.IsSuccess,
+            Plan = PrePlanDeserializer.DeserializePrePlanToPlanDto(x.Plan),
+            Status = x.Status
+
+        }).ToListAsync();
+
+        return new GlobalResponse<List<PlanDto>>(true, "get preplans success", value: prePlans);
+        
     }
 }

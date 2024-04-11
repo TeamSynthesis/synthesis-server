@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.OpenApi.Extensions;
 
 namespace synthesis.api.Data.Models;
 
@@ -17,6 +18,7 @@ public class FeatureModel
     public FeatureType Type { get; set; }
 
     public List<TaskToDoModel>? Tasks { get; set; }
+
 }
 
 public enum FeatureType
