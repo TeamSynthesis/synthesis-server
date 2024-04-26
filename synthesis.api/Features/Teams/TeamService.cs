@@ -285,6 +285,7 @@ public class TeamService : ITeamService
             PrePlans = t.PrePlans.Select(p=> new PlanDto()
             {
                 Id = p.Id,
+                TeamId = p.TeamId,
                 Plan = PrePlanDeserializer.DeserializePrePlanToPlanDto(p.Plan),
                 IsSuccess = p.IsSuccess,
                 Status = p.Status,

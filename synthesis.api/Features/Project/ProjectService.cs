@@ -92,7 +92,7 @@ public class ProjectService : IProjectService
 
         var generatedPreplan = JsonSerializer.Deserialize<GeneratedPrePlanDto>(prePlan.Plan);
 
-        if (generatedPreplan == null) return new GlobalResponse<ProjectDto>(false, "create project failed", errors: [$"plan was not generated succesfully"]);
+        if (generatedPreplan == null) return new GlobalResponse<ProjectDto>(false, "create project failed", errors: [$"plan was not generated successfully"]);
 
         var projectId = Guid.NewGuid();
         var project = new ProjectModel()
@@ -116,6 +116,7 @@ public class ProjectService : IProjectService
                     ProjectId = projectId,
                     Activity = t.Activity,
                     Priority = (TaskPriority)t.Priority,
+                    CreatedOn = DateTime.UtcNow
                 }).ToList(),
             }).ToList(),
 
@@ -368,7 +369,7 @@ public class ProjectService : IProjectService
                     State = t.State.GetDisplayName()
                 }).ToList()
             }).ToList(),
-            Tasks = p.Tasks.Where(t => t.FeatureId == Guid.Empty).Select(t => new TaskDto()
+            Tasks = p.Tasks.Where(t => t.FeatureId == null).Select(t => new TaskDto()
             {
                 Id = t.Id,
                 Activity = t.Activity,

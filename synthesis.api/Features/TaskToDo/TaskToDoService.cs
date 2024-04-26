@@ -1,4 +1,4 @@
-using AutoMapper;
+ using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Extensions;
 using synthesis.api.Data.Models;
@@ -29,17 +29,43 @@ public class TaskToDoService : ITaskToDoService
 
     public async Task<GlobalResponse<TaskDto>> CreateTask(Guid projectId, CreateTaskDto createCommand)
     {
-        var projectExists = await _repository.Projects.AnyAsync(p => p.Id == projectId);
+        var project = await _repository.Projects.Select(p => new ProjectModel(){Id = p.Id, TeamId = p.TeamId}).FirstOrDefaultAsync();
 
-        if (!projectExists) return new GlobalResponse<TaskDto>(false, "create task failed", errors: [$"project with id: {projectId} not found"]);
+        if (project==null) return new GlobalResponse<TaskDto>(false, "create task failed", errors: [$"project with id: {projectId} not found"]);
 
+        var memberExists = false;
+        if (createCommand.MemberId != Guid.Empty)
+        {
+            memberExists = await _repository.Members.AnyAsync(m => m.Id == createCommand.MemberId && m.TeamId == project.TeamId);
+
+            if (!memberExists)
+            {
+                return new GlobalResponse<TaskDto>(false, "create task failed",
+                    errors: [$"member with id: {createCommand.MemberId} not found"]);
+            }
+        }
+        
+        var featureExists = false;
+        if (createCommand.FeatureId != Guid.Empty)
+        {
+            featureExists = await _repository.Features.AnyAsync(f => f.Id == createCommand.FeatureId && f.ProjectId == projectId);
+          
+            if (!featureExists)
+            {
+                return new GlobalResponse<TaskDto>(false, "create task failed", 
+                    errors: [$"feature with id: {createCommand.FeatureId} not found"]);
+            }
+        }
+        
         var task = new TaskToDoModel()
         {
             ProjectId = projectId,
             Activity = createCommand.Activity,
             State = TaskState.Pending,
             Priority = createCommand.Priority,
-            CreatedOn = DateTime.UtcNow
+            CreatedOn = DateTime.UtcNow,
+            MemberId = memberExists? createCommand.MemberId: null,
+            FeatureId = featureExists? createCommand.FeatureId:null
         };
 
         var validationResult = new TaskValidator().Validate(task);
@@ -72,8 +98,12 @@ public class TaskToDoService : ITaskToDoService
             Id = x.Id,
             Activity = x.Activity,
             State = x.State.GetDisplayName(),
-            Priority = x.Priority.GetDisplayName()
-        }).SingleOrDefaultAsync();
+            Priority = x.Priority.GetDisplayName(),
+            IsComplete = x.IsComplete,
+            AssignedOn = x.AssignedOn,
+            DueDate = x.DueDate
+            
+        }).FirstOrDefaultAsync();
 
         if (task == null) return new GlobalResponse<TaskDto>(false, "get task failed", errors: [$"task with id: {id} not found "]);
 
