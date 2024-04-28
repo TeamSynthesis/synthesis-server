@@ -1,6 +1,7 @@
 using Amazon.Runtime;
 using Amazon.S3;
 using Amazon.S3.Model;
+using Amazon.S3.Transfer;
 using synthesis.api.Mappings;
 using synthesis.api.Services.BlobStorage;
 
@@ -29,8 +30,6 @@ public class R2CloudStorage
 
     }
 
-
-
     public async Task<GlobalResponse<BlobDto>> UploadFileAsync(IFormFile file, string fileName)
     {
         var request = new PutObjectRequest
@@ -51,6 +50,15 @@ public class R2CloudStorage
 
         return new GlobalResponse<BlobDto>(false, "blob upload failed", errors: [$"something went wrong blob "]);
 
+    }
+
+    public async Task<GlobalResponse<BlobDto>> UploadFileFromUrl(string url, string fileName)
+    {
+        var transferUtility = new TransferUtility(_r2Client);
+        
+         await transferUtility.UploadAsync(url, _bucketName, fileName);
+
+         return new GlobalResponse<BlobDto>(true, "upload success", new BlobDto { Url = _publicAccessUrl + fileName });
     }
 
     public async Task<GlobalResponse<BlobDto>> DeleteFile(string fileName)

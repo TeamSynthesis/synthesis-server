@@ -10,7 +10,7 @@ using System.Text.Json;
 
 public interface IChatGptService
 {
-    Task<GlobalResponse<GeneratedPrePlanDto>> GenerateProject(string prompt);
+    Task<GlobalResponse<GeneratedPrePlanDto>> GeneratePreplan(string prompt);
 
 }
 public class ChatGptService : IChatGptService
@@ -22,31 +22,35 @@ public class ChatGptService : IChatGptService
     private readonly OpenAIClient _gpt4FCClient;
     private readonly IDalleService _dalleService;
     private readonly IImageOptimizerService _optimizerService;
-    
+
     public ChatGptService(IImageOptimizerService optimizerService)
     {
         _optimizerService = optimizerService;
 
-        _gpt3TurboClient = GptClients.GPT3Turbo();  
+        _gpt3TurboClient = GptClients.GPT3Turbo();
         _gpt3FCClient = GptClients.GPT3FC();
 
         _gpt4Client = GptClients.GPT4();
-        _gpt4FCClient = GptClients.GPT4FC();        
-        
+        _gpt4FCClient = GptClients.GPT4FC();
+
         _dalleService = new DalleService(_optimizerService);
     }
 
-    public async Task<GlobalResponse<GeneratedPrePlanDto>> GenerateProject(string prompt)
+    public async Task<GlobalResponse<GeneratedPrePlanDto>> GeneratePreplan(string prompt)
     {
+        //these variable are keeping the tasks which are to be triggered to generate the
+        //respective parts of the plan
         var overview = GetProjectOverview(prompt);
         var competitiveAnalysis = GetProjectCompetitiveAnalysis(prompt);
         var features = GetProjectFeatures(prompt);
         var branding = GetProjectBranding(prompt);
 
+        //intialize the generation of all parts of the preplan simultaneously  
         await Task.WhenAll(overview, competitiveAnalysis, features, branding);
 
 
-        var projectMetadata = new GeneratedPrePlanDto()
+        //map the  componeent parts of the preplan into one GeneratedPrePlanDto Object 
+        var preplan = new GeneratedPrePlanDto()
         {
             Overview = overview.Result,
             CompetitiveAnalysis = competitiveAnalysis.Result,
@@ -55,12 +59,14 @@ public class ChatGptService : IChatGptService
 
         };
 
-        if (projectMetadata == null)
+        //if the preplan is null then return an error
+        if (preplan == null)
         {
             return new GlobalResponse<GeneratedPrePlanDto>(false, "generate project failed", errors: ["something went wrong"]);
         }
 
-        return new GlobalResponse<GeneratedPrePlanDto>(true, "project generated successfully", projectMetadata);
+        //else return the mapped preplan
+        return new GlobalResponse<GeneratedPrePlanDto>(true, "project generated successfully", preplan);
     }
 
     private async Task<Overview> GetProjectOverview(string prompt)
@@ -192,8 +198,8 @@ public class ChatGptService : IChatGptService
 
         return branding;
     }
-    
-    
+
+
     private async Task<List<string>> GenerateImages(List<string> imagePrompts)
     {
         var images = new List<string>();

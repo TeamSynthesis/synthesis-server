@@ -12,9 +12,6 @@ namespace synthesis.api.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AlterDatabase()
-                .Annotation("Npgsql:PostgresExtension:hstore", ",,");
-
             migrationBuilder.CreateTable(
                 name: "Teams",
                 columns: table => new
@@ -84,37 +81,14 @@ namespace synthesis.api.Migrations
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     TeamId = table.Column<Guid>(type: "uuid", nullable: false),
                     Status = table.Column<int>(type: "integer", nullable: false),
-                    IsSuccess = table.Column<bool>(type: "boolean", nullable: false),
-                    Plan = table.Column<string>(type: "jsonb", nullable: true)
+                    Plan = table.Column<string>(type: "text", nullable: true),
+                    IsSuccess = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_PrePlans", x => x.Id);
                     table.ForeignKey(
                         name: "FK_PrePlans_Teams_TeamId",
-                        column: x => x.TeamId,
-                        principalTable: "Teams",
-                        principalColumn: "TeamId",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Projects",
-                columns: table => new
-                {
-                    ProjectId = table.Column<Guid>(type: "uuid", nullable: false),
-                    Name = table.Column<string>(type: "text", nullable: true),
-                    Description = table.Column<string>(type: "text", nullable: true),
-                    AvatarUrl = table.Column<string>(type: "text", nullable: true),
-                    CreatedOn = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    TeamId = table.Column<Guid>(type: "uuid", nullable: false),
-                    PrePlan = table.Column<string>(type: "jsonb", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Projects", x => x.ProjectId);
-                    table.ForeignKey(
-                        name: "FK_Projects_Teams_TeamId",
                         column: x => x.TeamId,
                         principalTable: "Teams",
                         principalColumn: "TeamId",
@@ -145,6 +119,34 @@ namespace synthesis.api.Migrations
                         column: x => x.UserId,
                         principalTable: "Users",
                         principalColumn: "UserId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Projects",
+                columns: table => new
+                {
+                    ProjectId = table.Column<Guid>(type: "uuid", nullable: false),
+                    Name = table.Column<string>(type: "text", nullable: true),
+                    Description = table.Column<string>(type: "text", nullable: true),
+                    AvatarUrl = table.Column<string>(type: "text", nullable: true),
+                    CreatedOn = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    TeamId = table.Column<Guid>(type: "uuid", nullable: false),
+                    PrePlanId = table.Column<Guid>(type: "uuid", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Projects", x => x.ProjectId);
+                    table.ForeignKey(
+                        name: "FK_Projects_PrePlans_PrePlanId",
+                        column: x => x.PrePlanId,
+                        principalTable: "PrePlans",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_Projects_Teams_TeamId",
+                        column: x => x.TeamId,
+                        principalTable: "Teams",
+                        principalColumn: "TeamId",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -237,6 +239,11 @@ namespace synthesis.api.Migrations
                 column: "TeamId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Projects_PrePlanId",
+                table: "Projects",
+                column: "PrePlanId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Projects_TeamId",
                 table: "Projects",
                 column: "TeamId");
@@ -279,9 +286,6 @@ namespace synthesis.api.Migrations
                 name: "Invites");
 
             migrationBuilder.DropTable(
-                name: "PrePlans");
-
-            migrationBuilder.DropTable(
                 name: "Tasks");
 
             migrationBuilder.DropTable(
@@ -295,6 +299,9 @@ namespace synthesis.api.Migrations
 
             migrationBuilder.DropTable(
                 name: "Users");
+
+            migrationBuilder.DropTable(
+                name: "PrePlans");
 
             migrationBuilder.DropTable(
                 name: "Teams");

@@ -43,7 +43,7 @@ public static class GptSystemMessages
                     guide: get the top 4 (if there are any this can vary depending on competition level) competitors with similiar exisiting apps. the sentiment is ona scale of 0.0 - 10.0.
                     for competitors logo url use https://logo.clearbit.com/{"domain"}
                     
-                    besture to do a brief swot analysis and identity the target audience for this app.
+                    be sure to do a brief swot analysis and identity the target audience for this app.
                     For each idea prompt, tailor the overview based on the specific project, produce a comprehensive and detailed project competitive analysis output.";
     }
 
@@ -79,12 +79,17 @@ public static class GptSystemMessages
 
                     icon: description:  a logo for the app , it should cover the whole area with a solid white background, 
                     Wireframes and MoodBoard
-                    wireframe: you are to generate a description for a wireframe featuring the primary, secondary and accent colors suggested in the palette, for a screen in the app., 
+                    wireframe: you are to generate an image generation prompt for dalle to use to create a realistic
+                    
+                    
+                    
+                    
+                     wireframe featuring the primary, secondary and accent colors suggested in the palette, for a screen in the app., 
                     moodboard: you are to generate a description for a realistic moodboard capturing the essence of the app and the color palette., 
                     
                     suggest a good icon description for possible icon featuring colors used in the palette for the app idea
                     suggest a Great Recomended ui font.
-                    suggest an slogan which is  meaningful, short and short
+                    suggest an slogan which is  meaningful, short and memorable
                     
                     for the imageUrl use this placeholder: https://eu.ui-avatars.com/api/?name=ic&size=350";
     }

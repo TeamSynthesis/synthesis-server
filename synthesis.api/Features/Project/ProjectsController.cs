@@ -70,6 +70,13 @@ public class ProjectsController : ControllerBase
         return Ok(response);
     }
 
+
+    /// <summary>
+    /// Generates a project based on the provided team ID and prompt.
+    /// </summary>
+    /// <param name="teamId">The ID of the team.</param>
+    /// <param name="prompt">The prompt for generating the project.</param>
+    /// <returns>The generated project response.</returns>
     [HttpPost("generate")]
     public async Task<IActionResult> GenerateProject([FromForm] Guid teamId, [FromForm] string prompt)
     {

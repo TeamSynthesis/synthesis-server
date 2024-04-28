@@ -48,8 +48,8 @@ public class ProjectService : IProjectService
     {
         var teamExists = await _repository.Teams.AnyAsync(t => t.Id == teamId);
         if (!teamExists) return new GlobalResponse<ProjectDto>(false, "create project failed", errors: [$"team with id: {teamId} not found"]);
-    
-    
+
+
         var project = new ProjectModel()
         {
             TeamId = teamId,
@@ -58,17 +58,17 @@ public class ProjectService : IProjectService
             Description = createCommand.Description,
             CreatedOn = DateTime.UtcNow
         };
-    
+
         var validationResult = await new ProjectValidator().ValidateAsync(project);
         if (!validationResult.IsValid)
         {
             return new GlobalResponse<ProjectDto>(false, "create project failed", errors: validationResult.Errors.Select(e => e.ErrorMessage).ToList());
         }
-    
-    
+
+
         await _repository.Projects.AddAsync(project);
         await _repository.SaveChangesAsync();
-    
+
         var projectToReturn = new ProjectDto()
         {
             Id = project.Id,
@@ -76,7 +76,7 @@ public class ProjectService : IProjectService
             Description = project.Description,
             AvatarUrl = project.AvatarUrl
         };
-    
+
         return new GlobalResponse<ProjectDto>(true, "create project success", projectToReturn);
     }
 
@@ -165,8 +165,14 @@ public class ProjectService : IProjectService
         return new GlobalResponse<ProjectDto>(true, "create project success", projectToReturn);
     }
 
+
     public async Task<GlobalResponse<string>> GenerateProject(Guid teamId, string prompt)
     {
+        /*here i initalize a new planId and a planDto 
+        which is to be stored in cache as a placeholder
+        for the preplan being generated
+        */
+
         var planId = Guid.NewGuid();
         var plan = new PlanDto()
         {
@@ -176,11 +182,13 @@ public class ProjectService : IProjectService
             IsSuccess = false
         };
 
-
+        //store the plan placeholder in cache and set an expiration time of 20 minutes
         _cache.SetData(planId.ToString(), plan, DateTimeOffset.UtcNow.AddMinutes(20));
 
+        //i initialize the preplan generation process on a background thread
         _ = Task.Run(async () => await HandleProjectGeneration(teamId, plan.Id, prompt));
 
+        //i return a plan id to the user which they will use to ping the get projects endpoint
         return new GlobalResponse<string>(true, "accepted", value: plan.Id.ToString());
 
     }
@@ -275,15 +283,23 @@ public class ProjectService : IProjectService
             IsSuccess = prePlanToSave.IsSuccess,
             Status = prePlanToSave.Status
         };
-        return new GlobalResponse<PlanDto>(true, "get generated project success", prePlanToReturn);
+        return new GlobalResponse<PlanDto>(true, "get generate  d project success", prePlanToReturn);
     }
 
     private async Task HandleProjectGeneration(Guid teamId, Guid planId, string prompt)
     {
-        var response = await _gptService.GenerateProject(prompt);
+        /*intialize the project generation 
+        by passing the idea prompt as a parameter
+        to the Generate Project method exposed by the GptService*/
+        var response = await _gptService.GeneratePreplan(prompt);
 
+
+        //retrieve the placeholder plandto in cache to be modified
         var plan = _cache.GetData<PlanDto>(planId.ToString());
 
+        //if the response from the project generation process is successful 
+        //modify the retrieved placeholder plandto and set the props to indicate 
+        //successful generation and write the plan with data to the cache
         if (response.IsSuccess)
         {
             plan.Id = planId;
@@ -296,7 +312,10 @@ public class ProjectService : IProjectService
             return;
         }
 
+        //else if reponse is not successfull set the plan status to failed
         plan.Status = PlanStatus.Failed;
+
+        //update the cache with the plan with an updated success.
         _cache.SetData(planId.ToString(), plan, DateTimeOffset.Now.AddMinutes(20));
 
     }
@@ -384,8 +403,6 @@ public class ProjectService : IProjectService
         }).FirstOrDefaultAsync();
 
         if (project == null) return new GlobalResponse<ProjectDto>(false, "get project failed", errors: [$"project with id: {id} not found"]);
-
-
 
         return new GlobalResponse<ProjectDto>(true, "get project success", project);
     }

@@ -46,6 +46,7 @@ public class ImageOptimizerService:IImageOptimizerService
         
         var resultUrl =(string) JsonObject.Parse(result.Content)["output"]["url"];
         
+        
         return resultUrl;
     }
 }
