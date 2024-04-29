@@ -3,14 +3,16 @@ using synthesis.api.Services.Tinify;
 namespace synthesis.api.Services.OpenAi;
 
 using Azure.AI.OpenAI;
+using Octokit;
 using synthesis.api.Data.Models;
+using synthesis.api.Data.Repository;
 using synthesis.api.Mappings;
 using synthesis.api.Services.OpenAi.Dtos;
 using System.Text.Json;
 
 public interface IChatGptService
 {
-    Task<GlobalResponse<GeneratedPrePlanDto>> GeneratePreplan(string prompt);
+    Task<GlobalResponse<GeneratedPrePlanDto>> GeneratePreplan(string prompt, List<GptTeamMemberDto> teamMembers);
 
 }
 public class ChatGptService : IChatGptService
@@ -22,6 +24,8 @@ public class ChatGptService : IChatGptService
     private readonly OpenAIClient _gpt4FCClient;
     private readonly IDalleService _dalleService;
     private readonly IImageOptimizerService _optimizerService;
+
+    private readonly RepositoryContext _repository;
 
     public ChatGptService(IImageOptimizerService optimizerService)
     {
@@ -36,18 +40,17 @@ public class ChatGptService : IChatGptService
         _dalleService = new DalleService(_optimizerService);
     }
 
-    public async Task<GlobalResponse<GeneratedPrePlanDto>> GeneratePreplan(string prompt)
+    public async Task<GlobalResponse<GeneratedPrePlanDto>> GeneratePreplan(string prompt, List<GptTeamMemberDto> teamMembers)
     {
         //these variable are keeping the tasks which are to be triggered to generate the
         //respective parts of the plan
         var overview = GetProjectOverview(prompt);
         var competitiveAnalysis = GetProjectCompetitiveAnalysis(prompt);
-        var features = GetProjectFeatures(prompt);
+        var features = GetProjectFeatures(prompt, teamMembers);
         var branding = GetProjectBranding(prompt);
 
         //intialize the generation of all parts of the preplan simultaneously  
         await Task.WhenAll(overview, competitiveAnalysis, features, branding);
-
 
         //map the  componeent parts of the preplan into one GeneratedPrePlanDto Object 
         var preplan = new GeneratedPrePlanDto()
@@ -55,7 +58,7 @@ public class ChatGptService : IChatGptService
             Overview = overview.Result,
             CompetitiveAnalysis = competitiveAnalysis.Result,
             Features = features.Result,
-            Branding = branding.Result
+            Branding = branding.Result,
 
         };
 
@@ -96,14 +99,15 @@ public class ChatGptService : IChatGptService
 
     }
 
-    private async Task<List<GptFeatureDto>> GetProjectFeatures(string prompt)
+    private async Task<List<GptFeatureDto>> GetProjectFeatures(string prompt, List<GptTeamMemberDto> teamMembers)
     {
+
         var ChatCompletionOptions = new ChatCompletionsOptions()
         {
-            DeploymentName = GptClients._GPT3TurboDeployment,
+            DeploymentName = GptClients._GPT4FCDeployment,
             Messages =
             {
-                new ChatRequestAssistantMessage(GptSystemMessages.GetFeaturesPrompt()),
+                new ChatRequestAssistantMessage(GptSystemMessages.GetFeaturesPrompt(teamMembers)),
                 new ChatRequestUserMessage(prompt)
             },
             Temperature = (float)0.8,
@@ -114,7 +118,7 @@ public class ChatGptService : IChatGptService
         };
 
 
-        var responseWithoutStream = await _gpt3TurboClient.GetChatCompletionsAsync(ChatCompletionOptions);
+        var responseWithoutStream = await _gpt4FCClient.GetChatCompletionsAsync(ChatCompletionOptions);
 
         var response = responseWithoutStream.Value;
 

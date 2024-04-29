@@ -1,5 +1,6 @@
 using System.Text.Json;
 using AutoMapper;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Extensions;
 using synthesis.api.Data.Models;
@@ -94,17 +95,21 @@ public class ProjectService : IProjectService
 
         if (generatedPreplan == null) return new GlobalResponse<ProjectDto>(false, "create project failed", errors: [$"plan was not generated successfully"]);
 
+        var teamMemberIds = _repository.Members.Where(m => m.TeamId == prePlan.TeamId).Select(x => x.Id).ToList();
+
         var projectId = Guid.NewGuid();
         var project = new ProjectModel()
         {
+
             Id = projectId,
             TeamId = prePlan.TeamId,
-
             Name = generatedPreplan.Overview.SuggestedNames.FirstOrDefault().Name,
 
             Description = generatedPreplan.Overview.Description,
 
             PrePlanId = planId,
+
+
 
             Features = generatedPreplan.Features.Select(f => new FeatureModel()
             {
@@ -113,8 +118,12 @@ public class ProjectService : IProjectService
                 Type = (FeatureType)f.Type,
                 Tasks = f.Tasks.Select(t => new TaskToDoModel()
                 {
+                    MemberId = teamMemberIds[new Random().Next(0, teamMemberIds.Count)],
+                    AssignedOn = DateTime.UtcNow,
+                    State = TaskState.InProgress,
                     ProjectId = projectId,
                     Activity = t.Activity,
+                    DueDate = DateTime.UtcNow.AddDays(new Random().Next(1, 14)),
                     Priority = (TaskPriority)t.Priority,
                     CreatedOn = DateTime.UtcNow
                 }).ToList(),
@@ -173,6 +182,14 @@ public class ProjectService : IProjectService
         for the preplan being generated
         */
 
+        var teamMembers = _repository.Members.Where(m => m.TeamId == teamId).Select(x => new GptTeamMemberDto()
+        {
+            Id = x.Id,
+            Skills = x.User.Skills
+        }).ToList();
+
+
+
         var planId = Guid.NewGuid();
         var plan = new PlanDto()
         {
@@ -186,7 +203,7 @@ public class ProjectService : IProjectService
         _cache.SetData(planId.ToString(), plan, DateTimeOffset.UtcNow.AddMinutes(20));
 
         //i initialize the preplan generation process on a background thread
-        _ = Task.Run(async () => await HandleProjectGeneration(teamId, plan.Id, prompt));
+        _ = Task.Run(async () => await HandleProjectGeneration(teamId, plan.Id, prompt, teamMembers));
 
         //i return a plan id to the user which they will use to ping the get projects endpoint
         return new GlobalResponse<string>(true, "accepted", value: plan.Id.ToString());
@@ -286,12 +303,12 @@ public class ProjectService : IProjectService
         return new GlobalResponse<PlanDto>(true, "get generate  d project success", prePlanToReturn);
     }
 
-    private async Task HandleProjectGeneration(Guid teamId, Guid planId, string prompt)
+    private async Task HandleProjectGeneration(Guid teamId, Guid planId, string prompt, List<GptTeamMemberDto> teamMembers)
     {
         /*intialize the project generation 
         by passing the idea prompt as a parameter
         to the Generate Project method exposed by the GptService*/
-        var response = await _gptService.GeneratePreplan(prompt);
+        var response = await _gptService.GeneratePreplan(prompt, teamMembers);
 
 
         //retrieve the placeholder plandto in cache to be modified

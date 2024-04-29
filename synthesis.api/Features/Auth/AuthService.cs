@@ -185,7 +185,7 @@ public class AuthService : IAuthService
         await _repository.Users.AddAsync(user);
         await _repository.SaveChangesAsync();
 
-        await SendConfirmationEmail(user, request);
+        // await SendConfirmationEmail(user, request);
 
         var token = _jwtManager.GenerateToken(user);
 

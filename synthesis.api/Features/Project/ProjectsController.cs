@@ -7,9 +7,11 @@ namespace synthesis.api.Features.Project;
 public class ProjectsController : ControllerBase
 {
     private readonly IProjectService _service;
-    public ProjectsController(IProjectService service)
+    private readonly IAnalyticsService _analyticsService;
+    public ProjectsController(IProjectService service, IAnalyticsService analyticsService)
     {
         _service = service;
+        _analyticsService = analyticsService;
     }
 
     [HttpPost]
@@ -43,6 +45,16 @@ public class ProjectsController : ControllerBase
     public async Task<IActionResult> GetProjectById(Guid id)
     {
         var response = await _service.GetProjectById(id);
+        if (!response.IsSuccess) return BadRequest(response);
+
+        return Ok(response.Data);
+    }
+
+
+    [HttpGet("{id:guid}/reports")]
+    public async Task<IActionResult> GetProjectReports(Guid id)
+    {
+        var response = await _analyticsService.GetProjectReports(id);
         if (!response.IsSuccess) return BadRequest(response);
 
         return Ok(response.Data);

@@ -36,10 +36,6 @@ public class DalleService : IDalleService
 
         var optimizedUrl = await _imageOptimizer.OptimizeImage(dalleUrl);
 
-        var imgId = Guid.NewGuid().ToString();
-
-        var uploadResponse =await new R2CloudStorage().UploadFileFromUrl(optimizedUrl, imgId);
-        
-        return uploadResponse.Data.Url;
+        return optimizedUrl;
     }
 }
