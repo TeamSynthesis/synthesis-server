@@ -285,6 +285,7 @@ public class TeamService : ITeamService
             PrePlans = t.PrePlans.Select(p=> new PlanDto()
             {
                 Id = p.Id,
+                TeamId = p.TeamId,
                 Plan = PrePlanDeserializer.DeserializePrePlanToPlanDto(p.Plan),
                 IsSuccess = p.IsSuccess,
                 Status = p.Status,
@@ -483,19 +484,19 @@ public class TeamService : ITeamService
 
         var recepients = invitations.Select(x => new InviteRecepientDto { Email = x.Email, Code = x.Code }).ToList();
 
-        var sendEmailResponses = new List<GlobalResponse<string>>();
+        // var sendEmailResponses = new List<GlobalResponse<string>>();
 
-        foreach (var recepient in recepients)
-        {
-            var sendEmailResponse = await _emailService.SendTeamInvitationEmail(team.Name, recepient);
-            sendEmailResponses.Add(sendEmailResponse);
-        }
+        // foreach (var recepient in recepients)
+        // {
+        //     var sendEmailResponse = await _emailService.SendTeamInvitationEmail(team.Name, recepient);
+        //     sendEmailResponses.Add(sendEmailResponse);
+        // }
 
-        if (sendEmailResponses.Any(r => r.IsSuccess == false))
-        {
+        // if (sendEmailResponses.Any(r => r.IsSuccess == false))
+        // {
 
-            return new GlobalResponse<List<InviteRecepientDto>>(true, "invites were sent but some were unsuccessful", recepients);
-        }
+        //     return new GlobalResponse<List<InviteRecepientDto>>(true, "invites were sent but some were unsuccessful", recepients);
+        // }
 
         return new GlobalResponse<List<InviteRecepientDto>>(true, "member invites success", recepients);
 

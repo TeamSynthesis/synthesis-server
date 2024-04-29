@@ -1,4 +1,5 @@
 using Azure.AI.OpenAI;
+using Synthesis.Api.Services.BlobStorage;
 using synthesis.api.Services.Tinify;
 
 namespace synthesis.api.Services.OpenAi;
@@ -34,7 +35,7 @@ public class DalleService : IDalleService
         var dalleUrl = response.Value.Data[0].Url.ToString();
 
         var optimizedUrl = await _imageOptimizer.OptimizeImage(dalleUrl);
-        
+
         return optimizedUrl;
     }
 }

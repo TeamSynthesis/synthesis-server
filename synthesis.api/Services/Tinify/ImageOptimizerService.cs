@@ -38,7 +38,14 @@ public class ImageOptimizerService:IImageOptimizerService
         request.Method =Method.Post;
 
         var result = await client.ExecuteAsync(request);
+
+        if (!result.IsSuccessful)
+        {
+            return url;
+        }
+        
         var resultUrl =(string) JsonObject.Parse(result.Content)["output"]["url"];
+        
         
         return resultUrl;
     }

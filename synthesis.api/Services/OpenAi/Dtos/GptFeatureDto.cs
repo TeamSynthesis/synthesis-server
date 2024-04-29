@@ -10,6 +10,7 @@ public class GptFeatureDto
 
 public class GptTaskDto
 {
+    public string? MemberId { get; set; }
     public string? Activity { get; set; }
     public int Priority { get; set; }
 }

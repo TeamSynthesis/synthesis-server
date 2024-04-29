@@ -15,11 +15,14 @@ public record TaskDto
 
 public record CreateTaskDto
 {
-    public string Activity { get; set; }
+    public string? Activity { get; set; }
     public TaskPriority Priority { get; set; }
-
-
+    
     public DateTime DueDate { get; set; }
+    
+    public Guid MemberId { get; set; }
+
+    public Guid FeatureId { get; set; }
     
 }
 

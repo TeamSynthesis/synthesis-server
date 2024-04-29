@@ -13,8 +13,8 @@ using synthesis.api.Data.Repository;
 namespace synthesis.api.Migrations
 {
     [DbContext(typeof(RepositoryContext))]
-    [Migration("20240411040620_init_remote")]
-    partial class init_remote
+    [Migration("20240428210544_init")]
+    partial class init
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -157,7 +157,7 @@ namespace synthesis.api.Migrations
                     b.Property<string>("Name")
                         .HasColumnType("text");
 
-                    b.Property<Guid>("PrePlanId")
+                    b.Property<Guid?>("PrePlanId")
                         .HasColumnType("uuid");
 
                     b.Property<Guid>("TeamId")
@@ -357,9 +357,7 @@ namespace synthesis.api.Migrations
                 {
                     b.HasOne("synthesis.api.Data.Models.PrePlanModel", "PrePlan")
                         .WithMany()
-                        .HasForeignKey("PrePlanId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("PrePlanId");
 
                     b.HasOne("synthesis.api.Data.Models.TeamModel", "Team")
                         .WithMany("Projects")

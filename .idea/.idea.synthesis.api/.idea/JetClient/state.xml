@@ -6,13 +6,62 @@
         <option name="requests">
           <list>
             <requestState>
-              <option name="id" value="ac3dd2fa-174c-45fd-9aa1-9200f7a7dca1" />
-              <option name="method" value="GET" />
-              <option name="name" value="Draft" />
+              <option name="auth">
+                <authState>
+                  <option name="bearer">
+                    <jP>
+                      <option name="token" value="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjBlOWJmZGM5LWZiMzItNDc5Yi1iYmY3LTAzMTdhNWE3ZGY5OSIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL2VtYWlsYWRkcmVzcyI6Im1hbmFib3lAZ21haWwuY29tIiwiZXhwIjoxNzE2MjMwMTExLCJpc3MiOiJodHRwOi8vbG9jYWxob3N0OjUyNDciLCJhdWQiOiJodHRwOi8vbG9jYWxob3N0OjUyNDcifQ.91I5j3oOY28u_Tq3b77uLpU1kvys5c0g6ycZBIFFu_k" />
+                    </jP>
+                  </option>
+                  <option name="type" value="BEARER" />
+                </authState>
+              </option>
+              <option name="body">
+                <bodyState>
+                  <option name="raw" value="{&#10;  &quot;Activity&quot; : &quot;authv2&quot;, &#10; &quot;Priority&quot; : 0,&#10;  &quot;memberId&quot;:&quot;78f2583a-7954-4329-a052-ab21aa1c23e3&quot;&#10;}" />
+                  <option name="type" value="JSON" />
+                </bodyState>
+              </option>
+              <option name="headers">
+                <list>
+                  <headerState>
+                    <option name="key" value="Content-Type" />
+                    <option name="value" value="application/json" />
+                  </headerState>
+                </list>
+              </option>
+              <option name="id" value="9fc0ff2b-949a-4445-87bd-7e96aa59d600" />
+              <option name="method" value="POST" />
+              <option name="name" value="login" />
+              <option name="queryParams">
+                <list>
+                  <queryParamState>
+                    <option name="key" value="projectId" />
+                    <option name="value" value="56e2e540-6ba5-4c46-adc3-b151f1a21442" />
+                  </queryParamState>
+                </list>
+              </option>
+              <option name="url" value="http://localhost:5245/api/tasks/?projectId=56e2e540-6ba5-4c46-adc3-b151f1a21442" />
             </requestState>
           </list>
         </option>
       </draftsState>
+    </option>
+    <option name="folders">
+      <list>
+        <folderState>
+          <option name="icon" value="TEST_ROOT" />
+          <option name="id" value="c39d3d1c-564d-4d88-8ed0-d28df5617f86" />
+          <option name="name" value="synthesis.api" />
+          <option name="sortWeight" value="1000000" />
+          <option name="syncProperties">
+            <synchronizationPropertiesState>
+              <option name="folderPath" value="C:\Users\Manasseh\source\repos\synthesis.api\.jetclient" />
+            </synchronizationPropertiesState>
+          </option>
+          <option name="testSuite" value="true" />
+        </folderState>
+      </list>
     </option>
     <option name="id" value="4296ac6c-5c99-45f7-8725-7f76e8c7ca47" />
   </component>

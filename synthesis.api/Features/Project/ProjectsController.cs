@@ -7,9 +7,11 @@ namespace synthesis.api.Features.Project;
 public class ProjectsController : ControllerBase
 {
     private readonly IProjectService _service;
-    public ProjectsController(IProjectService service)
+    private readonly IAnalyticsService _analyticsService;
+    public ProjectsController(IProjectService service, IAnalyticsService analyticsService)
     {
         _service = service;
+        _analyticsService = analyticsService;
     }
 
     [HttpPost]
@@ -48,6 +50,16 @@ public class ProjectsController : ControllerBase
         return Ok(response.Data);
     }
 
+
+    [HttpGet("{id:guid}/reports")]
+    public async Task<IActionResult> GetProjectReports(Guid id)
+    {
+        var response = await _analyticsService.GetProjectReports(id);
+        if (!response.IsSuccess) return BadRequest(response);
+
+        return Ok(response.Data);
+    }
+
     [HttpGet("{id:guid}/all", Name = "ProjectWithResourcesById")]
     public async Task<IActionResult> GetProjectWithResources(Guid id)
     {
@@ -70,6 +82,13 @@ public class ProjectsController : ControllerBase
         return Ok(response);
     }
 
+
+    /// <summary>
+    /// Generates a project based on the provided team ID and prompt.
+    /// </summary>
+    /// <param name="teamId">The ID of the team.</param>
+    /// <param name="prompt">The prompt for generating the project.</param>
+    /// <returns>The generated project response.</returns>
     [HttpPost("generate")]
     public async Task<IActionResult> GenerateProject([FromForm] Guid teamId, [FromForm] string prompt)
     {

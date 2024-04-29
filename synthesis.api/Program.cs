@@ -7,11 +7,12 @@ using synthesis.api.Exceptions;
 using synthesis.api.Features.Auth;
 using Synthesis.Api.Services.BlobStorage;
 using System.Text.Json.Serialization;
+using Microsoft.Net.Http.Headers;
+using synthesis.api.Services.Notifications;
 
 var builder = WebApplication.CreateBuilder(args);
 
 
-builder.Services.ConfigureCors();
 builder.Services.ConfigurePostgresContext(builder.Configuration);
 
 builder.Services.AddAutoMapper(typeof(Program));
@@ -33,6 +34,7 @@ builder.Services.Scan(x =>
     .WithScopedLifetime()
 );
 
+builder.Services.AddSignalR();
 builder.Services.AddHttpClient();
 builder.Services.AddControllers()
 .AddJsonOptions(opt => opt.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull);
@@ -65,10 +67,12 @@ builder.Services.AddSwaggerGen(opt =>
     });
 });
 
+
 builder.Services.ConfigureAuthentication(builder.Configuration);
 
 var app = builder.Build();
 
+app.UseCors(p => { p.AllowAnyHeader().AllowAnyOrigin().AllowAnyMethod(); });
 
 app.UseSwagger();
 app.UseSwaggerUI();
@@ -79,6 +83,8 @@ app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 
+
+app.MapHub<NotificationHub>("/notifications");
 
 app.MapControllers().RequireAuthorization();
 

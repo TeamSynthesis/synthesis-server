@@ -1,5 +1,6 @@
 using System.Text.Json;
 using AutoMapper;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Extensions;
 using synthesis.api.Data.Models;
@@ -48,8 +49,8 @@ public class ProjectService : IProjectService
     {
         var teamExists = await _repository.Teams.AnyAsync(t => t.Id == teamId);
         if (!teamExists) return new GlobalResponse<ProjectDto>(false, "create project failed", errors: [$"team with id: {teamId} not found"]);
-    
-    
+
+
         var project = new ProjectModel()
         {
             TeamId = teamId,
@@ -58,17 +59,17 @@ public class ProjectService : IProjectService
             Description = createCommand.Description,
             CreatedOn = DateTime.UtcNow
         };
-    
+
         var validationResult = await new ProjectValidator().ValidateAsync(project);
         if (!validationResult.IsValid)
         {
             return new GlobalResponse<ProjectDto>(false, "create project failed", errors: validationResult.Errors.Select(e => e.ErrorMessage).ToList());
         }
-    
-    
+
+
         await _repository.Projects.AddAsync(project);
         await _repository.SaveChangesAsync();
-    
+
         var projectToReturn = new ProjectDto()
         {
             Id = project.Id,
@@ -76,7 +77,7 @@ public class ProjectService : IProjectService
             Description = project.Description,
             AvatarUrl = project.AvatarUrl
         };
-    
+
         return new GlobalResponse<ProjectDto>(true, "create project success", projectToReturn);
     }
 
@@ -92,19 +93,23 @@ public class ProjectService : IProjectService
 
         var generatedPreplan = JsonSerializer.Deserialize<GeneratedPrePlanDto>(prePlan.Plan);
 
-        if (generatedPreplan == null) return new GlobalResponse<ProjectDto>(false, "create project failed", errors: [$"plan was not generated succesfully"]);
+        if (generatedPreplan == null) return new GlobalResponse<ProjectDto>(false, "create project failed", errors: [$"plan was not generated successfully"]);
+
+        var teamMemberIds = _repository.Members.Where(m => m.TeamId == prePlan.TeamId).Select(x => x.Id).ToList();
 
         var projectId = Guid.NewGuid();
         var project = new ProjectModel()
         {
+
             Id = projectId,
             TeamId = prePlan.TeamId,
-
             Name = generatedPreplan.Overview.SuggestedNames.FirstOrDefault().Name,
 
             Description = generatedPreplan.Overview.Description,
 
             PrePlanId = planId,
+
+
 
             Features = generatedPreplan.Features.Select(f => new FeatureModel()
             {
@@ -113,9 +118,14 @@ public class ProjectService : IProjectService
                 Type = (FeatureType)f.Type,
                 Tasks = f.Tasks.Select(t => new TaskToDoModel()
                 {
+                    MemberId = teamMemberIds[new Random().Next(0, teamMemberIds.Count)],
+                    AssignedOn = DateTime.UtcNow,
+                    State = TaskState.InProgress,
                     ProjectId = projectId,
                     Activity = t.Activity,
+                    DueDate = DateTime.UtcNow.AddDays(new Random().Next(1, 14)),
                     Priority = (TaskPriority)t.Priority,
+                    CreatedOn = DateTime.UtcNow
                 }).ToList(),
             }).ToList(),
 
@@ -164,8 +174,22 @@ public class ProjectService : IProjectService
         return new GlobalResponse<ProjectDto>(true, "create project success", projectToReturn);
     }
 
+
     public async Task<GlobalResponse<string>> GenerateProject(Guid teamId, string prompt)
     {
+        /*here i initalize a new planId and a planDto 
+        which is to be stored in cache as a placeholder
+        for the preplan being generated
+        */
+
+        var teamMembers = _repository.Members.Where(m => m.TeamId == teamId).Select(x => new GptTeamMemberDto()
+        {
+            Id = x.Id,
+            Skills = x.User.Skills
+        }).ToList();
+
+
+
         var planId = Guid.NewGuid();
         var plan = new PlanDto()
         {
@@ -175,11 +199,13 @@ public class ProjectService : IProjectService
             IsSuccess = false
         };
 
-
+        //store the plan placeholder in cache and set an expiration time of 20 minutes
         _cache.SetData(planId.ToString(), plan, DateTimeOffset.UtcNow.AddMinutes(20));
 
-        _ = Task.Run(async () => await HandleProjectGeneration(teamId, plan.Id, prompt));
+        //i initialize the preplan generation process on a background thread
+        _ = Task.Run(async () => await HandleProjectGeneration(teamId, plan.Id, prompt, teamMembers));
 
+        //i return a plan id to the user which they will use to ping the get projects endpoint
         return new GlobalResponse<string>(true, "accepted", value: plan.Id.ToString());
 
     }
@@ -274,15 +300,23 @@ public class ProjectService : IProjectService
             IsSuccess = prePlanToSave.IsSuccess,
             Status = prePlanToSave.Status
         };
-        return new GlobalResponse<PlanDto>(true, "get generated project success", prePlanToReturn);
+        return new GlobalResponse<PlanDto>(true, "get generate  d project success", prePlanToReturn);
     }
 
-    private async Task HandleProjectGeneration(Guid teamId, Guid planId, string prompt)
+    private async Task HandleProjectGeneration(Guid teamId, Guid planId, string prompt, List<GptTeamMemberDto> teamMembers)
     {
-        var response = await _gptService.GenerateProject(prompt);
+        /*intialize the project generation 
+        by passing the idea prompt as a parameter
+        to the Generate Project method exposed by the GptService*/
+        var response = await _gptService.GeneratePreplan(prompt, teamMembers);
 
+
+        //retrieve the placeholder plandto in cache to be modified
         var plan = _cache.GetData<PlanDto>(planId.ToString());
 
+        //if the response from the project generation process is successful 
+        //modify the retrieved placeholder plandto and set the props to indicate 
+        //successful generation and write the plan with data to the cache
         if (response.IsSuccess)
         {
             plan.Id = planId;
@@ -295,7 +329,10 @@ public class ProjectService : IProjectService
             return;
         }
 
+        //else if reponse is not successfull set the plan status to failed
         plan.Status = PlanStatus.Failed;
+
+        //update the cache with the plan with an updated success.
         _cache.SetData(planId.ToString(), plan, DateTimeOffset.Now.AddMinutes(20));
 
     }
@@ -368,7 +405,7 @@ public class ProjectService : IProjectService
                     State = t.State.GetDisplayName()
                 }).ToList()
             }).ToList(),
-            Tasks = p.Tasks.Where(t => t.FeatureId == Guid.Empty).Select(t => new TaskDto()
+            Tasks = p.Tasks.Where(t => t.FeatureId == null).Select(t => new TaskDto()
             {
                 Id = t.Id,
                 Activity = t.Activity,
@@ -383,8 +420,6 @@ public class ProjectService : IProjectService
         }).FirstOrDefaultAsync();
 
         if (project == null) return new GlobalResponse<ProjectDto>(false, "get project failed", errors: [$"project with id: {id} not found"]);
-
-
 
         return new GlobalResponse<ProjectDto>(true, "get project success", project);
     }
